@@ -1,0 +1,352 @@
+'use client';
+
+import { useState } from 'react';
+import { useRegister } from '../hooks/useAuth';
+import Modal from '../../components/Modal';
+import SlideArrowButton from '../../components/slide-arrow-button';
+
+// Add Google Fonts link for Pacifico
+if (typeof document !== 'undefined') {
+  const link = document.createElement('link');
+  link.href = 'https://fonts.googleapis.com/css2?family=Pacifico&display=swap';
+  link.rel = 'stylesheet';
+  if (!document.querySelector(`link[href="${link.href}"]`)) {
+    document.head.appendChild(link);
+  }
+}
+
+interface RegisterFormData {
+  fullName: string;
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface RegisterSuccessResponse {
+  user: {
+    email: string;
+    id?: string;
+    username?: string;
+    fullName?: string;
+  };
+  message?: string;
+  token?: string;
+}
+
+interface RegisterModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (data: RegisterSuccessResponse) => void;
+  onError: (error: string) => void;
+}
+
+interface ValidationErrors {
+  fullName?: string;
+  username?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: RegisterModalProps) {
+  const [formData, setFormData] = useState<RegisterFormData>({
+    fullName: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Validation functions
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
+
+    // Full name validation
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Họ và tên là bắt buộc';
+    }
+
+    // Username validation
+    if (!formData.username.trim()) {
+      newErrors.username = 'Tên đăng nhập là bắt buộc';
+    } else if (formData.username.length < 8 || formData.username.length > 15) {
+      newErrors.username = 'Tên đăng nhập phải từ 8 đến 15 ký tự';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      newErrors.username = 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới';
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email là bắt buộc';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Định dạng email không hợp lệ';
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Mật khẩu là bắt buộc';
+    } else if (formData.password.length < 6 || formData.password.length > 12) {
+      newErrors.password = 'Mật khẩu phải từ 6 đến 12 ký tự';
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/.test(formData.password)) {
+      newErrors.password = 'Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt';
+    }
+
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Xác nhận mật khẩu là bắt buộc';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Mật khẩu và xác nhận mật khẩu không khớp';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // TanStack Query mutation for registration using custom hook
+  const registerMutation = useRegister({
+    onSuccess: (data) => {
+      onSuccess(data);
+      handleClose();
+    },
+    onError: (error) => {
+      onError(error);
+    },
+    onFieldError: (fieldErrors) => {
+      setErrors(fieldErrors);
+    }
+  });
+
+  const handleInputChange = (field: keyof RegisterFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      registerMutation.mutate(formData);
+    }
+  };
+
+  const handleClose = () => {
+    setFormData({
+      fullName: '',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+    setErrors({});
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 backdrop-blur-sm bg-opacity-15 flex items-center justify-center z-50">
+      {/* Logo Section - Outside Modal */}
+      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 text-center z-60 ">
+        <h1 
+          className="text-white font-pacifico mb-2"
+          style={{ 
+            fontFamily: "'Pacifico', cursive",
+            fontSize: '32px',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+          }}
+        >
+          TicketXpress
+        </h1>
+      </div>
+
+      {/* Modal Content */}
+      <Modal
+        isOpen={true}
+        onClose={handleClose}
+        title="" // Remove default title
+        modalSize="lg"
+        showCloseButton={true}
+        contentClassName="space-y-6"
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Đăng Ký</h2>
+        </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-4"
+        style={{ minHeight: '400px' }} // Fixed minimum height to prevent layout shift
+      >
+        {/* Full Name */}
+        <div>
+          <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+            Họ và tên
+          </label>
+          <input
+            type="text"
+            id="fullName"
+            value={formData.fullName}
+            onChange={(e) => handleInputChange('fullName', e.target.value)}
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+              errors.fullName ? 'border-red-500' : 'border-gray-300'
+            }`}
+            placeholder="Nhập họ và tên"
+          />
+          {errors.fullName && (
+            <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+          )}
+        </div>
+
+        {/* Username */}
+        <div>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+            Tên đăng nhập
+          </label>
+          <input
+            type="text"
+            id="username"
+            value={formData.username}
+            onChange={(e) => handleInputChange('username', e.target.value)}
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+              errors.username ? 'border-red-500' : 'border-gray-300'
+            }`}
+            placeholder="Nhập tên đăng nhập (8-15 ký tự)"
+          />
+          {errors.username && (
+            <p className="text-red-500 text-sm mt-1">{errors.username}</p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={formData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+              errors.email ? 'border-red-500' : 'border-gray-300'
+            }`}
+            placeholder="Nhập địa chỉ email"
+          />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
+        </div>
+
+        {/* Password */}
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            Mật khẩu
+          </label>
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              value={formData.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
+              className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+                errors.password ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Nhập mật khẩu (6-12 ký tự)"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? (
+                <svg className="w-5 h-5" viewBox="0 -2.5 150 150" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <g clipPath="url(#ZEL08Dv)">
+                    <path d="M39.0478 34.6819C39.0478 32.648 37.5864 31.3404 36.5421 29.8367C33.5166 25.4822 30.3701 21.2073 27.4421 16.7887C25.0542 13.3537 23.3755 9.48112 22.5031 5.39577C22.3673 4.65114 22.4115 3.88511 22.6324 3.16096C22.8534 2.4368 23.2449 1.77545 23.7739 1.23164C24.2851 0.680395 24.9511 0.2951 25.6855 0.126166C26.42 -0.0427667 27.1886 0.0124123 27.8911 0.28452C30.0721 1.24255 31.5861 2.93279 33.0442 4.66437C38.9053 11.6244 44.737 18.6093 50.5391 25.6194C56.114 32.325 61.7693 38.9673 67.204 45.7822C73.1106 53.1883 78.8006 60.7644 84.5921 68.2613C86.2148 70.3612 87.7679 72.5232 89.5143 74.517C97.2694 83.3697 104.225 92.8362 111.317 102.207C114.058 105.829 117.142 109.191 119.924 112.784C126.417 121.172 132.854 129.603 139.235 138.076C140.732 140.067 140.131 142.991 138.304 144.107C137.46 144.547 136.501 144.719 135.555 144.6C134.611 144.481 133.725 144.075 133.019 143.439C131.949 142.372 130.921 141.259 129.923 140.126C121.399 130.453 112.877 120.779 104.358 111.104C103.877 110.514 103.246 110.062 102.531 109.795C101.816 109.527 101.043 109.453 100.289 109.58C97.6683 110.015 95.0663 110.56 92.4526 111.042C78.2313 113.666 64.4377 111.717 50.9334 107.064C39.0212 102.959 27.6965 97.6374 17.4552 90.2495C14.3517 88.0674 11.4231 85.649 8.69545 83.0169C6.57809 80.8536 4.73744 78.4384 3.21508 75.8265C-0.133191 70.2531 0.262281 67.6586 4.86046 62.6825C13.3828 53.4909 23.0881 45.4595 33.7244 38.7964C35.6171 37.6027 37.9573 36.9449 39.0478 34.6819ZM59.904 58.3091C56.8622 53.4872 52.9713 49.3917 48.8565 45.5194C48.1701 44.8721 46.7158 44.7744 45.6506 44.8592C44.5253 45.0207 43.4424 45.3989 42.4625 45.9725C31.3038 51.7621 21.274 59.1519 11.8909 67.4463C11.5244 67.7421 11.222 68.1085 11.0016 68.5241C10.7813 68.939 10.6475 69.3941 10.6086 69.8621C10.5697 70.3301 10.6263 70.8014 10.7751 71.2467C10.9239 71.6921 11.1618 72.1031 11.4744 72.4553C13.9915 75.2821 16.8965 77.7426 20.1035 79.7642C31.2258 87.1618 43.3428 92.4517 56.1249 96.2165C66.4375 99.2518 76.9937 99.7949 87.6502 98.4303C88.4531 98.3572 89.2221 98.0749 89.88 97.6108C90.5378 97.1467 91.0602 96.5181 91.3947 95.7886C90.3478 94.4053 89.2052 92.921 88.0893 91.4172C85.2531 87.5948 82.0747 84.5556 76.686 86.0814C75.9345 86.1843 75.1732 86.1888 74.421 86.0943C66.3568 86.1008 56.593 79.4521 57.9893 67.2087C58.3244 64.2612 59.226 61.38 59.904 58.3066V58.3091Z" fill="currentColor"/>
+                    <path d="M120.901 100.556C118.15 99.0719 116.36 96.7189 114.748 94.0221C114.243 93.1955 114.048 92.2168 114.198 91.2607C114.348 90.3046 114.834 89.432 115.568 88.7976C115.891 88.5193 116.235 88.2662 116.598 88.0415C120.808 85.462 124.702 82.4066 128.205 78.9357C141.854 65.4895 141.113 68.7837 128.205 56.1423C120.202 48.3097 110.08 43.807 99.3736 40.7465C92.7877 38.8641 86.056 37.6969 79.1454 37.9629C77.2488 38.0367 75.3475 37.9939 73.4496 38.0399C70.5789 38.1105 68.3224 36.8244 66.4615 34.8125C65.4446 33.712 64.6267 32.4284 63.7151 31.2309C63.1504 30.4884 63.8394 28.8028 64.7724 28.4946C72.1769 26.0484 79.7674 26.3124 87.3306 27.2284C108.087 29.7426 125.533 39.1391 140.609 53.1951C143.076 55.4943 145.103 58.2926 147.147 60.9997C148.7 63.1812 149.52 65.7957 149.489 68.4685C149.52 69.9372 149.474 71.6591 148.761 72.8508C142.094 84.0022 134.4 94.2209 122.261 100.128C121.817 100.3 121.363 100.443 120.901 100.556Z" fill="currentColor"/>
+                    <path d="M96.9916 66.2163C96.8068 67.6812 95.715 70.9754 95.1697 70.3009C90.9073 65.0576 84.4704 57.3836 80.3836 52.0017C80.2157 51.7187 80.1214 51.3985 80.109 51.0701C80.0967 50.7417 80.1663 50.4155 80.312 50.1206C80.5703 49.8652 80.882 49.6689 81.2242 49.5453C81.5665 49.4218 81.9322 49.374 82.2946 49.4053C85.6656 49.9392 88.8005 51.4571 91.3029 53.7664C95.158 57.2775 97.5329 61.9193 96.9916 66.2163Z" fill="currentColor"/>
+                  </g>
+                  <defs>
+                    <clipPath id="ZEL08Dv">
+                      <rect width="149" height="145" fill="white" transform="translate(0.777344)"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="none" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" d="M1,32c0,0,11,15,31,15s31-15,31-15S52,17,32,17 S1,32,1,32z"/>
+                  <circle fill="none" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" cx="32" cy="32" r="7"/>
+                </svg>
+              )}
+            </button>
+          </div>
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
+        </div>
+
+        {/* Confirm Password */}
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            Xác nhận mật khẩu
+          </label>
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              id="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+              className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+                errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Nhập lại mật khẩu"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+            >
+              {showConfirmPassword ? (
+                <svg className="w-5 h-5" viewBox="0 -2.5 150 150" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <g clipPath="url(#ZEL08Dv2)">
+                    <path d="M39.0478 34.6819C39.0478 32.648 37.5864 31.3404 36.5421 29.8367C33.5166 25.4822 30.3701 21.2073 27.4421 16.7887C25.0542 13.3537 23.3755 9.48112 22.5031 5.39577C22.3673 4.65114 22.4115 3.88511 22.6324 3.16096C22.8534 2.4368 23.2449 1.77545 23.7739 1.23164C24.2851 0.680395 24.9511 0.2951 25.6855 0.126166C26.42 -0.0427667 27.1886 0.0124123 27.8911 0.28452C30.0721 1.24255 31.5861 2.93279 33.0442 4.66437C38.9053 11.6244 44.737 18.6093 50.5391 25.6194C56.114 32.325 61.7693 38.9673 67.204 45.7822C73.1106 53.1883 78.8006 60.7644 84.5921 68.2613C86.2148 70.3612 87.7679 72.5232 89.5143 74.517C97.2694 83.3697 104.225 92.8362 111.317 102.207C114.058 105.829 117.142 109.191 119.924 112.784C126.417 121.172 132.854 129.603 139.235 138.076C140.732 140.067 140.131 142.991 138.304 144.107C137.46 144.547 136.501 144.719 135.555 144.6C134.611 144.481 133.725 144.075 133.019 143.439C131.949 142.372 130.921 141.259 129.923 140.126C121.399 130.453 112.877 120.779 104.358 111.104C103.877 110.514 103.246 110.062 102.531 109.795C101.816 109.527 101.043 109.453 100.289 109.58C97.6683 110.015 95.0663 110.56 92.4526 111.042C78.2313 113.666 64.4377 111.717 50.9334 107.064C39.0212 102.959 27.6965 97.6374 17.4552 90.2495C14.3517 88.0674 11.4231 85.649 8.69545 83.0169C6.57809 80.8536 4.73744 78.4384 3.21508 75.8265C-0.133191 70.2531 0.262281 67.6586 4.86046 62.6825C13.3828 53.4909 23.0881 45.4595 33.7244 38.7964C35.6171 37.6027 37.9573 36.9449 39.0478 34.6819ZM59.904 58.3091C56.8622 53.4872 52.9713 49.3917 48.8565 45.5194C48.1701 44.8721 46.7158 44.7744 45.6506 44.8592C44.5253 45.0207 43.4424 45.3989 42.4625 45.9725C31.3038 51.7621 21.274 59.1519 11.8909 67.4463C11.5244 67.7421 11.222 68.1085 11.0016 68.5241C10.7813 68.939 10.6475 69.3941 10.6086 69.8621C10.5697 70.3301 10.6263 70.8014 10.7751 71.2467C10.9239 71.6921 11.1618 72.1031 11.4744 72.4553C13.9915 75.2821 16.8965 77.7426 20.1035 79.7642C31.2258 87.1618 43.3428 92.4517 56.1249 96.2165C66.4375 99.2518 76.9937 99.7949 87.6502 98.4303C88.4531 98.3572 89.2221 98.0749 89.88 97.6108C90.5378 97.1467 91.0602 96.5181 91.3947 95.7886C90.3478 94.4053 89.2052 92.921 88.0893 91.4172C85.2531 87.5948 82.0747 84.5556 76.686 86.0814C75.9345 86.1843 75.1732 86.1888 74.421 86.0943C66.3568 86.1008 56.593 79.4521 57.9893 67.2087C58.3244 64.2612 59.226 61.38 59.904 58.3066V58.3091Z" fill="currentColor"/>
+                    <path d="M120.901 100.556C118.15 99.0719 116.36 96.7189 114.748 94.0221C114.243 93.1955 114.048 92.2168 114.198 91.2607C114.348 90.3046 114.834 89.432 115.568 88.7976C115.891 88.5193 116.235 88.2662 116.598 88.0415C120.808 85.462 124.702 82.4066 128.205 78.9357C141.854 65.4895 141.113 68.7837 128.205 56.1423C120.202 48.3097 110.08 43.807 99.3736 40.7465C92.7877 38.8641 86.056 37.6969 79.1454 37.9629C77.2488 38.0367 75.3475 37.9939 73.4496 38.0399C70.5789 38.1105 68.3224 36.8244 66.4615 34.8125C65.4446 33.712 64.6267 32.4284 63.7151 31.2309C63.1504 30.4884 63.8394 28.8028 64.7724 28.4946C72.1769 26.0484 79.7674 26.3124 87.3306 27.2284C108.087 29.7426 125.533 39.1391 140.609 53.1951C143.076 55.4943 145.103 58.2926 147.147 60.9997C148.7 63.1812 149.52 65.7957 149.489 68.4685C149.52 69.9372 149.474 71.6591 148.761 72.8508C142.094 84.0022 134.4 94.2209 122.261 100.128C121.817 100.3 121.363 100.443 120.901 100.556Z" fill="currentColor"/>
+                    <path d="M96.9916 66.2163C96.8068 67.6812 95.715 70.9754 95.1697 70.3009C90.9073 65.0576 84.4704 57.3836 80.3836 52.0017C80.2157 51.7187 80.1214 51.3985 80.109 51.0701C80.0967 50.7417 80.1663 50.4155 80.312 50.1206C80.5703 49.8652 80.882 49.6689 81.2242 49.5453C81.5665 49.4218 81.9322 49.374 82.2946 49.4053C85.6656 49.9392 88.8005 51.4571 91.3029 53.7664C95.158 57.2775 97.5329 61.9193 96.9916 66.2163Z" fill="currentColor"/>
+                  </g>
+                  <defs>
+                    <clipPath id="ZEL08Dv2">
+                      <rect width="149" height="145" fill="white" transform="translate(0.777344)"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="none" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" d="M1,32c0,0,11,15,31,15s31-15,31-15S52,17,32,17 S1,32,1,32z"/>
+                  <circle fill="none" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" cx="32" cy="32" r="7"/>
+                </svg>
+              )}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <SlideArrowButton
+          type="submit"
+          disabled={registerMutation.isPending}
+          primaryColor="#713dff"
+          text={registerMutation.isPending ? "Đang đăng ký..." : "Đăng Ký"}
+          className={`w-full transition-opacity ${registerMutation.isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
+        />
+      </form>
+    </Modal>
+    </div>
+  );
+}

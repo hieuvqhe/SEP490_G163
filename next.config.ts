@@ -1,14 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: '/api-proxy/:path*',
-        destination: 'http://localhost:5143/api/:path*',
-      },
-    ];
-  },
+  // No proxy needed since backend has CORS configured
 };
 
 export default nextConfig;
