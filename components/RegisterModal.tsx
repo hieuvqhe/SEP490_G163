@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRegister } from '../hooks/useAuth';
-import Modal from '../../components/Modal';
-import SlideArrowButton from '../../components/slide-arrow-button';
+import ForgotPasswordModal from './ForgotPasswordModal';
+import { useRegister } from '@/hooks/useAuth';
+import Modal from '@/components/Modal';
+import SlideArrowButton from '@/components/slide-arrow-button';
+import { useToast } from '@/components/ToastProvider';
 
 // Add Google Fonts link for Pacifico
 if (typeof document !== 'undefined') {
@@ -38,7 +40,7 @@ interface RegisterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (data: RegisterSuccessResponse) => void;
-  onError: (error: string) => void;
+  onSwitchToLogin: () => void;
 }
 
 interface ValidationErrors {
@@ -49,7 +51,8 @@ interface ValidationErrors {
   confirmPassword?: string;
 }
 
-export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: RegisterModalProps) {
+export default function RegisterModal({ isOpen, onClose, onSuccess, onSwitchToLogin }: RegisterModalProps) {
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [formData, setFormData] = useState<RegisterFormData>({
     fullName: '',
     username: '',
@@ -60,6 +63,7 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: R
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { showToast } = useToast();
 
   // Validation functions
   const validateForm = (): boolean => {
@@ -110,11 +114,12 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: R
   // TanStack Query mutation for registration using custom hook
   const registerMutation = useRegister({
     onSuccess: (data) => {
+      showToast('Đăng ký thành công!', undefined, 'success');
       onSuccess(data);
       handleClose();
     },
     onError: (error) => {
-      onError(error);
+      showToast('Lỗi đăng ký', error, 'error');
     },
     onFieldError: (fieldErrors) => {
       setErrors(fieldErrors);
@@ -193,7 +198,7 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: R
             id="fullName"
             value={formData.fullName}
             onChange={(e) => handleInputChange('fullName', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+            className={`w-full px-3 py-2 border rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
               errors.fullName ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="Nhập họ và tên"
@@ -213,7 +218,7 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: R
             id="username"
             value={formData.username}
             onChange={(e) => handleInputChange('username', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+            className={`w-full px-3 py-2 border rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
               errors.username ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="Nhập tên đăng nhập (8-15 ký tự)"
@@ -233,7 +238,7 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: R
             id="email"
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+            className={`w-full px-3 py-2 border rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
               errors.email ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="Nhập địa chỉ email"
@@ -254,7 +259,7 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: R
               id="password"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
-              className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+              className={`w-full px-3 py-2 pr-10 border rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
                 errors.password ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Nhập mật khẩu (6-12 ký tự)"
@@ -301,7 +306,7 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: R
               id="confirmPassword"
               value={formData.confirmPassword}
               onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-              className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
+              className={`w-full px-3 py-2 pr-10 border rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-colors ${
                 errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Nhập lại mật khẩu"
@@ -345,7 +350,39 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onError }: R
           text={registerMutation.isPending ? "Đang đăng ký..." : "Đăng Ký"}
           className={`w-full transition-opacity ${registerMutation.isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
         />
+
+
+        {/* Switch to Login & Forgot Password */}
+        <div className="flex flex-col items-center pt-4 border-t border-gray-200 gap-1">
+          <div className="flex flex-row items-center gap-2 text-sm text-gray-600">
+            <span>Đã có tài khoản?</span>
+            <button
+              type="button"
+              onClick={onSwitchToLogin}
+              className="text-pink-500 hover:text-pink-600 font-medium transition-colors"
+              style={{ color: '#F84565' }}
+            >
+              Đăng nhập ngay
+            </button>
+            <span className="mx-1">|</span>
+            <button
+              type="button"
+              onClick={() => setShowForgotPasswordModal(true)}
+              className="text-blue-500 hover:text-blue-600 font-medium transition-colors"
+            >
+              Quên mật khẩu?
+            </button>
+          </div>
+        </div>
       </form>
+      {/* Forgot Password Modal */}
+      {showForgotPasswordModal && (
+        <ForgotPasswordModal
+          isOpen={showForgotPasswordModal}
+          onClose={() => setShowForgotPasswordModal(false)}
+          onSwitchToLogin={onSwitchToLogin}
+        />
+      )}
     </Modal>
     </div>
   );

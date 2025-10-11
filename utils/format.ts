@@ -1,4 +1,8 @@
-import type { Genre } from "../types";
+// import type { Genre } from "@/types";
+
+export interface Genre {
+  name: string;
+}
 
 /**
  * Format genre array to string

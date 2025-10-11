@@ -18,14 +18,22 @@ const FeaturedSection = () => {
   } = useQuery<Movie[]>({
     queryKey: ["movies"],
     queryFn: getAllMovies,
+    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  console.log(movies);
+  console.log('API Debug:', { 
+    movies, 
+    isLoading, 
+    isError, 
+    error: error?.message,
+    moviesType: typeof movies,
+    moviesLength: movies?.length 
+  });
 
   const router = useRouter();
   const [pages, setPages] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [isMaxMovie, setIsMaxMovie] = useState(false);
 
   // const getShowingMovies = [
   //   {
@@ -105,19 +113,44 @@ const FeaturedSection = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8 mt-8">
-          {movies?.map((movie) => (
-            <MovieCard key={movie.movie_id} movie={movie} />
-          ))}
+          {isLoading ? (
+            // Loading skeleton
+            Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="animate-pulse">
+                <div className="bg-gray-300 aspect-[2/3] rounded-lg mb-2"></div>
+                <div className="bg-gray-300 h-4 rounded mb-1"></div>
+                <div className="bg-gray-300 h-3 rounded w-3/4"></div>
+              </div>
+            ))
+          ) : isError ? (
+            // Error state
+            <div className="col-span-full text-center py-8">
+              <p className="text-red-400 mb-4">Không thể tải danh sách phim</p>
+              <p className="text-gray-500 text-sm">
+                {error instanceof Error ? error.message : 'Có lỗi xảy ra'}
+              </p>
+            </div>
+          ) : movies && movies.length > 0 ? (
+            // Success state with movies
+            movies.map((movie) => (
+              <MovieCard key={movie.movie_id} movie={movie} />
+            ))
+          ) : (
+            // Empty state
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-400">Không có phim nào để hiển thị</p>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-center mt-20">
           <button
-            disabled={loading || isMaxMovie}
+            disabled={isLoading}
             onClick={() => setPages(pages + 1)}
             className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull
     transition rounded-md font-medium cursor-pointer disabled:opacity-50"
           >
-            {loading ? "Loading..." : "Show more"}
+            {isLoading ? "Loading..." : "Show more"}
           </button>
         </div>
       </div>

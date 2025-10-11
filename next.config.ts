@@ -27,6 +27,11 @@ const nextConfig = {
         hostname: "www.comingsoon.net",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "tse2.mm.bing.net",
+        pathname: "/**",
+      },
     ],
     // Thêm configs này
     minimumCacheTTL: 60,

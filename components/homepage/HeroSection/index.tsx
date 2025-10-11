@@ -8,11 +8,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState } from "react";
 
 const HeroSection = () => {
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-
   const settings = {
     dots: true,
     infinite: true,
@@ -49,11 +46,6 @@ const HeroSection = () => {
       default:
         return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
     }
-  };
-
-  const handleImageError = (bannerId: string) => {
-    console.error(`Failed to load image for banner: ${bannerId}`);
-    setImageErrors((prev) => ({ ...prev, [bannerId]: true }));
   };
 
   const sliderBanners = [

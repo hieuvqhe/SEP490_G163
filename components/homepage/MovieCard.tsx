@@ -1,7 +1,6 @@
 "use client";
 
 import { BiStar } from "react-icons/bi";
-import { formatGenres } from "../../../utils/format";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Movie } from "@/types/movie.type";
@@ -28,10 +27,12 @@ const MovieCard = ({ movie }: MovieCardProps) => {
           }}
           className="relative w-full h-full cursor-pointer overflow-hidden rounded-lg group"
         >
-          <img
+          <Image
             src={movie.poster_url}
             alt={movie.title}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            width={300}
+            height={450}
+            className="object-cover transition-transform duration-300 group-hover:scale-105 w-full h-full"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = "/logo.png";

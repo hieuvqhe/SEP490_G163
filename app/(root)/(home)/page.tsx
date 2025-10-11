@@ -1,6 +1,6 @@
 import React from "react";
-import HeroSection from "@/app/components/homepage/HeroSection";
-import FeaturedSection from "@/app/components/homepage/FeaturedSection";
+import HeroSection from "@/components/homepage/HeroSection";
+import FeaturedSection from "@/components/homepage/FeaturedSection";
 
 const page = () => {
   return (
