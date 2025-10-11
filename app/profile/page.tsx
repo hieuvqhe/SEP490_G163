@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 // Import thêm useUpdateUserInfo
 import { useGetUserInfo, useUpdateUserInfo } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/authStore";
@@ -16,9 +16,9 @@ const ProfilePage = () => {
   const currentUser = user as UserInfo | null;
   
   // Helper function để lấy user data
-  const getUserData = (): UserInfo | null => {
+  const getUserData = useCallback((): UserInfo | null => {
     return (userInfo || currentUser) as UserInfo | null;
-  };
+  }, [userInfo, currentUser]);
 
   // State để quản lý chế độ chỉnh sửa
   const [isEditing, setIsEditing] = useState(false);
