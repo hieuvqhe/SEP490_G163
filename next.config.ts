@@ -4,36 +4,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "vtcpay.vn",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "static1.colliderimages.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "images.hdqwalls.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "image.lag.vn",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "www.comingsoon.net",
+        hostname: "movie-store-wdp301.s3.ap-southeast-1.amazonaws.com",
         pathname: "/**",
       },
     ],
-    // Thêm configs này
-    minimumCacheTTL: 60,
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

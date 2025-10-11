@@ -215,7 +215,8 @@ body {
   }
 
   @keyframes wave {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateX(0) translateY(0) rotate(0deg);
     }
     25% {
@@ -230,40 +231,42 @@ body {
   }
 
   @keyframes grain {
-    0%, 100% { 
-      transform: translate(0, 0); 
+    0%,
+    100% {
+      transform: translate(0, 0);
     }
-    10% { 
-      transform: translate(-5%, -5%); 
+    10% {
+      transform: translate(-5%, -5%);
     }
-    20% { 
-      transform: translate(-10%, 5%); 
+    20% {
+      transform: translate(-10%, 5%);
     }
-    30% { 
-      transform: translate(5%, -10%); 
+    30% {
+      transform: translate(5%, -10%);
     }
-    40% { 
-      transform: translate(-5%, 15%); 
+    40% {
+      transform: translate(-5%, 15%);
     }
-    50% { 
-      transform: translate(-10%, 5%); 
+    50% {
+      transform: translate(-10%, 5%);
     }
-    60% { 
-      transform: translate(15%, 0%); 
+    60% {
+      transform: translate(15%, 0%);
     }
-    70% { 
-      transform: translate(0%, 15%); 
+    70% {
+      transform: translate(0%, 15%);
     }
-    80% { 
-      transform: translate(-15%, 10%); 
+    80% {
+      transform: translate(-15%, 10%);
     }
-    90% { 
-      transform: translate(10%, 5%); 
+    90% {
+      transform: translate(10%, 5%);
     }
   }
 
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px) translateX(0px);
       opacity: 0.3;
     }
@@ -292,18 +295,18 @@ body {
 
   /* Electric button styles */
   .electric-login-button {
-    background: linear-gradient(135deg, #00FFFF 0%, #0080FF 100%);
+    background: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
     color: #000;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
-    border: 1px solid #00FFFF;
+    border: 1px solid #00ffff;
     cursor: pointer;
     font-weight: 600;
   }
 
   .electric-login-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -319,8 +322,8 @@ body {
   }
 
   .electric-login-button:hover {
-    color: #00FFFF !important;
-    border-color: #00FFFF;
+    color: #00ffff !important;
+    border-color: #00ffff;
     transform: translateY(-1px);
     box-shadow: 0 4px 20px rgba(0, 255, 255, 0.4);
   }
@@ -336,13 +339,13 @@ body {
   .electric-login-button:hover > *,
   .electric-login-button:hover span,
   .electric-login-button:hover svg {
-    color: #00FFFF !important;
+    color: #00ffff !important;
   }
 
   .electric-login-button:disabled {
     background: #374151;
-    color: #9CA3AF;
-    border-color: #4B5563;
+    color: #9ca3af;
+    border-color: #4b5563;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -355,13 +358,13 @@ body {
   .electric-login-button:disabled:hover {
     transform: none;
     box-shadow: none;
-    color: #9CA3AF !important;
+    color: #9ca3af !important;
   }
 
   .electric-login-button:disabled:hover > *,
   .electric-login-button:disabled:hover span,
   .electric-login-button:disabled:hover svg {
-    color: #9CA3AF !important;
+    color: #9ca3af !important;
   }
 
   /* Active state */
@@ -392,6 +395,14 @@ body {
     after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] 
     hover:after:origin-bottom-left hover:after:scale-x-100 
     dark:after:bg-[#F84565] cursor-pointer;
+  }
+
+  .bg-primary {
+    background-color: #f84565;
+  }
+
+  .text-primary {
+    color: #f84565;
   }
 }
 

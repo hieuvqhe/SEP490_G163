@@ -52,3 +52,28 @@ export const getAllMovies = async (): Promise<Movie[]> => {
     throw handleMovieError(error);
   }
 };
+
+// Get showing movies (public)
+export const getShowingMovies = async (): Promise<Movie[]> => {
+  try {
+    const movieApi = createPublicMovieRequest();
+    const url = `/cinema/movies/categories/now-showing`;
+    const response = await movieApi.get<Movie[]>(url);
+    return response.data;
+  } catch (error) {
+    throw handleMovieError(error);
+  }
+};
+
+// Get comming soon movies (public)
+export const getCommingSoonMovies = async (): Promise<Movie[]> => {
+  try {
+    const movieApi = createPublicMovieRequest();
+    const url = `/cinema/movies/categories/coming-soon`;
+    const response = await movieApi.get<Movie[]>(url);
+    return response.data;
+  } catch (error) {
+    throw handleMovieError(error);
+  }
+};
+

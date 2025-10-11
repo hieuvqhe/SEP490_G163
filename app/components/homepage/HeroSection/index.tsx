@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { IoIosCalendar } from "react-icons/io";
 import { GoClock } from "react-icons/go";
@@ -7,56 +7,33 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { useState } from "react";
+
+interface Banner {
+  _id: string;
+  title: string;
+  description?: string;
+  image_url: string;
+  link_url?: string;
+  type: "home_slider" | "promotion" | "announcement";
+  position: number;
+  status?: "active" | "inactive"; // API uses 'status' instead of 'is_active'
+  is_active?: boolean; // Keep for backward compatibility
+  start_date?: string;
+  end_date?: string;
+  movie_id?: string; // API includes movie_id
+  created_at?: string; // API uses created_at instead of createdAt
+  updated_at?: string; // API uses updated_at instead of updatedAt
+  createdAt?: string; // Keep for backward compatibility
+  updatedAt?: string; // Keep for backward compatibility
+  movie?: {
+    _id: string;
+    title: string;
+    poster_url: string;
+  }; // API includes movie object
+}
 
 const HeroSection = () => {
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 1000,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 5000,
-    pauseOnHover: true,
-    fade: true,
-    cssEase: "linear",
-    accessibility: true,
-    focusOnSelect: false,
-    lazyLoad: "ondemand" as const,
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const getTypeDisplay = (type: string) => {
-    switch (type) {
-      case "home_slider":
-        return "Featured";
-      case "movie_promotion":
-        return "Movie";
-      case "promotion":
-        return "Promotion";
-      default:
-        return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-    }
-  };
-
-  const handleImageError = (bannerId: string) => {
-    console.error(`Failed to load image for banner: ${bannerId}`);
-    setImageErrors((prev) => ({ ...prev, [bannerId]: true }));
-  };
-
-  const sliderBanners = [
+  const sliderBanners: Banner[] = [
     {
       _id: "b001",
       title: "Deadpool & Wolverine: Song Sát Tái Xuất",
@@ -101,19 +78,79 @@ const HeroSection = () => {
     },
   ];
 
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 1000,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 5000,
+    pauseOnHover: true,
+    fade: true,
+    cssEase: "linear",
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getTypeDisplay = (type: string) => {
+    switch (type) {
+      case "home_slider":
+        return "Featured";
+      case "movie_promotion":
+        return "Movie";
+      case "promotion":
+        return "Promotion";
+      default:
+        return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    }
+  };
+
+  // No banners state
+  if (!sliderBanners || sliderBanners.length === 0) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center text-white max-w-md px-6"
+        >
+          <h2 className="text-2xl font-bold mb-4">No banners available</h2>
+          <p className="text-gray-300 mb-6">
+            Check back later for exciting content!
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => (window.location.href = "/movies")}
+            className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dull text-white rounded-full font-medium mx-auto transition-colors duration-200"
+          >
+            Explore Movies
+            <BsArrowRight className="w-4 h-4" />
+          </motion.button>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden">
       <Slider {...settings}>
         {sliderBanners?.map((banner, index) => (
           <div key={banner._id} className="relative h-screen w-full">
-            {/* Background Image with Fallback */}
-            <Image
-              src={banner.image_url}
-              alt={banner.title || "Banner"}
-              fill
-              priority={index === 0}
-              unoptimized
-              className="object-cover object-center absolute inset-0 z-[-1]"
+            {/* Background Image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url('${banner.image_url}')`,
+              }}
             />
 
             {/* Dark Overlay */}

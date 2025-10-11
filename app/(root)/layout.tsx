@@ -8,6 +8,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
     <div>
       <Header />
       {children}
+      <Footer />
     </div>
   );
 };
