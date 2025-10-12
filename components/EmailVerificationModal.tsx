@@ -1,5 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useResendVerification } from '@/hooks/useAuth';
+import { useToast } from '@/components/ToastProvider';
+
 interface EmailVerificationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -7,6 +11,63 @@ interface EmailVerificationModalProps {
 }
 
 export default function EmailVerificationModal({ isOpen, onClose, userEmail }: EmailVerificationModalProps) {
+  const [countdown, setCountdown] = useState(300); // 5 minutes = 300 seconds
+  const [resendCount, setResendCount] = useState(0);
+  const [isCountdownActive, setIsCountdownActive] = useState(true);
+  const { showToast } = useToast();
+
+  const resendMutation = useResendVerification({
+    onSuccess: (data) => {
+      showToast('Email đã được gửi lại!', data.message, 'success');
+      setResendCount(prev => prev + 1);
+      setCountdown(300); // Reset countdown to 5 minutes
+      setIsCountdownActive(true);
+    },
+    onError: (error) => {
+      showToast('Lỗi', error, 'error');
+    }
+  });
+
+  // Countdown effect
+  useEffect(() => {
+    if (!isOpen || !isCountdownActive) return;
+
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          setIsCountdownActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isOpen, isCountdownActive]);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setCountdown(300);
+      setResendCount(0);
+      setIsCountdownActive(true);
+    }
+  }, [isOpen]);
+
+  const handleResendEmail = () => {
+    if (userEmail && resendCount < 3 && !isCountdownActive) {
+      resendMutation.mutate({ email: userEmail });
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const canResend = !isCountdownActive && resendCount < 3 && !resendMutation.isPending;
+
   if (!isOpen) return null;
 
   return (
@@ -57,21 +118,47 @@ export default function EmailVerificationModal({ isOpen, onClose, userEmail }: E
           {/* Actions */}
           <div className="space-y-3">
             <button
-              onClick={onClose}
-              className="w-full bg-pink-500 hover:bg-pink-600 hover:scale-105 hover:shadow-lg text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 transform"
-              style={{ backgroundColor: '#F84565' }}
+              onClick={handleResendEmail}
+              disabled={!canResend}
+              className={`w-full font-medium py-3 px-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 transform ${
+                canResend 
+                  ? 'bg-pink-500 hover:bg-pink-600 hover:scale-105 hover:shadow-lg text-white focus:ring-pink-500' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              style={canResend ? { backgroundColor: '#F84565' } : {}}
             >
-              Tôi Đã Hiểu
+              {resendMutation.isPending ? (
+                'Đang gửi...'
+              ) : isCountdownActive ? (
+                `Gửi lại email (${formatTime(countdown)})`
+              ) : resendCount >= 3 ? (
+                'Đã đạt giới hạn gửi lại'
+              ) : (
+                'Gửi lại email'
+              )}
             </button>
+
+            {/* Display resend attempts */}
+            {resendCount > 0 && (
+              <div className="text-xs text-gray-500 text-center">
+                Đã gửi lại: {resendCount}/3 lần
+              </div>
+            )}
             
             <button
               onClick={() => {
-                // Open Gmail in new tab
                 window.open('https://mail.google.com/', '_blank');
               }}
               className="w-full border border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 hover:scale-105 hover:shadow-lg text-gray-700 font-medium py-3 px-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform"
             >
               Mở Ứng Dụng Email
+            </button>
+
+            <button
+              onClick={onClose}
+              className="w-full text-gray-500 hover:text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none"
+            >
+              Đóng
             </button>
           </div>
         </div>
