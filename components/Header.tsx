@@ -190,27 +190,33 @@ const Header = () => {
       </div>
 
       {/* Login Modal */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={handleLoginSuccess}
-        onSwitchToRegister={switchToRegister}
-      />
+      {showLoginModal && (
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={handleLoginSuccess}
+          onSwitchToRegister={switchToRegister}
+        />
+      )}
 
       {/* Register Modal */}
-      <RegisterModal
-        isOpen={showRegisterModal}
-        onClose={() => setShowRegisterModal(false)}
-        onSuccess={handleRegistrationSuccess}
-        onSwitchToLogin={switchToLogin}
-      />
+      {showRegisterModal && (
+        <RegisterModal
+          isOpen={showRegisterModal}
+          onClose={() => setShowRegisterModal(false)}
+          onSuccess={handleRegistrationSuccess}
+          onSwitchToLogin={switchToLogin}
+        />
+      )}
 
       {/* Email Verification Modal */}
-      <EmailVerificationModal
-        isOpen={showEmailVerificationModal}
-        onClose={() => setShowEmailVerificationModal(false)}
-        userEmail={userEmail}
-      />
+      {showEmailVerificationModal && (
+        <EmailVerificationModal
+          isOpen={showEmailVerificationModal}
+          onClose={() => setShowEmailVerificationModal(false)}
+          userEmail={userEmail}
+        />
+      )}
     </>
   );
 };

@@ -8,11 +8,17 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error('Google OAuth error:', error);
-    return NextResponse.redirect(new URL(`/login?error=${error}`, request.url));
+    const url = new URL('/', request.url);
+    url.searchParams.set('error', error);
+    url.searchParams.set('googleAuth', 'true');
+    return NextResponse.redirect(url);
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/login?error=missing_code', request.url));
+    const url = new URL('/', request.url);
+    url.searchParams.set('error', 'missing_code');
+    url.searchParams.set('googleAuth', 'true');
+    return NextResponse.redirect(url);
   }
 
   try {
@@ -35,7 +41,11 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       console.error('Token exchange failed:', tokens);
-      return NextResponse.redirect(new URL('/login?error=token_exchange_failed', request.url));
+      const url = new URL('/', request.url);
+      url.searchParams.set('error', 'token_exchange_failed');
+      if (tokens?.error_description) url.searchParams.set('message', String(tokens.error_description));
+      url.searchParams.set('googleAuth', 'true');
+      return NextResponse.redirect(url);
     }
 
     // Call backend with idToken via server-side fetch to configured BASE_URL
@@ -48,12 +58,20 @@ export async function GET(request: NextRequest) {
     const backendData = await backendResp.json();
     if (!backendResp.ok) {
       console.error('Backend Google login failed:', backendData);
-      return NextResponse.redirect(new URL('/login?error=backend_login_failed', request.url));
+      const url = new URL('/', request.url);
+      url.searchParams.set('error', 'backend_login_failed');
+      if (backendData?.message) url.searchParams.set('message', String(backendData.message));
+      url.searchParams.set('googleAuth', 'true');
+      return NextResponse.redirect(url);
     }
 
 
     if (backendData.message && backendData.message.includes('Token Google không hợp lệ')) {
-      return NextResponse.redirect(new URL('/login?error=invalid_token', request.url));
+      const url = new URL('/', request.url);
+      url.searchParams.set('error', 'invalid_token');
+      url.searchParams.set('message', String(backendData.message));
+      url.searchParams.set('googleAuth', 'true');
+      return NextResponse.redirect(url);
     }
 
     // Redirect to home page with tokens in URL params for client-side handling
@@ -67,6 +85,9 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Google OAuth callback error:', error);
-    return NextResponse.redirect(new URL('/login?error=server_error', request.url));
+    const url = new URL('/', request.url);
+    url.searchParams.set('error', 'server_error');
+    url.searchParams.set('googleAuth', 'true');
+    return NextResponse.redirect(url);
   }
 }

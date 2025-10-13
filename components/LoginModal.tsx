@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLogin } from '@/hooks/useAuth';
 import Modal from '@/components/Modal';
 import SlideArrowButton from '@/components/slide-arrow-button';
@@ -11,6 +11,7 @@ import ForgotPasswordModal from './ForgotPasswordModal';
 import { SiGoogle } from 'react-icons/si';
 import { LinkBox } from './ClipPathLinks';
 import { generateGoogleOAuthURL } from '@/utils/googleAuth';
+import { useSearchParams } from 'next/navigation';
 
 // Add Google Fonts link for Pacifico
 if (typeof document !== 'undefined') {
@@ -59,6 +60,8 @@ export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegis
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const [googleErrorHandled, setGoogleErrorHandled] = useState(false);
 
   // Validation functions
   const validateForm = (): boolean => {
@@ -100,6 +103,34 @@ export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegis
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
+
+  useEffect(() => {
+    if (!isOpen || googleErrorHandled) return;
+    const errorCode = searchParams.get('error');
+    const errorMessage = searchParams.get('message') || searchParams.get('errorMessage');
+    if (!errorCode && !errorMessage) return;
+
+    const mapped = (() => {
+      if (errorMessage) return errorMessage;
+      switch (errorCode) {
+        case 'invalid_token':
+          return 'Đăng nhập Google thất bại: Token không hợp lệ.';
+        case 'token_exchange_failed':
+          return 'Không thể trao đổi token với Google.';
+        case 'backend_login_failed':
+          return 'Máy chủ từ chối đăng nhập Google.';
+        case 'missing_code':
+          return 'Thiếu mã xác thực từ Google.';
+        case 'server_error':
+          return 'Lỗi máy chủ trong quá trình đăng nhập Google.';
+        default:
+          return 'Đăng nhập Google thất bại.';
+      }
+    })();
+
+    showToast(mapped, undefined, 'error');
+    setGoogleErrorHandled(true);
+  }, [isOpen, searchParams, googleErrorHandled, showToast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
