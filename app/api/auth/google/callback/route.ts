@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import https from 'https';
+import { BASE_URL } from '@/constants';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -38,34 +38,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=token_exchange_failed', request.url));
     }
 
-    // Call backend with idToken using https.request to ignore SSL
+    // Call backend with idToken via server-side fetch to configured BASE_URL
     console.log('Calling backend with idToken:', tokens.id_token ? 'present' : 'missing');
-    const backendData = await new Promise<{ message: string; data: { accessToken: string; refreshToken: string; expireAt: string; fullName: string; role: string } }>((resolve, reject) => {
-      const req = https.request({
-        hostname: 'localhost',
-        port: 7263,
-        path: '/api/Auth/login/google',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        rejectUnauthorized: false, // Ignore self-signed cert
-      }, (res) => {
-        let data = '';
-        res.on('data', (chunk) => data += chunk);
-        res.on('end', () => {
-          try {
-            resolve(JSON.parse(data));
-          } catch (e) {
-            reject(e);
-          }
-        });
-      });
-
-      req.on('error', reject);
-      req.write(JSON.stringify({ idToken: tokens.id_token }));
-      req.end();
+    const backendResp = await fetch(`${BASE_URL}/api/Auth/login/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: tokens.id_token }),
     });
+    const backendData = await backendResp.json();
+    if (!backendResp.ok) {
+      console.error('Backend Google login failed:', backendData);
+      return NextResponse.redirect(new URL('/login?error=backend_login_failed', request.url));
+    }
 
 
     if (backendData.message && backendData.message.includes('Token Google không hợp lệ')) {
