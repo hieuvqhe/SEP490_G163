@@ -1,3 +1,5 @@
+import { BASE_URL } from "@/constants";
+
 export interface ForgotPasswordData {
   emailOrUsername: string;
 }
@@ -142,8 +144,8 @@ class AuthService {
       throw error;
     }
   }
-  private baseURL = 'https://localhost:7263/api/Auth';
-  private userURL = 'https://localhost:7263/api/User';
+  private baseURL = `${BASE_URL}/api/Auth`;
+  private userURL = `${BASE_URL}/api/User`;
 
   async login(data: LoginFormData): Promise<LoginResponse> {
     try {

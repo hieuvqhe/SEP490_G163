@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ConfirmationMessage from '@/components/confirmation-message';
+import { BASE_URL } from '@/constants';
 
 export default function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -30,7 +31,7 @@ export default function VerifyEmailContent() {
     // Call verify email API inline to fix dependency issue
     const verifyEmail = async (token: string) => {
       try {
-        const response = await fetch(`https://localhost:7263/api/Auth/verify-email?token=${token}`, {
+        const response = await fetch(`${BASE_URL}/api/Auth/verify-email?token=${token}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',

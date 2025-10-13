@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { BASE_URL } from '@/constants';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -31,7 +32,7 @@ function VerifyEmailContent() {
     // Call verify email API
     const verifyEmail = async (token: string) => {
       try {
-        const response = await fetch(`https://localhost:7263/api/Auth/verify-email?token=${token}`, {
+        const response = await fetch(`${BASE_URL}/api/Auth/verify-email?token=${token}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',

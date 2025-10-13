@@ -111,7 +111,7 @@ export const getMoviesByStatus = async (
 export const getMoviesById = async (movie_id: number) => {
   try {
     const response = await axios.get(
-      `https://localhost:7263/cinema/movies/${movie_id}`
+      `${BASE_URL}/cinema/movies/${movie_id}`
     );
     return response.data;
   } catch (error) {
