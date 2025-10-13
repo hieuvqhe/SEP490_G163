@@ -32,6 +32,11 @@ const nextConfig = {
         hostname: "tse2.mm.bing.net",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        pathname: "/**",
+      },
     ],
     // Thêm configs này
     minimumCacheTTL: 60,
