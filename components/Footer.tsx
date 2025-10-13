@@ -1,86 +1,56 @@
+import Image from "next/image";
+import Link from "next/link";
 
-const socialLinks = [
-  { label: "GitHub", href: "#", icon: "🐙" },
-  { label: "Twitter", href: "#", icon: "🐦" },
-  { label: "LinkedIn", href: "#", icon: "💼" },
-  { label: "Email", href: "#", icon: "📧" },
-];
-
-const quickLinks = [
-  { label: "About", href: "#" },
-  { label: "Services", href: "#" },
-  { label: "Portfolio", href: "#" },
-  { label: "Contact", href: "#" },
-];
-
-export default function Footer() {
+const Footer = () => {
   return (
-    <footer className="relative z-20 mt-auto">
-      <div className="container mx-auto px-4 py-12">
-        {/* Footer content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Company info */}
-          <div className="text-center md:text-left">
-            <h3 className="text-2xl font-bold text-white mb-4">Your Company</h3>
-            <p className="text-gray-300 leading-relaxed">
-              Creating beautiful and interactive experiences with modern web technologies.
-            </p>
-          </div>
-
-          {/* Quick links */}
-          <div className="text-center">
-            <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
-            <div className="flex flex-col space-y-2">
-              {quickLinks.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Social links */}
-          <div className="text-center md:text-right">
-            <h4 className="text-lg font-semibold text-white mb-4">Connect With Us</h4>
-            <div className="flex justify-center md:justify-end space-x-4">
-              {socialLinks.map((social, index) => (
-                <a
-                  key={index}
-                  href={social.href}
-                  className="text-2xl hover:scale-110 transition-transform duration-200"
-                  title={social.label}
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
-          </div>
+    <footer className="px-6 pt-8 md:px-16 lg:px-36 w-full text-gray-300">
+      <div className="flex flex-col md:flex-row justify-between w-full gap-10 border-b border-gray-500 pb-10">
+        <div className="md:max-w-96">
+          <Image
+            className="w-14 h-auto"
+            src="https://movie-store-wdp301.s3.ap-southeast-1.amazonaws.com/Images/2e128e74a80867df70af3c302.jpg"
+            alt="logo"
+            width={30}
+            height={30}
+          />
+          <p className="mt-6 text-sm">
+            Lorem Ipsum has been the industries standard dummy text ever since
+            the 1500s, when an unknown printer took a galley of type and
+            scrambled it to make a type specimen book.
+          </p>
         </div>
-
-        {/* Divider */}
-        <div className="border-t border-white/20 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400 text-sm">
-              © 2025 Your Company. All rights reserved.
-            </p>
-            <div className="flex space-x-6 text-sm">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                Privacy Policy
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                Terms of Service
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                Cookie Policy
-              </a>
+        <div className="flex-1 flex items-start md:justify-end gap-20 md:gap-40">
+          <div>
+            <h2 className="font-semibold mb-5">Company</h2>
+            <ul className="text-sm space-y-2">
+              <li>
+                <Link href="/">Home</Link>
+              </li>
+              <li>
+                <Link href="#">About us</Link>
+              </li>
+              <li>
+                <Link href="#">Contact us</Link>
+              </li>
+              <li>
+                <Link href="#">Privacy policy</Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h2 className="font-semibold mb-5">Get in touch</h2>
+            <div className="text-sm space-y-2">
+              <p>+84-357-663-145</p>
+              <p>sonphhe173195@fpt.edu.vn</p>
             </div>
           </div>
         </div>
       </div>
+      <p className="pt-4 text-center text-sm pb-5">
+        Copyright {new Date().getFullYear()} © PreBuiltUI. All Right Reserved.
+      </p>
     </footer>
   );
-}
+};
+
+export default Footer;
