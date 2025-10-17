@@ -1,7 +1,7 @@
 'use client';
 
 import * as Toast from '@radix-ui/react-toast';
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -45,11 +45,11 @@ export function ToastProvider({ children }: ToastProviderProps) {
     }, 5000);
   };
 
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
+  }, []);
 
-  const getToastStyles = (type: ToastType) => {
+  const getToastStyles = useCallback((type: ToastType) => {
     switch (type) {
       case 'success':
         return {
@@ -68,9 +68,9 @@ export function ToastProvider({ children }: ToastProviderProps) {
           border: '1px solid #E11D48'
         };
     }
-  };
+  }, []);
 
-  const getIcon = (type: ToastType) => {
+  const getIcon = useCallback((type: ToastType) => {
     switch (type) {
       case 'success':
         return (
@@ -92,7 +92,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
           </svg>
         );
     }
-  };
+  }, []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>

@@ -93,7 +93,7 @@ export const getMoviesByStatus = async (
   status: "now_showing" | "coming_soon" | "ended",
   limit?: number,
   pages?: number
-): Promise<Movie[]> => {
+): Promise<GetMovieResponse> => {
   try {
     const response = await getAllMovies({
       page: pages,
@@ -102,17 +102,15 @@ export const getMoviesByStatus = async (
       sort_by: "premiere_date",
       sort_order: "desc",
     });
-    return response.result.movies;
+    return response;
   } catch (error) {
     throw handleMovieError(error);
   }
 };
 
-export const getMoviesById = async (movie_id: number) => {
+export const getMoviesById = async (movie_id: number): Promise<GetMovieByIdRes> => {
   try {
-    const response = await axios.get(
-      `https://localhost:7263/cinema/movies/${movie_id}`
-    );
+    const response = await axios.get(`${BASE_URL}/cinema/movies/${movie_id}`);
     return response.data;
   } catch (error) {
     throw handleMovieError(error);

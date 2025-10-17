@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
 import QueryProvider from "@/providers/QueryProvider";
 import { ToastProvider } from "@/components/ToastProvider";
 import AuthInitializer from "@/components/AuthInitializer";
@@ -37,7 +36,6 @@ export default function RootLayout({
             {children}
           </ToastProvider>
         </QueryProvider>
-        <Toaster />
       </body>
     </html>
   );

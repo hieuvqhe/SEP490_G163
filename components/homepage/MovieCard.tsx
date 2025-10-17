@@ -59,7 +59,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
         <div className="flex items-center justify-between h-[35px] sm:h-[40px]">
           <button
             onClick={() => {
-              router.push(`/movies/${movie.movieId}`);
+              router.push(`/movie/${movie.movieId}`);
               scrollTo(0, 0);
             }}
             className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs bg-primary hover:bg-primary-dull 

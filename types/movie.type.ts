@@ -60,6 +60,6 @@ export interface MovieQueryParams {
 }
 
 export interface GetMovieByIdRes {
-  message: "Get movie details success";
+  message: string;
   result: Movie;
 }
