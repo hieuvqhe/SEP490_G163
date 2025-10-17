@@ -43,6 +43,38 @@ export default function AuthInitializer() {
         newUrl.searchParams.delete('refreshToken');
         newUrl.searchParams.delete('googleAuth');
         window.history.replaceState({}, '', newUrl.toString());
+        
+        // Redirect based on role after a delay
+        setTimeout(() => {
+          const { role } = useAuthStore.getState();
+          console.log('Google OAuth redirecting with role:', role);
+          
+          if (!role) {
+            window.location.href = '/';
+            return;
+          }
+
+          const roleLower = role.toLowerCase();
+          let targetPath = '/';
+          
+          switch (roleLower) {
+            case 'admin':
+              targetPath = '/admin';
+              break;
+            case 'partner':
+              targetPath = '/partner';
+              break;
+            case 'manager':
+              targetPath = '/manager';
+              break;
+            case 'user':
+            default:
+              targetPath = '/';
+              break;
+          }
+          
+          window.location.href = targetPath;
+        }, 200);
         return;
       }
 
@@ -53,7 +85,8 @@ export default function AuthInitializer() {
           const authData = JSON.parse(accessTokenFromStorage);
           if (authData.state?.accessToken && authData.state?.refreshToken) {
             console.log('AuthInitializer: Found tokens in localStorage');
-            setTokens(authData.state.accessToken, authData.state.refreshToken);
+            // Set tokens and role from localStorage
+            setTokens(authData.state.accessToken, authData.state.refreshToken, authData.state.role);
             setHasInitialized(true);
             return;
           }
@@ -117,6 +150,38 @@ export default function AuthInitializer() {
         newUrl.searchParams.delete('refreshToken');
         newUrl.searchParams.delete('googleAuth');
         window.history.replaceState({}, '', newUrl.toString());
+        
+        // Redirect based on role after a delay
+        setTimeout(() => {
+          const { role } = useAuthStore.getState();
+          console.log('Google OAuth temp tokens redirecting with role:', role);
+          
+          if (!role) {
+            window.location.href = '/';
+            return;
+          }
+
+          const roleLower = role.toLowerCase();
+          let targetPath = '/';
+          
+          switch (roleLower) {
+            case 'admin':
+              targetPath = '/admin';
+              break;
+            case 'partner':
+              targetPath = '/partner';
+              break;
+            case 'manager':
+              targetPath = '/manager';
+              break;
+            case 'user':
+            default:
+              targetPath = '/';
+              break;
+          }
+          
+          window.location.href = targetPath;
+        }, 200);
       }
     }
   }, [isHydrated, hasInitialized, setTokens]);

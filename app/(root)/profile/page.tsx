@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 // Import thêm useUpdateUserInfo
-import { useGetUserInfo, useUpdateUserInfo } from "@/hooks/useAuth";
+import { useGetUserInfo, useUpdateUserInfo, useChangePassword } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/authStore";
-import { UserInfo } from "@/services/authService";
+import { UserInfo, ChangePasswordData } from "@/services/authService";
 import Image from "next/image";
 import { useToast } from '@/components/ToastProvider';
 
@@ -22,11 +22,33 @@ const ProfilePage = () => {
 
   // State để quản lý chế độ chỉnh sửa
   const [isEditing, setIsEditing] = useState(false);
+  // State để quản lý hiển thị form đổi mật khẩu
+  const [showChangePassword, setShowChangePassword] = useState(false);
   // State để lưu trữ dữ liệu form khi chỉnh sửa
   const [formData, setFormData] = useState({
     fullname: "",
     phone: "",
   });
+  // State cho form đổi mật khẩu
+  const [passwordForm, setPasswordForm] = useState<ChangePasswordData>({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  // Hàm xử lý thay đổi input cho form đổi mật khẩu
+  const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Hàm gọi API đổi mật khẩu
+  const handleChangePassword = () => {
+    if (!accessToken) {
+      showToast('Lỗi xác thực', 'Không tìm thấy token.', 'error');
+      return;
+    }
+    changePasswordMutation.mutate({ data: passwordForm, accessToken });
+  };
 
   // Sử dụng hook useUpdateUserInfo
   const updateMutation = useUpdateUserInfo({
@@ -38,6 +60,18 @@ const ProfilePage = () => {
     onError: (error) => {
       showToast('Lỗi cập nhật', error, 'error');
       // Giữ nguyên chế độ chỉnh sửa để người dùng có thể sửa lại
+    }
+  });
+
+  // Sử dụng hook useChangePassword
+  const changePasswordMutation = useChangePassword({
+    onSuccess: (data) => {
+      showToast('Thành công', data.message, 'success');
+      setShowChangePassword(false);
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    },
+    onError: (error) => {
+      showToast('Lỗi đổi mật khẩu', error, 'error');
     }
   });
 
@@ -240,11 +274,64 @@ const ProfilePage = () => {
                 <button onClick={() => setIsEditing(true)} className="px-8 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-2xl hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
                   Chỉnh sửa hồ sơ
                 </button>
-                <button className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-2xl hover:bg-white/20 transition-all duration-300">
+                <button onClick={() => setShowChangePassword(true)} className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-2xl hover:bg-white/20 transition-all duration-300">
                   Đổi mật khẩu
                 </button>
               </>
             )}
+          </div>
+        )}
+
+        {/* Form đổi mật khẩu */}
+        {showChangePassword && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="bg-[#18181b] rounded-2xl p-8 shadow-2xl w-full max-w-md relative">
+              <h2 className="text-2xl font-bold text-white mb-6 text-center">Đổi mật khẩu</h2>
+              <div className="space-y-4">
+                <input
+                  type="password"
+                  name="oldPassword"
+                  value={passwordForm.oldPassword}
+                  onChange={handlePasswordInputChange}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Mật khẩu hiện tại"
+                  autoComplete="current-password"
+                />
+                <input
+                  type="password"
+                  name="newPassword"
+                  value={passwordForm.newPassword}
+                  onChange={handlePasswordInputChange}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Mật khẩu mới"
+                  autoComplete="new-password"
+                />
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={passwordForm.confirmPassword}
+                  onChange={handlePasswordInputChange}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Xác nhận mật khẩu mới"
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="mt-8 flex gap-4 justify-center">
+                <button
+                  onClick={handleChangePassword}
+                  disabled={changePasswordMutation.isPending}
+                  className="px-8 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-2xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {changePasswordMutation.isPending ? "Đang đổi..." : "Đổi mật khẩu"}
+                </button>
+                <button
+                  onClick={() => { setShowChangePassword(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }}
+                  className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-2xl hover:bg-white/20 transition-all duration-300"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
