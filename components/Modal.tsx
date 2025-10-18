@@ -1,5 +1,4 @@
 import { useState, ReactNode } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { CircleAlert, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -45,34 +44,23 @@ export default function Modal({
         </button>
       )}
 
-      <AnimatePresence>
-        {isOpen && (
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center overflow-y-scroll bg-slate-900/20 p-8 backdrop-blur"
+        >
           <div
-            onClick={onClose}
-            className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center overflow-y-scroll bg-slate-900/20 p-8 backdrop-blur"
+            onClick={(e) => e.stopPropagation()}
+            className={cn(
+              "relative w-full cursor-default overflow-hidden rounded-xl bg-white p-6 shadow-2xl",
+              {
+                "max-w-sm": modalSize === "sm",
+                "max-w-lg": modalSize === "lg",
+                "max-w-2xl": modalSize === "xl",
+              },
+              className
+            )}
           >
-            <motion.div
-              initial={{ scale: 0, rotate: "180deg" }}
-              animate={{
-                scale: 1,
-                rotate: "0deg",
-                transition: {
-                  type: "spring",
-                  bounce: 0.25,
-                },
-              }}
-              exit={{ scale: 0, rotate: "180deg" }}
-              onClick={(e) => e.stopPropagation()}
-              className={cn(
-                "relative w-full cursor-default overflow-hidden rounded-xl bg-white p-6 shadow-2xl",
-                {
-                  "max-w-sm": modalSize === "sm",
-                  "max-w-lg": modalSize === "lg",
-                  "max-w-2xl": modalSize === "xl",
-                },
-                className
-              )}
-            >
               {/* Close button */}
               {showCloseButton && (
                 <button
@@ -119,10 +107,9 @@ export default function Modal({
                   </div>
                 )}
               </div>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }

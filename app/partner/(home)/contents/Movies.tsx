@@ -13,22 +13,21 @@ import {
   AlertTriangle,
   X
 } from "lucide-react";
-import { 
-  getMyMovies, 
-  deleteMovie,
-  type Movie,
-  type MovieListResponse,
-  type MovieCreateRequest,
-  formatMovieDuration,
-  formatMovieReleaseDate,
-  getMovieStatusDisplay
-} from '../../../apis/staff.api';
-import { toast } from 'sonner';
+// import { 
+//   getMyMovies, 
+//   deleteMovie,
+//   type Movie,
+//   type MovieListResponse,
+//   type MovieCreateRequest,
+//   formatMovieDuration,
+//   formatMovieReleaseDate,
+//   getMovieStatusDisplay
+// } from '../../../apis/staff.api';
 import AddMovieModal from './movies/AddMovieModal';
 import EditMovieModal from './movies/EditMovieModal';
 
 const Movies = () => {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  // const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,23 +42,23 @@ const Movies = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  // const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [movieToDelete, setMovieToDelete] = useState<{id: string, title: string} | null>(null);
 
   // Form states for modals
-  const [formData, setFormData] = useState<MovieCreateRequest>({
-    title: '',
-    description: '',
-    duration: 0,
-    genre: [],
-    language: '',
-    release_date: '',
-    director: '',
-    cast: [],
-    poster_url: '',
-    trailer_url: '',
-    status: 'coming_soon'
-  });
+  // const [formData, setFormData] = useState<MovieCreateRequest>({
+  //   title: '',
+  //   description: '',
+  //   duration: 0,
+  //   genre: [],
+  //   language: '',
+  //   release_date: '',
+  //   director: '',
+  //   cast: [],
+  //   poster_url: '',
+  //   trailer_url: '',
+  //   status: 'coming_soon'
+  // });
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,29 +69,29 @@ const Movies = () => {
   const [trailerPreview, setTrailerPreview] = useState<string | null>(null);
 
   // Fetch movies from API
-  const fetchMovies = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // const fetchMovies = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError(null);
       
-      const response: MovieListResponse = await getMyMovies(
-        page,
-        limit,
-        searchTerm || undefined,
-        statusFilter || undefined
-      );
+  //     const response: MovieListResponse = await getMyMovies(
+  //       page,
+  //       limit,
+  //       searchTerm || undefined,
+  //       statusFilter || undefined
+  //     );
       
-      setMovies(response.result.movies);
-      setTotalPages(response.result.total_pages);
-      setTotal(response.result.total);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch movies';
-      setError(errorMessage);
-      console.error('Error fetching movies:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setMovies(response.result.movies);
+  //     setTotalPages(response.result.total_pages);
+  //     setTotal(response.result.total);
+  //   } catch (err) {
+  //     const errorMessage = err instanceof Error ? err.message : 'Failed to fetch movies';
+  //     setError(errorMessage);
+  //     console.error('Error fetching movies:', err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Handle movie deletion
   const handleDeleteMovie = (movieId: string, movieTitle: string) => {
@@ -101,23 +100,23 @@ const Movies = () => {
   };
 
   // Confirm delete movie
-  const confirmDeleteMovie = async () => {
-    if (!movieToDelete) return;
+  // const confirmDeleteMovie = async () => {
+  //   if (!movieToDelete) return;
 
-    try {
-      setIsSubmitting(true);
-      await deleteMovie(movieToDelete.id);
-      toast.success('Movie deleted successfully');
-      setShowDeleteModal(false);
-      setMovieToDelete(null);
-      await fetchMovies(); // Refresh the list
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete movie';
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  //   try {
+  //     setIsSubmitting(true);
+  //     await deleteMovie(movieToDelete.id);
+  //     // toast.success('Movie deleted successfully');
+  //     setShowDeleteModal(false);
+  //     setMovieToDelete(null);
+  //     await fetchMovies(); // Refresh the list
+  //   } catch (err) {
+  //     const errorMessage = err instanceof Error ? err.message : 'Failed to delete movie';
+  //     // toast.error(errorMessage);
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
   // Cancel delete movie
   const cancelDeleteMovie = () => {
@@ -126,11 +125,11 @@ const Movies = () => {
   };
 
   // Handle search
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); // Reset to first page when searching
-    fetchMovies();
-  };
+  // const handleSearch = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setPage(1); // Reset to first page when searching
+  //   fetchMovies();
+  // };
 
   // Handle filter change
   const handleFilterChange = (newFilter: 'coming_soon' | 'now_showing' | 'ended' | '') => {
@@ -139,77 +138,77 @@ const Movies = () => {
   };
 
   // Modal handlers
-  const handleAddMovie = () => {
-    setFormData({
-      title: '',
-      description: '',
-      duration: 0,
-      genre: [],
-      language: '',
-      release_date: '',
-      director: '',
-      cast: [],
-      poster_url: '',
-      trailer_url: '',
-      status: 'coming_soon'
-    });
-    setFormErrors([]);
-    setIsSubmitting(false);
-    setPosterPreview(null);
-    setTrailerPreview(null);
-    setShowAddModal(true);
-  };
+  // const handleAddMovie = () => {
+  //   setFormData({
+  //     title: '',
+  //     description: '',
+  //     duration: 0,
+  //     genre: [],
+  //     language: '',
+  //     release_date: '',
+  //     director: '',
+  //     cast: [],
+  //     poster_url: '',
+  //     trailer_url: '',
+  //     status: 'coming_soon'
+  //   });
+  //   setFormErrors([]);
+  //   setIsSubmitting(false);
+  //   setPosterPreview(null);
+  //   setTrailerPreview(null);
+  //   setShowAddModal(true);
+  // };
 
-  const handleEditMovie = (movie: Movie) => {
-    setSelectedMovie(movie);
-    setFormData({
-      title: movie.title,
-      description: movie.description,
-      duration: movie.duration,
-      genre: movie.genre,
-      language: movie.language,
-      release_date: movie.release_date.split('T')[0], // Convert to YYYY-MM-DD format
-      director: movie.director,
-      cast: movie.cast,
-      poster_url: movie.poster_url,
-      trailer_url: movie.trailer_url,
-      status: movie.status
-    });
-    setFormErrors([]);
-    setIsSubmitting(false);
-    // Set previews for existing URLs
-    setPosterPreview(movie.poster_url || null);
-    setTrailerPreview(movie.trailer_url || null);
-    setShowEditModal(true);
-  };
+  // const handleEditMovie = (movie: Movie) => {
+  //   setSelectedMovie(movie);
+  //   setFormData({
+  //     title: movie.title,
+  //     description: movie.description,
+  //     duration: movie.duration,
+  //     genre: movie.genre,
+  //     language: movie.language,
+  //     release_date: movie.release_date.split('T')[0], // Convert to YYYY-MM-DD format
+  //     director: movie.director,
+  //     cast: movie.cast,
+  //     poster_url: movie.poster_url,
+  //     trailer_url: movie.trailer_url,
+  //     status: movie.status
+  //   });
+  //   setFormErrors([]);
+  //   setIsSubmitting(false);
+  //   // Set previews for existing URLs
+  //   setPosterPreview(movie.poster_url || null);
+  //   setTrailerPreview(movie.trailer_url || null);
+  //   setShowEditModal(true);
+  // };
 
-  const handleViewDetails = (movie: Movie) => {
-    setSelectedMovie(movie);
-    setShowDetailsModal(true);
-  };
+  // const handleViewDetails = (movie: Movie) => {
+  //   setSelectedMovie(movie);
+  //   setShowDetailsModal(true);
+  // };
 
-  const closeModals = () => {
-    setShowAddModal(false);
-    setShowEditModal(false);
-    setShowDetailsModal(false);
-    setShowDeleteModal(false);
-    setSelectedMovie(null);
-    setMovieToDelete(null);
-    setFormErrors([]);
-    setIsSubmitting(false);
-    setPosterPreview(null);
-    setTrailerPreview(null);
-  };
+  // const closeModals = () => {
+  //   setShowAddModal(false);
+  //   setShowEditModal(false);
+  //   setShowDetailsModal(false);
+  //   setShowDeleteModal(false);
+  //   setSelectedMovie(null);
+  //   setMovieToDelete(null);
+  //   setFormErrors([]);
+  //   setIsSubmitting(false);
+  //   setPosterPreview(null);
+  //   setTrailerPreview(null);
+  // };
 
   // Handle movie operations success
-  const handleMovieOperationSuccess = async () => {
-    await fetchMovies(); // Refresh the list
-  };
+  // const handleMovieOperationSuccess = async () => {
+  //   await fetchMovies(); // Refresh the list
+  // };
 
   // Fetch movies on component mount and when dependencies change
-  useEffect(() => {
-    fetchMovies();
-  }, [page, statusFilter]);
+  // useEffect(() => {
+  //   fetchMovies();
+  // }, [page, statusFilter]);
 
   // Get status styling
   const getStatusStyle = (status: string) => {
@@ -242,7 +241,7 @@ const Movies = () => {
             </p>
           </div>
           <motion.button
-            onClick={handleAddMovie}
+            // onClick={handleAddMovie}
             className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-orange-500/30 transition-all duration-300 flex items-center"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -254,7 +253,8 @@ const Movies = () => {
 
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4">
-          <form onSubmit={handleSearch} className="flex-1">
+          {/* <form onSubmit={handleSearch} className="flex-1"> */}
+          <form  className="flex-1">
             <div className="relative">
               <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input
@@ -315,7 +315,7 @@ const Movies = () => {
         ) : (
           <>
             {/* Movies Grid */}
-            {movies.length > 0 ? (
+            {/* {movies.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {movies.map((movie, index) => (
                   <motion.div
@@ -435,10 +435,10 @@ const Movies = () => {
                   </motion.button>
                 </motion.div>
               )
-            )}
+            )} */}
 
             {/* Pagination */}
-            {movies.length > 0 && totalPages > 1 && (
+            {/* {movies.length > 0 && totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-8">
                 <button
                   onClick={() => setPage(page - 1)}
@@ -475,12 +475,12 @@ const Movies = () => {
                   Next
                 </button>
               </div>
-            )}
+            )} */}
           </>
         )}
 
         {/* Movie Details Modal */}
-        {showDetailsModal && selectedMovie && (
+        {/* {showDetailsModal && selectedMovie && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div
               className="bg-slate-800 border border-slate-700 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
@@ -600,11 +600,11 @@ const Movies = () => {
               </div>
             </motion.div>
           </div>
-        )}
+        )} */}
       </motion.div>
 
       {/* Add Movie Modal */}
-      <AddMovieModal
+      {/* <AddMovieModal
         isOpen={showAddModal}
         onClose={closeModals}
         onSuccess={handleMovieOperationSuccess}
@@ -622,10 +622,10 @@ const Movies = () => {
         setPosterPreview={setPosterPreview}
         trailerPreview={trailerPreview}
         setTrailerPreview={setTrailerPreview}
-      />
+      /> */}
 
       {/* Edit Movie Modal */}
-      <EditMovieModal
+      {/* <EditMovieModal
         isOpen={showEditModal}
         onClose={closeModals}
         onSuccess={handleMovieOperationSuccess}
@@ -644,7 +644,7 @@ const Movies = () => {
         setPosterPreview={setPosterPreview}
         trailerPreview={trailerPreview}
         setTrailerPreview={setTrailerPreview}
-      />
+      /> */}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && movieToDelete && (
@@ -681,7 +681,7 @@ const Movies = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={confirmDeleteMovie}
+                  // onClick={confirmDeleteMovie}
                   className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
                   disabled={isSubmitting}
                 >

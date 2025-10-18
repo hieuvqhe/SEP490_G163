@@ -74,6 +74,7 @@ export interface UserInfo {
   password: string;
   avatarUrl: string;
   email: string;
+  role: string;
 }
 
 export interface LogoutData {
@@ -118,6 +119,16 @@ export interface GoogleLoginResponse {
     fullName: string;
     role: string;
   };
+}
+
+export interface ChangePasswordData {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
 }
 
 class AuthService {
@@ -399,6 +410,33 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw result as ApiError;
+      }
+
+      return result;
+    } catch (error: any) {
+      if (error.name === 'TypeError') {
+        throw { error: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.', isNetworkError: true } as ApiError;
+      }
+      throw error;
+    }
+  }
+
+  async changePassword(data: ChangePasswordData, accessToken: string): Promise<ChangePasswordResponse> {
+    try {
+      const response = await fetch(`${this.userURL}/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data)
       });

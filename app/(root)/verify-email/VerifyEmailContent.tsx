@@ -17,11 +17,12 @@ export default function VerifyEmailContent() {
     setMounted(true);
   }, []);
 
+  // Get token from search params
+  const token = searchParams.get('token');
+
   useEffect(() => {
     if (!mounted) return;
-    
-    const token = searchParams.get('token');
-    
+
     if (!token) {
       setStatus('error');
       setMessage('Token xác minh không hợp lệ.');
@@ -39,11 +40,11 @@ export default function VerifyEmailContent() {
         });
 
         const result = await response.json();
-        
+
         if (response.ok) {
           setStatus('success');
           setMessage('Xác minh email thành công!');
-          
+
           // Redirect to home after 3 seconds
           setTimeout(() => {
             router.push('/');
@@ -52,7 +53,7 @@ export default function VerifyEmailContent() {
           setStatus('error');
           setMessage(result.message || result.error || 'Có lỗi xảy ra trong quá trình xác minh email.');
         }
-        
+
       } catch (err) {
         console.error('Verify email error:', err);
         setStatus('error');
@@ -61,7 +62,7 @@ export default function VerifyEmailContent() {
     };
 
     verifyEmail(token);
-  }, [searchParams, router, mounted]);
+  }, [token, router, mounted]);
 
   // Don't render anything until component is mounted to prevent hydration mismatch
   if (!mounted) {

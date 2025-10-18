@@ -25,7 +25,7 @@ const Header = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
   const [userEmail, setUserEmail] = useState("");
-  const { user, accessToken, isLoading, isHydrated, setTokens, clearAuth } = useAuthStore();
+  const { user, accessToken, isLoading, isHydrated, clearAuth } = useAuthStore();
 
   // Handle case when there's no data in localStorage
   useEffect(() => {
@@ -56,12 +56,41 @@ const Header = () => {
     setShowEmailVerificationModal(true);
   };
 
-  const handleLoginSuccess = (data: { data: { accessToken: string; refreshToken: string; fullName: string } }) => {
+  const handleLoginSuccess = (data: { data: { accessToken: string; refreshToken: string; fullName: string; role: string } }) => {
     console.log('Login successful:', data);
     setShowLoginModal(false);
     
-    // Store tokens - AuthStore will handle localStorage automatically
-    setTokens(data.data.accessToken, data.data.refreshToken);
+    // Tokens đã được set trong useLogin hook
+    // Redirect ngay lập tức dựa trên role từ response
+    const role = data.data.role;
+    console.log('Redirecting with role from response:', role);
+    
+    if (!role) {
+      window.location.href = '/';
+      return;
+    }
+
+    const roleLower = role.toLowerCase();
+    let targetPath = '/';
+    
+    switch (roleLower) {
+      case 'admin':
+        targetPath = '/admin';
+        break;
+      case 'partner':
+        targetPath = '/partner';
+        break;
+      case 'manager':
+        targetPath = '/manager';
+        break;
+      case 'user':
+      default:
+        targetPath = '/';
+        break;
+    }
+    
+    console.log('Redirecting to:', targetPath);
+    window.location.href = targetPath;
   };
 
   const switchToLogin = () => {
@@ -190,27 +219,33 @@ const Header = () => {
       </div>
 
       {/* Login Modal */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={handleLoginSuccess}
-        onSwitchToRegister={switchToRegister}
-      />
+      {showLoginModal && (
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={handleLoginSuccess}
+          onSwitchToRegister={switchToRegister}
+        />
+      )}
 
       {/* Register Modal */}
-      <RegisterModal
-        isOpen={showRegisterModal}
-        onClose={() => setShowRegisterModal(false)}
-        onSuccess={handleRegistrationSuccess}
-        onSwitchToLogin={switchToLogin}
-      />
+      {showRegisterModal && (
+        <RegisterModal
+          isOpen={showRegisterModal}
+          onClose={() => setShowRegisterModal(false)}
+          onSuccess={handleRegistrationSuccess}
+          onSwitchToLogin={switchToLogin}
+        />
+      )}
 
       {/* Email Verification Modal */}
-      <EmailVerificationModal
-        isOpen={showEmailVerificationModal}
-        onClose={() => setShowEmailVerificationModal(false)}
-        userEmail={userEmail}
-      />
+      {showEmailVerificationModal && (
+        <EmailVerificationModal
+          isOpen={showEmailVerificationModal}
+          onClose={() => setShowEmailVerificationModal(false)}
+          userEmail={userEmail}
+        />
+      )}
     </>
   );
 };

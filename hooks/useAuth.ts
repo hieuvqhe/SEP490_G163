@@ -1,7 +1,7 @@
 // Custom hooks for authentication using TanStack Query
 import React from 'react';
 import { useMutation, useQuery, useQueryClient  } from '@tanstack/react-query';
-import { authService, RegisterFormData, RegisterResponse, VerifyEmailResponse, LoginFormData, LoginResponse, ApiError, UserInfo, LogoutData, LogoutResponse, ResendVerificationData, ResendVerificationResponse, ForgotPasswordData, ForgotPasswordResponse, VerifyResetCodeData, VerifyResetCodeResponse, ResetPasswordData, ResetPasswordResponse, UpdateUserInfoData, GoogleLoginData, GoogleLoginResponse } from '@/services/authService';
+import { authService, RegisterFormData, RegisterResponse, VerifyEmailResponse, LoginFormData, LoginResponse, ApiError, UserInfo, LogoutData, LogoutResponse, ResendVerificationData, ResendVerificationResponse, ForgotPasswordData, ForgotPasswordResponse, VerifyResetCodeData, VerifyResetCodeResponse, ResetPasswordData, ResetPasswordResponse, UpdateUserInfoData, GoogleLoginData, GoogleLoginResponse, ChangePasswordData, ChangePasswordResponse } from '@/services/authService';
 import { useAuthStore } from '../store/authStore';
 interface UseLoginOptions {
   onSuccess?: (data: LoginResponse) => void;
@@ -15,7 +15,7 @@ export const useLogin = (options: UseLoginOptions = {}) => {
     onSuccess: (data) => {
       // BƯỚC 2: Cập nhật store sau khi đăng nhập thành công
       const { setTokens } = useAuthStore.getState();
-      setTokens(data.data.accessToken, data.data.refreshToken);
+      setTokens(data.data.accessToken, data.data.refreshToken, data.data.role);
       
       // Vẫn gọi callback gốc để component có thể xử lý tiếp (ví dụ: đóng modal)
       options.onSuccess?.(data);
@@ -113,6 +113,7 @@ export const useGetUserInfo = (accessToken: string | null, options: UseGetUserIn
       // Chỉ cập nhật AuthStore nếu có options.onSuccess (tức là được gọi từ Header)
       if (options.onSuccess) {
         useAuthStore.getState().setUser(query.data);
+        useAuthStore.getState().setRole(query.data.role);
       }
       options.onSuccess?.(query.data);
     }
@@ -240,6 +241,7 @@ export const useUpdateUserInfo = (options: UseUpdateUserInfoOptions = {}) => {
     onSuccess: (data, variables) => {
       // BƯỚC 5: Cập nhật lại user trong store sau khi chỉnh sửa hồ sơ
       useAuthStore.getState().setUser(data);
+      useAuthStore.getState().setRole(data.role);
 
       queryClient.setQueryData(['userInfo', variables.accessToken], data);
       options.onSuccess?.(data);
@@ -263,12 +265,31 @@ export const useGoogleLogin = (options: UseGoogleLoginOptions = {}) => {
     onSuccess: (data) => {
       // Cập nhật store sau khi đăng nhập Google thành công
       const { setTokens } = useAuthStore.getState();
-      setTokens(data.data.accessToken, data.data.refreshToken);
+      setTokens(data.data.accessToken, data.data.refreshToken, data.data.role);
       
       options.onSuccess?.(data);
     },
     onError: (error: any) => {
       const errorMessage = error.message || error.error || 'Đăng nhập Google thất bại.';
+      options.onError?.(errorMessage);
+    }
+  });
+};
+
+interface UseChangePasswordOptions {
+  onSuccess?: (data: ChangePasswordResponse) => void;
+  onError?: (error: string) => void;
+}
+
+export const useChangePassword = (options: UseChangePasswordOptions = {}) => {
+  return useMutation({
+    mutationFn: ({ data, accessToken }: { data: ChangePasswordData, accessToken: string }) => 
+      authService.changePassword(data, accessToken),
+    onSuccess: (data) => {
+      options.onSuccess?.(data);
+    },
+    onError: (error: any) => {
+      const errorMessage = error.message || error.error || 'Đổi mật khẩu thất bại.';
       options.onError?.(errorMessage);
     }
   });
