@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ConfirmationMessage from '@/components/confirmation-message';
-import { BASE_URL } from '@/constants';
+import { useVerifyEmail } from '@/hooks/useAuth';
 
 export default function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -20,6 +20,23 @@ export default function VerifyEmailContent() {
   // Get token from search params
   const token = searchParams.get('token');
 
+  // Use the verify email hook
+  const verifyEmailMutation = useVerifyEmail(token || '', {
+    onSuccess: () => {
+      setStatus('success');
+      setMessage('Xác minh email thành công!');
+
+      // Redirect to home after 3 seconds
+      setTimeout(() => {
+        router.push('/');
+      }, 3000);
+    },
+    onError: (errorMessage) => {
+      setStatus('error');
+      setMessage(errorMessage);
+    }
+  });
+
   useEffect(() => {
     if (!mounted) return;
 
@@ -29,40 +46,9 @@ export default function VerifyEmailContent() {
       return;
     }
 
-    // Call verify email API inline to fix dependency issue
-    const verifyEmail = async (token: string) => {
-      try {
-        const response = await fetch(`${BASE_URL}/api/Auth/verify-email?token=${token}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          setStatus('success');
-          setMessage('Xác minh email thành công!');
-
-          // Redirect to home after 3 seconds
-          setTimeout(() => {
-            router.push('/');
-          }, 3000);
-        } else {
-          setStatus('error');
-          setMessage(result.message || result.error || 'Có lỗi xảy ra trong quá trình xác minh email.');
-        }
-
-      } catch (err) {
-        console.error('Verify email error:', err);
-        setStatus('error');
-        setMessage('Không thể kết nối đến server. Vui lòng thử lại.');
-      }
-    };
-
-    verifyEmail(token);
-  }, [token, router, mounted]);
+    // Trigger verification
+    verifyEmailMutation.mutate();
+  }, [token, router, mounted, verifyEmailMutation]);
 
   // Don't render anything until component is mounted to prevent hydration mismatch
   if (!mounted) {
@@ -83,55 +69,70 @@ export default function VerifyEmailContent() {
   }
 
   const getIcon = () => {
-    switch (status) {
-      case 'verifying':
-        return (
-          <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
-            <svg className="animate-spin w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-          </div>
-        );
-      case 'success':
-        return (
-          <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-        );
-      case 'error':
-        return (
-          <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-        );
+    if (verifyEmailMutation.isPending) {
+      return (
+        <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
+          <svg className="animate-spin w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+        </div>
+      );
     }
+
+    if (status === 'success') {
+      return (
+        <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (status === 'error') {
+      return (
+        <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+          <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   const getTitle = () => {
-    switch (status) {
-      case 'verifying':
-        return 'Đang xác minh email...';
-      case 'success':
-        return 'Xác minh thành công!';
-      case 'error':
-        return 'Xác minh thất bại';
+    if (verifyEmailMutation.isPending) {
+      return 'Đang xác minh email...';
     }
+
+    if (status === 'success') {
+      return 'Xác minh thành công!';
+    }
+
+    if (status === 'error') {
+      return 'Xác minh thất bại';
+    }
+
+    return 'Đang xác minh email...';
   };
 
   const getDescription = () => {
-    switch (status) {
-      case 'verifying':
-        return 'Vui lòng đợi trong giây lát.';
-      case 'success':
-        return 'Tài khoản của bạn đã được kích hoạt. Bạn sẽ được chuyển hướng về trang chủ để đăng nhập.';
-      case 'error':
-        return message;
+    if (verifyEmailMutation.isPending) {
+      return 'Vui lòng đợi trong giây lát.';
     }
+
+    if (status === 'success') {
+      return 'Tài khoản của bạn đã được kích hoạt. Bạn sẽ được chuyển hướng về trang chủ để đăng nhập.';
+    }
+
+    if (status === 'error') {
+      return message;
+    }
+
+    return 'Vui lòng đợi trong giây lát.';
   };
 
   return (

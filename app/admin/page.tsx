@@ -1,39 +1,91 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from "@/store/authStore";
+import {
+  AdminHeader, AdminSidebar
+} from "./components";
+import { UserManagement } from "./contents";
+
+
 const AdminPage = () => {
+  const router = useRouter();
+  const { user, logout, accessToken } = useAuthStore();
+  const [activeTab, setActiveTab] = useState("users");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      
+      case "users":
+        return <UserManagement />;
+    
+      default:
+        return <UserManagement />;
+    }
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.2,
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        duration: 0.15,
+      },
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-[#09090b] py-12 px-4 relative overflow-hidden">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-cyan-900/20"></div>
+    <div className="min-h-screen bg-slate-900 flex">
+      {/* Sidebar */}
+      <AdminSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isCollapsed={isSidebarCollapsed}
+        accessToken={accessToken || undefined}
+      />
 
-      {/* Animated background elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <AdminHeader
+          user={user}
+          onLogout={handleLogout}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={handleToggleSidebar}
+        />
 
-      <div className="relative z-10 max-w-4xl mx-auto mt-20">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-red-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-400 text-lg">Quản lý hệ thống và người dùng</p>
-        </div>
-
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-2">Quản lý người dùng</h3>
-              <p className="text-gray-400">Xem và chỉnh sửa thông tin người dùng</p>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-2">Thống kê hệ thống</h3>
-              <p className="text-gray-400">Xem báo cáo và thống kê chi tiết</p>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-2">Cài đặt hệ thống</h3>
-              <p className="text-gray-400">Cấu hình và quản lý hệ thống</p>
-            </div>
-          </div>
-        </div>
+        {/* Page Content */}
+        <main className="flex-1 p-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              variants={contentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
     </div>
   );

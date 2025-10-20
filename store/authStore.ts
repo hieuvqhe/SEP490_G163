@@ -15,6 +15,7 @@ interface AuthState {
   setRole: (role: string | null) => void;
   setTokens: (accessToken: string, refreshToken: string, role?: string) => void;
   clearAuth: () => void;
+  logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -50,6 +51,11 @@ export const useAuthStore = create<AuthState>()(
           document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
           document.cookie = 'role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
+      },
+      logout: () => {
+        // Gọi clearAuth để xóa toàn bộ state và cookie
+        const { clearAuth } = useAuthStore.getState();
+        clearAuth();
       },
     }),
     {

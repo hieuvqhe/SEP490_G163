@@ -29,7 +29,7 @@ interface LoginFormData {
 }
 
 interface LoginSuccessResponse {
-  data: {
+  result: {
     accessToken: string;
     refreshToken: string;
     expireAt: string;

@@ -170,6 +170,7 @@ const UserAvatar = () => {
 
   // Lấy tên viết tắt
   const getInitials = (name: string) => {
+    if (!name) return '?';
     return name
       .split(' ')
       .map((n) => n[0])
@@ -191,15 +192,15 @@ const UserAvatar = () => {
             />
           ) : (
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-              {getInitials(user.fullname)}
+              {getInitials(user.fullname || user.username || 'User')}
             </div>
           )}
           <div className="text-left hidden md:block">
             <div className="text-sm font-medium text-white-900 dark:text-zinc-100">
-              {user.fullname}
+              {user.fullname || user.username || 'User'}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {user.email}
+              {user.email || ''}
             </div>
           </div>
         </button>
@@ -217,15 +218,15 @@ const UserAvatar = () => {
             />
           ) : (
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-              {getInitials(user.fullname)}
+              {getInitials(user.fullname || user.username || 'User')}
             </div>
           )}
           <div>
             <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              {user.fullname}
+              {user.fullname || user.username || 'User'}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {user.email}
+              {user.email || ''}
             </div>
             {/* <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Pro Plan</div> */}
           </div>

@@ -26,11 +26,12 @@ interface RegisterFormData {
 }
 
 interface RegisterSuccessResponse {
-  user: {
+  result: {
     email: string;
     id?: string;
     username?: string;
     fullName?: string;
+    role?: string;
   };
   message?: string;
   token?: string;
