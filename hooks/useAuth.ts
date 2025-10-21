@@ -1,7 +1,7 @@
 // Custom hooks for authentication using TanStack Query
 import React from 'react';
 import { useMutation, useQuery, useQueryClient  } from '@tanstack/react-query';
-import { authService, RegisterFormData, RegisterResponse, VerifyEmailResponse, LoginFormData, LoginResponse, ApiError, UserInfo, LogoutData, LogoutResponse, ResendVerificationData, ResendVerificationResponse, ForgotPasswordData, ForgotPasswordResponse, VerifyResetCodeData, VerifyResetCodeResponse, ResetPasswordData, ResetPasswordResponse, UpdateUserInfoData, GoogleLoginData, GoogleLoginResponse, ChangePasswordData, ChangePasswordResponse } from '@/services/authService';
+import { authService, RegisterFormData, RegisterResponse, VerifyEmailResponse, LoginFormData, LoginResponse, ApiError, UserInfo, LogoutData, LogoutResponse, ResendVerificationData, ResendVerificationResponse, ForgotPasswordData, ForgotPasswordResponse, VerifyResetCodeData, VerifyResetCodeResponse, ResetPasswordData, ResetPasswordResponse, UpdateUserInfoData, GoogleLoginData, GoogleLoginResponse, ChangePasswordData, ChangePasswordResponse, RefreshTokenData, RefreshTokenResponse } from '@/services/authService';
 import { useAuthStore } from '../store/authStore';
 interface UseLoginOptions {
   onSuccess?: (data: LoginResponse) => void;
@@ -19,7 +19,7 @@ export const useLogin = (options: UseLoginOptions = {}) => {
       console.log('useLogin onSuccess called with:', data);
       // BƯỚC 2: Cập nhật store sau khi đăng nhập thành công
       const { setTokens } = useAuthStore.getState();
-      setTokens(data.data.accessToken, data.data.refreshToken, data.data.role);
+      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role, data.result.isBanned, data.result.isActive);
       
       // Vẫn gọi callback gốc để component có thể xử lý tiếp (ví dụ: đóng modal)
       options.onSuccess?.(data);
@@ -101,20 +101,21 @@ export const useRegister = (options: UseRegisterOptions = {}) => {
       options.onSuccess?.(data);
     },
     onError: (error: ApiError) => {
-      // Handle validation errors format: {"errors": {...}}
+      // Handle validation errors format: {"message": "Lỗi xác thực dữ liệu", "errors": {...}}
+      // Handle conflict errors format: {"message": "Dữ liệu bị xung đột", "errors": {...}}
       if (error.errors) {
         const fieldErrors: Record<string, string> = {};
-        Object.entries(error.errors).forEach(([field, messages]) => {
-          if (Array.isArray(messages) && messages.length > 0) {
-            fieldErrors[field.toLowerCase()] = messages[0];
+        Object.entries(error.errors).forEach(([field, errorObj]) => {
+          if (errorObj && typeof errorObj === 'object' && 'msg' in errorObj && typeof errorObj.msg === 'string') {
+            fieldErrors[field.toLowerCase()] = errorObj.msg;
           }
         });
         options.onFieldError?.(fieldErrors);
         return;
       }
       
-      // Handle single error message format: {"error": "message"} or {"message": "message"}
-      const errorMessage = error.message || error.error || 'Đăng ký thất bại. Vui lòng thử lại.';
+      // Handle single error message format: {"message": "message"}
+      const errorMessage = error.message || 'Đăng ký thất bại. Vui lòng thử lại.';
       options.onError?.(errorMessage);
     }
   });
@@ -132,6 +133,14 @@ export const useVerifyEmail = (token: string, options: UseVerifyEmailOptions = {
       options.onSuccess?.(data);
     },
     onError: (error: ApiError) => {
+      // Handle validation errors format: {"message": "Xác thực thất bại", "errors": {"token": {...}}}
+      if (error.errors && error.errors.token && typeof error.errors.token === 'object' && 'msg' in error.errors.token) {
+        const errorMessage = error.errors.token.msg;
+        options.onError?.(errorMessage);
+        return;
+      }
+      
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
       const errorMessage = error.message || error.error || 'Xác minh email thất bại. Vui lòng thử lại.';
       options.onError?.(errorMessage);
     }
@@ -160,18 +169,37 @@ export const useGetUserInfo = (accessToken: string | null, options: UseGetUserIn
   // Handle success and error using useEffect
   React.useEffect(() => {
     if (query.isSuccess && query.data) {
-      // Chỉ cập nhật AuthStore nếu có options.onSuccess (tức là được gọi từ Header)
-      if (options.onSuccess) {
-        useAuthStore.getState().setUser(query.data);
-        useAuthStore.getState().setRole(query.data.role);
-      }
+      // Luôn cập nhật AuthStore với thông tin user mới nhất
+      useAuthStore.getState().setUser(query.data);
+      useAuthStore.getState().setRole(query.data.role);
+      useAuthStore.getState().setIsBanned(query.data.isBanned);
+      useAuthStore.getState().setIsActive(query.data.isActive);
+      
       options.onSuccess?.(query.data);
     }
   }, [query.isSuccess, query.data]);
 
   React.useEffect(() => {
     if (query.isError && query.error) {
-      options.onError?.(query.error.message || 'Failed to fetch user info');
+      // Handle auth errors format: {"message": "Xác thực thất bại", "errors": {"auth": {...}}}
+      // Also handle case with capital "Errors" and "Msg"
+      const error = query.error as ApiError;
+      if (error.errors && error.errors.auth && typeof error.errors.auth === 'object') {
+        const authError = error.errors.auth;
+        if ('msg' in authError && typeof authError.msg === 'string') {
+          options.onError?.(authError.msg);
+          return;
+        }
+        if ('Msg' in authError && typeof authError.Msg === 'string') {
+          options.onError?.(authError.Msg);
+          return;
+        }
+      }
+      
+      // Handle user not found: {"message": "Người dùng không tồn tại."}
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
+      const errorMessage = error.message || error.error || 'Không thể lấy thông tin người dùng.';
+      options.onError?.(errorMessage);
     }
   }, [query.isError, query.error]);
 
@@ -194,9 +222,18 @@ export const useLogout = (options: UseLogoutOptions = {}) => {
       useAuthStore.getState().clearAuth();
       options.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       // Cũng nên xóa state kể cả khi API logout lỗi, vì ý định của người dùng là đăng xuất
       useAuthStore.getState().clearAuth();
+      
+      // Handle auth errors format: {"message": "Lỗi xác thực", "errors": {"refreshToken": {...}}}
+      if (error.errors && error.errors.refreshToken && typeof error.errors.refreshToken === 'object' && 'msg' in error.errors.refreshToken) {
+        const errorMessage = error.errors.refreshToken.msg;
+        options.onError?.(errorMessage);
+        return;
+      }
+      
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
       const errorMessage = error.message || error.error || 'Đăng xuất thất bại. Vui lòng thử lại.';
       options.onError?.(errorMessage);
     }
@@ -214,7 +251,16 @@ export const useResendVerification = (options: UseResendVerificationOptions = {}
     onSuccess: (data) => {
       options.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
+      // Handle validation errors format: {"message": "Lỗi xác thực dữ liệu", "errors": {"email": {...}}}
+      // Handle conflict errors format: {"message": "Dữ liệu bị xung đột", "errors": {"email": {...}}}
+      if (error.errors && error.errors.email && typeof error.errors.email === 'object' && 'msg' in error.errors.email) {
+        const errorMessage = error.errors.email.msg;
+        options.onError?.(errorMessage);
+        return;
+      }
+      
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
       const errorMessage = error.message || error.error || 'Gửi lại email xác minh thất bại. Vui lòng thử lại.';
       options.onError?.(errorMessage);
     }
@@ -232,7 +278,16 @@ export const useForgotPassword = (options: UseForgotPasswordOptions = {}) => {
     onSuccess: (data) => {
       options.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
+      // Handle validation errors format: {"message": "Lỗi xác thực", "errors": {"emailOrUsername": {...}}}
+      // Handle conflict errors format: {"message": "Xung đột dữ liệu", "errors": {"emailOrUsername": {...}}}
+      if (error.errors && error.errors.emailOrUsername && typeof error.errors.emailOrUsername === 'object' && 'msg' in error.errors.emailOrUsername) {
+        const errorMessage = error.errors.emailOrUsername.msg;
+        options.onError?.(errorMessage);
+        return;
+      }
+      
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
       const errorMessage = error.message || error.error || 'Không thể gửi email khôi phục.';
       options.onError?.(errorMessage);
     }
@@ -250,8 +305,25 @@ export const useVerifyResetCode = (options: UseVerifyResetCodeOptions = {}) => {
     onSuccess: (data) => {
       options.onSuccess?.(data);
     },
-    onError: (error: any) => {
-      const errorMessage = error.message || error.error || 'Mã không hợp lệ hoặc đã hết hạn.';
+    onError: (error: ApiError) => {
+      // Handle validation errors format: {"message": "Lỗi xác thực", "errors": {"code": {...}, "emailOrUsername": {...}}}
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        Object.entries(error.errors).forEach(([field, errorObj]) => {
+          if (errorObj && typeof errorObj === 'object' && 'msg' in errorObj && typeof errorObj.msg === 'string') {
+            fieldErrors[field.toLowerCase()] = errorObj.msg;
+          }
+        });
+        // Return the first error message found
+        const firstError = Object.values(fieldErrors)[0];
+        if (firstError) {
+          options.onError?.(firstError);
+          return;
+        }
+      }
+      
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
+      const errorMessage = error.message || error.error || 'Xác minh mã thất bại. Vui lòng thử lại.';
       options.onError?.(errorMessage);
     }
   });
@@ -260,6 +332,7 @@ export const useVerifyResetCode = (options: UseVerifyResetCodeOptions = {}) => {
 interface UseResetPasswordOptions {
   onSuccess?: (data: ResetPasswordResponse) => void;
   onError?: (error: string) => void;
+  onFieldError?: (fieldErrors: Record<string, string>) => void;
 }
 
 export const useResetPassword = (options: UseResetPasswordOptions = {}) => {
@@ -268,8 +341,23 @@ export const useResetPassword = (options: UseResetPasswordOptions = {}) => {
     onSuccess: (data) => {
       options.onSuccess?.(data);
     },
-    onError: (error: any) => {
-      const errorMessage = error.message || error.error || 'Đặt lại mật khẩu thất bại.';
+    onError: (error: ApiError) => {
+      // Handle validation errors format: {"message": "Lỗi xác thực", "errors": {"newPassword": {...}, "verifyPassword": {...}}}
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        Object.entries(error.errors).forEach(([field, errorObj]) => {
+          if (errorObj && typeof errorObj === 'object' && 'msg' in errorObj && typeof errorObj.msg === 'string') {
+            fieldErrors[field.toLowerCase()] = errorObj.msg;
+          }
+        });
+        if (Object.keys(fieldErrors).length > 0) {
+          options.onFieldError?.(fieldErrors);
+          return;
+        }
+      }
+      
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
+      const errorMessage = error.message || error.error || 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.';
       options.onError?.(errorMessage);
     }
   });
@@ -292,13 +380,31 @@ export const useUpdateUserInfo = (options: UseUpdateUserInfoOptions = {}) => {
       // BƯỚC 5: Cập nhật lại user trong store sau khi chỉnh sửa hồ sơ
       useAuthStore.getState().setUser(data);
       useAuthStore.getState().setRole(data.role);
+      useAuthStore.getState().setIsBanned(data.isBanned);
+      useAuthStore.getState().setIsActive(data.isActive);
 
       queryClient.setQueryData(['userInfo', variables.accessToken], data);
       options.onSuccess?.(data);
     },
     
-    onError: (error: any) => {
-      const errorMessage = error.detail || error.message || error.error || 'Cập nhật thông tin thất bại.';
+    onError: (error: ApiError) => {
+      // Handle auth errors format: {"message": "Xác thực thất bại", "errors": {"auth": {...}}}
+      // Also handle case with capital "Errors" and "Msg"
+      if (error.errors && error.errors.auth && typeof error.errors.auth === 'object') {
+        const authError = error.errors.auth;
+        if ('msg' in authError && typeof authError.msg === 'string') {
+          options.onError?.(authError.msg);
+          return;
+        }
+        if ('Msg' in authError && typeof authError.Msg === 'string') {
+          options.onError?.(authError.Msg);
+          return;
+        }
+      }
+      
+      // Handle user not found: {"message": "Người dùng không tồn tại."}
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
+      const errorMessage = error.message || error.error || 'Cập nhật thông tin thất bại.';
       options.onError?.(errorMessage);
     }
   });
@@ -315,11 +421,30 @@ export const useGoogleLogin = (options: UseGoogleLoginOptions = {}) => {
     onSuccess: (data) => {
       // Cập nhật store sau khi đăng nhập Google thành công
       const { setTokens } = useAuthStore.getState();
-      setTokens(data.data.accessToken, data.data.refreshToken, data.data.role);
+      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role, data.result.isBanned, data.result.isActive);
       
       options.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
+      // Handle validation errors format: {"message": "Lỗi xác thực Google", "errors": {"idToken": {...}}}
+      // Handle auth errors format: {"message": "Lỗi đăng nhập", "errors": {"email": {...}}}
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        Object.entries(error.errors).forEach(([field, errorObj]) => {
+          if (errorObj && typeof errorObj === 'object' && 'msg' in errorObj && typeof errorObj.msg === 'string') {
+            // For auth errors, show as general error
+            if (field === 'idToken' || field === 'email') {
+              options.onError?.(errorObj.msg);
+              return;
+            } else {
+              fieldErrors[field.toLowerCase()] = errorObj.msg;
+            }
+          }
+        });
+        return;
+      }
+      
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
       const errorMessage = error.message || error.error || 'Đăng nhập Google thất bại.';
       options.onError?.(errorMessage);
     }
@@ -329,17 +454,63 @@ export const useGoogleLogin = (options: UseGoogleLoginOptions = {}) => {
 interface UseChangePasswordOptions {
   onSuccess?: (data: ChangePasswordResponse) => void;
   onError?: (error: string) => void;
+  onFieldError?: (fieldErrors: Record<string, string>) => void;
 }
 
 export const useChangePassword = (options: UseChangePasswordOptions = {}) => {
   return useMutation({
-    mutationFn: ({ data, accessToken }: { data: ChangePasswordData, accessToken: string }) => 
+    mutationFn: ({ data, accessToken }: { data: ChangePasswordData, accessToken: string }) =>
       authService.changePassword(data, accessToken),
     onSuccess: (data) => {
       options.onSuccess?.(data);
     },
-    onError: (error: any) => {
-      const errorMessage = error.message || error.error || 'Đổi mật khẩu thất bại.';
+    onError: (error: ApiError) => {
+      // Handle validation errors format: {"message": "Lỗi xác thực dữ liệu", "errors": {...}}
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        Object.entries(error.errors).forEach(([field, errorObj]) => {
+          if (errorObj && typeof errorObj === 'object' && 'msg' in errorObj && typeof errorObj.msg === 'string') {
+            fieldErrors[field.toLowerCase()] = errorObj.msg;
+          }
+        });
+        if (Object.keys(fieldErrors).length > 0) {
+          options.onFieldError?.(fieldErrors);
+          return;
+        }
+      }
+
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
+      const errorMessage = error.message || error.error || 'Đổi mật khẩu thất bại. Vui lòng thử lại.';
+      options.onError?.(errorMessage);
+    }
+  });
+};
+
+interface UseRefreshTokenOptions {
+  onSuccess?: (data: RefreshTokenResponse) => void;
+  onError?: (error: string) => void;
+}
+
+export const useRefreshToken = (options: UseRefreshTokenOptions = {}) => {
+  return useMutation({
+    mutationFn: (data: RefreshTokenData) => authService.refreshToken(data),
+    onSuccess: (data) => {
+      // Cập nhật store sau khi refresh token thành công
+      const { setTokens } = useAuthStore.getState();
+      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role, data.result.isBanned, data.result.isActive);
+      
+      options.onSuccess?.(data);
+    },
+    onError: (error: ApiError) => {
+      // Handle auth errors format: {"message": "Xác thực thất bại", "errors": {"auth": {...}}}
+      if (error.errors && error.errors.auth && typeof error.errors.auth === 'object' && 'msg' in error.errors.auth) {
+        const errorMessage = error.errors.auth.msg;
+        options.onError?.(errorMessage);
+        return;
+      }
+      
+      // Handle system errors or other error formats: {"message": "Đã xảy ra lỗi hệ thống"}
+      const errorMessage = error.message || error.error || 'Làm mới token thất bại.';
       options.onError?.(errorMessage);
     }
   });

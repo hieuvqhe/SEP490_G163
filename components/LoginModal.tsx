@@ -29,7 +29,7 @@ interface LoginFormData {
 }
 
 interface LoginSuccessResponse {
-  data: {
+  result: {
     accessToken: string;
     refreshToken: string;
     expireAt: string;
@@ -49,6 +49,7 @@ interface LoginModalProps {
 interface ValidationErrors {
   emailOrUsername?: string;
   password?: string;
+  email?: string; // Thêm để xử lý lỗi email từ API
 }
 
 export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegister }: LoginModalProps) {
@@ -92,7 +93,13 @@ export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegis
       showToast('Lỗi đăng nhập', error, 'error');
     },
     onFieldError: (fieldErrors) => {
-      setErrors(fieldErrors);
+      // Map lỗi email từ API sang emailOrUsername field
+      const mappedErrors = { ...fieldErrors };
+      if (fieldErrors.email && !fieldErrors.emailOrUsername) {
+        mappedErrors.emailOrUsername = fieldErrors.email;
+        delete mappedErrors.email;
+      }
+      setErrors(mappedErrors);
     }
   });
 

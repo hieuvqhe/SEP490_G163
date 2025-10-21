@@ -35,14 +35,51 @@ const ProfilePage = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  // State để lưu lỗi validation cho từng field
+  const [passwordFieldErrors, setPasswordFieldErrors] = useState<Record<string, string>>({});
   // Hàm xử lý thay đổi input cho form đổi mật khẩu
   const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswordForm(prev => ({ ...prev, [name]: value }));
+
+    // Clear field error when user starts typing (both client and server validation errors)
+    if (passwordFieldErrors[name.toLowerCase()]) {
+      setPasswordFieldErrors(prev => ({ ...prev, [name.toLowerCase()]: '' }));
+    }
+  };
+
+  // Hàm validate form đổi mật khẩu
+  const validatePasswordForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!passwordForm.oldPassword.trim()) {
+      errors.oldpassword = 'Vui lòng nhập mật khẩu hiện tại';
+    }
+
+    if (!passwordForm.newPassword.trim()) {
+      errors.newpassword = 'Vui lòng nhập mật khẩu mới';
+    } else if (passwordForm.newPassword.length < 6) {
+      errors.newpassword = 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+
+    if (!passwordForm.confirmPassword.trim()) {
+      errors.confirmpassword = 'Vui lòng xác nhận mật khẩu mới';
+    } else if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      errors.confirmpassword = 'Mật khẩu xác nhận không khớp';
+    }
+
+    return errors;
   };
 
   // Hàm gọi API đổi mật khẩu
   const handleChangePassword = () => {
+    // Validate form trước khi gửi request
+    const validationErrors = validatePasswordForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setPasswordFieldErrors(validationErrors);
+      return;
+    }
+
     if (!accessToken) {
       showToast('Lỗi xác thực', 'Không tìm thấy token.', 'error');
       return;
@@ -69,9 +106,15 @@ const ProfilePage = () => {
       showToast('Thành công', data.message, 'success');
       setShowChangePassword(false);
       setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordFieldErrors({}); // Clear all errors on success
+    },
+    onFieldError: (fieldErrors) => {
+      // Server validation errors take precedence over client validation
+      setPasswordFieldErrors(fieldErrors);
     },
     onError: (error) => {
       showToast('Lỗi đổi mật khẩu', error, 'error');
+      // Keep existing field errors for server errors
     }
   });
 
@@ -288,33 +331,48 @@ const ProfilePage = () => {
             <div className="bg-[#18181b] rounded-2xl p-8 shadow-2xl w-full max-w-md relative">
               <h2 className="text-2xl font-bold text-white mb-6 text-center">Đổi mật khẩu</h2>
               <div className="space-y-4">
-                <input
-                  type="password"
-                  name="oldPassword"
-                  value={passwordForm.oldPassword}
-                  onChange={handlePasswordInputChange}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Mật khẩu hiện tại"
-                  autoComplete="current-password"
-                />
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={passwordForm.newPassword}
-                  onChange={handlePasswordInputChange}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Mật khẩu mới"
-                  autoComplete="new-password"
-                />
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={passwordForm.confirmPassword}
-                  onChange={handlePasswordInputChange}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Xác nhận mật khẩu mới"
-                  autoComplete="new-password"
-                />
+                <div>
+                  <input
+                    type="password"
+                    name="oldPassword"
+                    value={passwordForm.oldPassword}
+                    onChange={handlePasswordInputChange}
+                    className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Mật khẩu hiện tại"
+                    autoComplete="current-password"
+                  />
+                  {passwordFieldErrors.oldpassword && (
+                    <p className="text-red-400 text-sm mt-1">{passwordFieldErrors.oldpassword}</p>
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="password"
+                    name="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordInputChange}
+                    className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Mật khẩu mới"
+                    autoComplete="new-password"
+                  />
+                  {passwordFieldErrors.newpassword && (
+                    <p className="text-red-400 text-sm mt-1">{passwordFieldErrors.newpassword}</p>
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={passwordForm.confirmPassword}
+                    onChange={handlePasswordInputChange}
+                    className="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Xác nhận mật khẩu mới"
+                    autoComplete="new-password"
+                  />
+                  {passwordFieldErrors.confirmpassword && (
+                    <p className="text-red-400 text-sm mt-1">{passwordFieldErrors.confirmpassword}</p>
+                  )}
+                </div>
               </div>
               <div className="mt-8 flex gap-4 justify-center">
                 <button
@@ -325,7 +383,11 @@ const ProfilePage = () => {
                   {changePasswordMutation.isPending ? "Đang đổi..." : "Đổi mật khẩu"}
                 </button>
                 <button
-                  onClick={() => { setShowChangePassword(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }}
+                  onClick={() => { 
+                    setShowChangePassword(false); 
+                    setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                    setPasswordFieldErrors({});
+                  }}
                   className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-2xl hover:bg-white/20 transition-all duration-300"
                 >
                   Hủy

@@ -107,7 +107,7 @@ export default function ForgotPasswordModal({ isOpen, onClose, onSwitchToLogin }
         onSuccess={() => {
           setShowResetPasswordModal(false);
           onClose();
-          showToast('Thành công', 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập với mật khẩu mới.', 'success');
+          // Remove duplicate toast - ResetPasswordModal already shows success toast
           if (onSwitchToLogin) {
             onSwitchToLogin();
           }

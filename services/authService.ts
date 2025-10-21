@@ -34,12 +34,17 @@ export interface LoginFormData {
 
 export interface LoginResponse {
   message: string;
-  data: {
+  result: {
     accessToken: string;
     refreshToken: string;
     expireAt: string;
     fullName: string;
     role: string;
+    partnerInfo: null;
+    accountStatus: string;
+    isBanned: boolean;
+    isActive: boolean;
+    emailConfirmed: boolean;
   };
 }
 
@@ -53,8 +58,8 @@ export interface RegisterFormData {
 
 export interface RegisterResponse {
   message: string;
-  user: {
-    fullName: string;
+  result: {
+    fullname: string;
     username: string;
     email: string;
     emailConfirmed: boolean;
@@ -63,7 +68,6 @@ export interface RegisterResponse {
 
 export interface VerifyEmailResponse {
   message: string;
-  success: boolean;
 }
 
 export interface UserInfo {
@@ -75,6 +79,11 @@ export interface UserInfo {
   avatarUrl: string;
   email: string;
   role: string;
+  accountStatus: string;
+  isBanned: boolean;
+  isActive: boolean;
+  emailConfirmed: boolean;
+  createdAt: string;
 }
 
 export interface LogoutData {
@@ -95,7 +104,7 @@ export interface ResendVerificationResponse {
 
 export interface ApiError {
   error?: string;
-  errors?: Record<string, string[]>;
+  errors?: Record<string, { msg: string; path: string; location: string }>;
   message?: string;
   isNetworkError?: boolean;
 }
@@ -112,12 +121,37 @@ export interface GoogleLoginData {
 
 export interface GoogleLoginResponse {
   message: string;
-  data: {
+  result: {
     accessToken: string;
     refreshToken: string;
     expireAt: string;
     fullName: string;
     role: string;
+    partnerInfo: null;
+    accountStatus: string;
+    isBanned: boolean;
+    isActive: boolean;
+    emailConfirmed: boolean;
+  };
+}
+
+export interface RefreshTokenData {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  message: string;
+  result: {
+    accessToken: string;
+    refreshToken: string;
+    expireAt: string;
+    fullName: string;
+    role: string;
+    partnerInfo: null;
+    accountStatus: string;
+    isBanned: boolean;
+    isActive: boolean;
+    emailConfirmed: boolean;
   };
 }
 
@@ -261,12 +295,11 @@ class AuthService {
   async getUserInfo(accessToken: string): Promise<UserInfo> {
     try {
       const response = await fetch(`${this.userURL}/me`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
-          'Accept': '*/*',
+          'Accept': 'application/json',
           'Authorization': `Bearer ${accessToken}`,
-        },
-        body: ''
+        }
       });
 
       const result = await response.json();
@@ -275,7 +308,7 @@ class AuthService {
         throw result as ApiError;
       }
 
-      return result;
+      return result.result; // Return only the user data from result
     } catch (error: any) {
       // Handle network errors
       if (error.name === 'TypeError') {
@@ -416,7 +449,7 @@ class AuthService {
         throw result as ApiError; // Lỗi validation sẽ nằm trong result
       }
 
-      return result as UserInfo;
+      return result.result as UserInfo; // Return only the user data from result
     } catch (error: any) {
       // Xử lý lỗi mạng
       if (error.name === 'TypeError') {
@@ -462,6 +495,32 @@ class AuthService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw result as ApiError;
+      }
+
+      return result;
+    } catch (error: any) {
+      if (error.name === 'TypeError') {
+        throw { error: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.', isNetworkError: true } as ApiError;
+      }
+      throw error;
+    }
+  }
+
+  async refreshToken(data: RefreshTokenData): Promise<RefreshTokenResponse> {
+    try {
+      const response = await fetch(`${this.baseURL}/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(data)
       });

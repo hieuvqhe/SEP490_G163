@@ -52,31 +52,21 @@ const Header = () => {
     },
   });
 
-  const handleRegistrationSuccess = (data: {
-    user?: { email: string };
-    email?: string;
-  }) => {
-    setUserEmail(data.user?.email || data.email || "");
+  const handleRegistrationSuccess = (data: { result?: { email: string }; email?: string }) => {
+    setUserEmail(data.result?.email || data.email || "");
     setShowRegisterModal(false);
     setShowEmailVerificationModal(true);
   };
 
-  const handleLoginSuccess = (data: {
-    data: {
-      accessToken: string;
-      refreshToken: string;
-      fullName: string;
-      role: string;
-    };
-  }) => {
-    console.log("Login successful:", data);
+  const handleLoginSuccess = (data: { result: { accessToken: string; refreshToken: string; fullName: string; role: string } }) => {
+    console.log('Login successful:', data);
     setShowLoginModal(false);
 
     // Tokens đã được set trong useLogin hook
     // Redirect ngay lập tức dựa trên role từ response
-    const role = data.data.role;
-    console.log("Redirecting with role from response:", role);
-
+    const role = data.result.role;
+    console.log('Redirecting with role from response:', role);
+    
     if (!role) {
       window.location.href = "/";
       return;

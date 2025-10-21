@@ -76,8 +76,8 @@ export async function GET(request: NextRequest) {
 
     // Redirect to home page with tokens in URL params for client-side handling
     const redirectUrl = new URL('/', request.url);
-    redirectUrl.searchParams.set('accessToken', backendData.data.accessToken);
-    redirectUrl.searchParams.set('refreshToken', backendData.data.refreshToken);
+    redirectUrl.searchParams.set('accessToken', backendData.result.accessToken);
+    redirectUrl.searchParams.set('refreshToken', backendData.result.refreshToken);
     redirectUrl.searchParams.set('googleAuth', 'true');
     
     const response = NextResponse.redirect(redirectUrl);
