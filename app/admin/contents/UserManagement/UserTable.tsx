@@ -1,4 +1,4 @@
-import { Loader2, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Eye, Edit, Trash2, ChevronLeft, ChevronRight, ShieldX, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AdminUser } from '../../../../apis/admin.api';
 
@@ -12,6 +12,8 @@ interface UserTableProps {
   onEditUser: (user: AdminUser) => void;
   onToggleUserStatus: (userId: string, isCurrentlyActive: boolean) => void;
   onDeleteUser: (user: AdminUser) => void;
+  onBanUser: (userId: string) => void;
+  onUnbanUser: (userId: string) => void;
   onPageChange: (page: number) => void;
 }
 
@@ -25,6 +27,8 @@ export const UserTable = ({
   onEditUser,
   onToggleUserStatus,
   onDeleteUser,
+  onBanUser,
+  onUnbanUser,
   onPageChange
 }: UserTableProps) => {
   const totalPages = Math.ceil(totalUsers / limit);
@@ -169,6 +173,29 @@ export const UserTable = ({
                     >
                       <Edit size={16} />
                     </motion.button>
+                    {(userData.role === 'user' || userData.role === 'customer') && (
+                      userData.verify === 2 ? (
+                        <motion.button
+                          onClick={() => onUnbanUser(userData.id.toString())}
+                          className="text-green-400 hover:text-green-300 transition-colors p-1 rounded-lg hover:bg-green-500/10"
+                          title="Bỏ cấm người dùng"
+                          whileHover={{ scale: 1.2, rotate: -5 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <ShieldCheck size={16} />
+                        </motion.button>
+                      ) : (
+                        <motion.button
+                          onClick={() => onBanUser(userData.id.toString())}
+                          className="text-orange-400 hover:text-orange-300 transition-colors p-1 rounded-lg hover:bg-orange-500/10"
+                          title="Cấm người dùng"
+                          whileHover={{ scale: 1.2, rotate: 5 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <ShieldX size={16} />
+                        </motion.button>
+                      )
+                    )}
                     <motion.button
                       onClick={() => onDeleteUser(userData)}
                       className="text-red-400 hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-500/10"

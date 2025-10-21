@@ -5,6 +5,7 @@ import QueryProvider from "@/providers/QueryProvider";
 import { ToastProvider } from "@/components/ToastProvider";
 import AuthInitializer from "@/components/AuthInitializer";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function RootLayout({
         <QueryProvider>
           <ToastProvider>
             <AuthInitializer />
+          
             {children}
           </ToastProvider>
         </QueryProvider>

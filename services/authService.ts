@@ -40,6 +40,11 @@ export interface LoginResponse {
     expireAt: string;
     fullName: string;
     role: string;
+    partnerInfo: null;
+    accountStatus: string;
+    isBanned: boolean;
+    isActive: boolean;
+    emailConfirmed: boolean;
   };
 }
 
@@ -74,6 +79,11 @@ export interface UserInfo {
   avatarUrl: string;
   email: string;
   role: string;
+  accountStatus: string;
+  isBanned: boolean;
+  isActive: boolean;
+  emailConfirmed: boolean;
+  createdAt: string;
 }
 
 export interface LogoutData {
@@ -117,6 +127,11 @@ export interface GoogleLoginResponse {
     expireAt: string;
     fullName: string;
     role: string;
+    partnerInfo: null;
+    accountStatus: string;
+    isBanned: boolean;
+    isActive: boolean;
+    emailConfirmed: boolean;
   };
 }
 
@@ -132,6 +147,11 @@ export interface RefreshTokenResponse {
     expireAt: string;
     fullName: string;
     role: string;
+    partnerInfo: null;
+    accountStatus: string;
+    isBanned: boolean;
+    isActive: boolean;
+    emailConfirmed: boolean;
   };
 }
 

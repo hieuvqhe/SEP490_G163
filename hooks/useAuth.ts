@@ -15,7 +15,7 @@ export const useLogin = (options: UseLoginOptions = {}) => {
     onSuccess: (data) => {
       // BƯỚC 2: Cập nhật store sau khi đăng nhập thành công
       const { setTokens } = useAuthStore.getState();
-      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role);
+      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role, data.result.isBanned, data.result.isActive);
       
       // Vẫn gọi callback gốc để component có thể xử lý tiếp (ví dụ: đóng modal)
       options.onSuccess?.(data);
@@ -33,6 +33,10 @@ export const useLogin = (options: UseLoginOptions = {}) => {
               fieldErrors['password'] = errorObj.msg;
             } else if (field === 'auth') {
               // For auth errors, show as general error
+              options.onError?.(errorObj.msg);
+              return;
+            } else if (field === 'account') {
+              // For account ban errors, show as general error
               options.onError?.(errorObj.msg);
               return;
             } else {
@@ -134,11 +138,12 @@ export const useGetUserInfo = (accessToken: string | null, options: UseGetUserIn
   // Handle success and error using useEffect
   React.useEffect(() => {
     if (query.isSuccess && query.data) {
-      // Chỉ cập nhật AuthStore nếu có options.onSuccess (tức là được gọi từ Header)
-      if (options.onSuccess) {
-        useAuthStore.getState().setUser(query.data);
-        useAuthStore.getState().setRole(query.data.role);
-      }
+      // Luôn cập nhật AuthStore với thông tin user mới nhất
+      useAuthStore.getState().setUser(query.data);
+      useAuthStore.getState().setRole(query.data.role);
+      useAuthStore.getState().setIsBanned(query.data.isBanned);
+      useAuthStore.getState().setIsActive(query.data.isActive);
+      
       options.onSuccess?.(query.data);
     }
   }, [query.isSuccess, query.data]);
@@ -344,6 +349,8 @@ export const useUpdateUserInfo = (options: UseUpdateUserInfoOptions = {}) => {
       // BƯỚC 5: Cập nhật lại user trong store sau khi chỉnh sửa hồ sơ
       useAuthStore.getState().setUser(data);
       useAuthStore.getState().setRole(data.role);
+      useAuthStore.getState().setIsBanned(data.isBanned);
+      useAuthStore.getState().setIsActive(data.isActive);
 
       queryClient.setQueryData(['userInfo', variables.accessToken], data);
       options.onSuccess?.(data);
@@ -383,7 +390,7 @@ export const useGoogleLogin = (options: UseGoogleLoginOptions = {}) => {
     onSuccess: (data) => {
       // Cập nhật store sau khi đăng nhập Google thành công
       const { setTokens } = useAuthStore.getState();
-      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role);
+      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role, data.result.isBanned, data.result.isActive);
       
       options.onSuccess?.(data);
     },
@@ -459,7 +466,7 @@ export const useRefreshToken = (options: UseRefreshTokenOptions = {}) => {
     onSuccess: (data) => {
       // Cập nhật store sau khi refresh token thành công
       const { setTokens } = useAuthStore.getState();
-      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role);
+      setTokens(data.result.accessToken, data.result.refreshToken, data.result.role, data.result.isBanned, data.result.isActive);
       
       options.onSuccess?.(data);
     },

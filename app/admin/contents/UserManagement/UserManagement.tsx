@@ -20,7 +20,7 @@ import type {
 
 import { UserFilters } from './UserFilters';
 import { UserTable } from './UserTable';
-import { UserDetailModal, EditUserModal, DeleteConfirmModal } from './UserModals';
+import { UserDetailModal, EditUserModal, DeleteConfirmModal, UnbanConfirmModal, BanConfirmModal } from './UserModals';
 
 export const UserManagement = () => {
   const { accessToken } = useAuthStore();
@@ -39,7 +39,11 @@ export const UserManagement = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showUnbanModal, setShowUnbanModal] = useState(false);
+  const [showBanModal, setShowBanModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [userToUnban, setUserToUnban] = useState<AdminUser | null>(null);
+  const [userToBan, setUserToBan] = useState<AdminUser | null>(null);
 
   // Build query params
   const queryParams: GetUsersParams = {
@@ -95,6 +99,50 @@ export const UserManagement = () => {
       refetchUsers();
     } catch (error) {
       showToast('Failed to delete user', undefined, 'error');
+    }
+  };
+
+  const handleBanUser = (user: AdminUser) => {
+    setUserToBan(user);
+    setShowBanModal(true);
+  };
+
+  const handleConfirmBan = async () => {
+    if (!userToBan) return;
+
+    try {
+      await banUserMutation.mutateAsync({
+        userId: userToBan.id,
+        accessToken: accessToken || ''
+      });
+      showToast('User banned successfully', undefined, 'success');
+      setShowBanModal(false);
+      setUserToBan(null);
+      refetchUsers();
+    } catch (error) {
+      showToast('Failed to ban user', undefined, 'error');
+    }
+  };
+
+  const handleUnbanUser = (user: AdminUser) => {
+    setUserToUnban(user);
+    setShowUnbanModal(true);
+  };
+
+  const handleConfirmUnban = async () => {
+    if (!userToUnban) return;
+
+    try {
+      await unbanUserMutation.mutateAsync({
+        userId: userToUnban.id,
+        accessToken: accessToken || ''
+      });
+      showToast('User unbanned successfully', undefined, 'success');
+      setShowUnbanModal(false);
+      setUserToUnban(null);
+      refetchUsers();
+    } catch (error) {
+      showToast('Failed to unban user', undefined, 'error');
     }
   };
 
@@ -184,6 +232,20 @@ export const UserManagement = () => {
     }
   };
 
+  const handleBanUserWrapper = (userId: string) => {
+    const user = users.find(u => u.id.toString() === userId);
+    if (user) {
+      handleBanUser(user);
+    }
+  };
+
+  const handleUnbanUserWrapper = (userId: string) => {
+    const user = users.find(u => u.id.toString() === userId);
+    if (user) {
+      handleUnbanUser(user);
+    }
+  };
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -241,6 +303,8 @@ export const UserManagement = () => {
           onEditUser={handleEditUser}
           onToggleUserStatus={handleToggleUserStatusWrapper}
           onDeleteUser={handleDeleteUser}
+          onBanUser={handleBanUserWrapper}
+          onUnbanUser={handleUnbanUserWrapper}
           onPageChange={handlePageChange}
         />
       </motion.div>
@@ -280,6 +344,32 @@ export const UserManagement = () => {
               setUserToDelete(null);
             }}
             onConfirm={handleConfirmDelete}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {showUnbanModal && userToUnban && (
+          <UnbanConfirmModal
+            user={userToUnban}
+            onClose={() => {
+              setShowUnbanModal(false);
+              setUserToUnban(null);
+            }}
+            onConfirm={handleConfirmUnban}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {showBanModal && userToBan && (
+          <BanConfirmModal
+            user={userToBan}
+            onClose={() => {
+              setShowBanModal(false);
+              setUserToBan(null);
+            }}
+            onConfirm={handleConfirmBan}
           />
         )}
       </AnimatePresence>
