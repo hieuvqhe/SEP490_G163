@@ -1,40 +1,58 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import BlurCircle from "@/components/layout/BlurCircle";
 import MovieCard from "../MovieCard";
-import { useQuery } from "@tanstack/react-query";
-import { GetMovieResponse } from "@/types/movie.type";
-import { getMoviesByStatus } from "@/apis/movie.api";
 import { Spinner } from "@/components/ui/spinner";
 import { movieCategoryQuickAccess } from "@/constants";
 import { ChevronDown, SearchIcon } from "lucide-react";
+import { useGetFullMovies } from "@/hooks/useMovie";
+import { Movie } from "@/types/movie.type";
 
 type MovieStatus = "now_showing" | "coming_soon" | "ended";
 
 const FeaturedSection = () => {
   const [page, setPage] = useState(1);
-  const [activeTitle, setActiveTitle] = useState("Đang Chiếu");
   const [status, setStatus] = useState<MovieStatus>("now_showing");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeTitle, setActiveTitle] = useState("Đang Chiếu");
 
-  const { data: movieResponse, isLoading } = useQuery<GetMovieResponse>({
-    queryKey: ["movieResponse", page, status],
-    queryFn: () => getMoviesByStatus(status, 4, page),
-    staleTime: 1000 * 60 * 5,
-    retry: 1,
+  const { data: movieResponse, isLoading } = useGetFullMovies({
+    limit: 4,
+    sort_order: "desc",
+    sort_by: "created_at",
+    page: page,
+    status: status,
   });
 
   const totalPages = movieResponse?.result.totalPages ?? 1;
   const isMaxMovie = page >= totalPages;
-  const movies = movieResponse?.result.movies ?? [];
 
+  const movies = useMemo(() => movieResponse?.result.movies ?? [], [movieResponse?.result.movies]);
+  const [allMovies, setAllMovies] = useState<Movie[]>([]);
+
+  // Filter movies based on search query
   const filteredMovies = useMemo(() => {
-    if (!searchQuery.trim()) return movies;
+    if (!searchQuery.trim()) {
+      return allMovies;
+    }
+    return allMovies.filter((movie) =>
+      movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [allMovies, searchQuery]);
 
-    const query = searchQuery.toLowerCase();
-    return movies.filter((movie) => movie.title.toLowerCase().includes(query));
-  }, [movies, searchQuery]);
+  // Update allMovies when new movies are fetched
+  useEffect(() => {
+    if (movies.length > 0) {
+      if (page === 1) {
+        // First page - replace all movies
+        setAllMovies(movies);
+      } else {
+        // Subsequent pages - append to existing movies
+        setAllMovies(prev => [...prev, ...movies]);
+      }
+    }
+  }, [movies, page]);
 
   const handleSearch = useCallback((input: string) => {
     setSearchQuery(input);
@@ -43,6 +61,7 @@ const FeaturedSection = () => {
   const handleSetActiveTitle = useCallback((title: string) => {
     setPage(1);
     setSearchQuery("");
+    setAllMovies([]);
 
     const statusMap: Record<string, MovieStatus> = {
       "Đang Chiếu": "now_showing",
@@ -54,6 +73,10 @@ const FeaturedSection = () => {
       setStatus(newStatus);
       setActiveTitle(title);
     }
+  }, []);
+
+  const handleLoadMore = useCallback(() => {
+    setPage((prev) => prev + 1);
   }, []);
 
   return (
@@ -102,7 +125,7 @@ const FeaturedSection = () => {
             <SearchIcon className="w-5 h-5 text-gray-400" />
           </div>
         </div>
-      </header> 
+      </header>
 
       {/* Movie Grid */}
       {isLoading ? (
@@ -122,7 +145,7 @@ const FeaturedSection = () => {
             <div className="flex justify-center mt-12 md:mt-20">
               <button
                 disabled={isMaxMovie || isLoading}
-                onClick={() => setPage((prev) => prev + 1)}
+                onClick={handleLoadMore}
                 className="px-8 md:px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition-all duration-300 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading

@@ -65,3 +65,9 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// Helper function to get the stored authentication token
+export const getAccessToken = () => {
+  const token = useAuthStore.getState().accessToken;
+  return token;
+};

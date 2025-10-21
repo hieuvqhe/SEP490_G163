@@ -2,6 +2,7 @@ import { BASE_URL } from "@/constants";
 import {
   GetMovieByIdRes,
   GetMovieResponse,
+  GetTopRateMoviesResponse,
   Movie,
   MovieQueryParams,
 } from "@/types/movie.type";
@@ -108,9 +109,46 @@ export const getMoviesByStatus = async (
   }
 };
 
-export const getMoviesById = async (movie_id: number): Promise<GetMovieByIdRes> => {
+export const getMoviesById = async (
+  movie_id: number
+): Promise<GetMovieByIdRes> => {
   try {
     const response = await axios.get(`${BASE_URL}/cinema/movies/${movie_id}`);
+    return response.data;
+  } catch (error) {
+    throw handleMovieError(error);
+  }
+};
+
+export type TimePeriod = "all" | "week" | "month" | "year";
+export interface MovieTopRateParams {
+  limit?: number;
+  min_ratings_count?: number;
+  time_period?: TimePeriod;
+}
+
+export const getTopRateMovies = async (
+  params?: MovieTopRateParams
+): Promise<GetTopRateMoviesResponse> => {
+  try {
+    const movieApi = createPublicMovieRequest();
+    const queryParams = new URLSearchParams();
+
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.min_ratings_count)
+      queryParams.append(
+        "min_ratings_count",
+        params.min_ratings_count.toString()
+      );
+    if (params?.time_period)
+      queryParams.append("time_period", params.time_period.toString());
+
+    const url = `/cinema/movies/categories/top-rated${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
+
+    const response = await movieApi.get<GetTopRateMoviesResponse>(url);
+
     return response.data;
   } catch (error) {
     throw handleMovieError(error);

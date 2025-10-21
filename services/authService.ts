@@ -172,7 +172,32 @@ class AuthService {
       const result = await response.json();
 
       if (!response.ok) {
-        throw result as ApiError;
+        console.log('API Error Response:', result);
+        console.log('Response status:', response.status);
+        
+        // Ensure we have a proper error object with at least a message
+        const errorObj = result || {};
+        if (!errorObj.message && !errorObj.error && !errorObj.detail) {
+          // If no error message is provided, create one based on status code
+          switch (response.status) {
+            case 401:
+              errorObj.message = 'Tên đăng nhập hoặc mật khẩu không đúng';
+              break;
+            case 403:
+              errorObj.message = 'Bạn không có quyền truy cập';
+              break;
+            case 404:
+              errorObj.message = 'Không tìm thấy tài khoản';
+              break;
+            case 500:
+              errorObj.message = 'Lỗi server. Vui lòng thử lại sau';
+              break;
+            default:
+              errorObj.message = 'Đăng nhập thất bại. Vui lòng thử lại';
+          }
+        }
+        
+        throw errorObj as ApiError;
       }
 
       return result;

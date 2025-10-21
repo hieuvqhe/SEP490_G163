@@ -8,7 +8,7 @@ export default function AuthInitializer() {
   const { accessToken, isHydrated, setTokens } = useAuthStore();
   const [hasInitialized, setHasInitialized] = useState(false);
 
-  console.log('AuthInitializer: Current store state - accessToken:', !!accessToken, 'isHydrated:', isHydrated, 'hasInitialized:', hasInitialized);
+  // console.log('AuthInitializer: Current store state - accessToken:', !!accessToken, 'isHydrated:', isHydrated, 'hasInitialized:', hasInitialized);
 
   // Function to get cookie value
   const getCookie = (name: string): string | null => {

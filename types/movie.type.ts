@@ -63,3 +63,20 @@ export interface GetMovieByIdRes {
   message: string;
   result: Movie;
 }
+
+export interface GetTopRateMoviesResponse {
+  message: string;
+  result: [
+    {
+      movieId: number;
+      title: string;
+      genre: string;
+      posterUrl: string;
+      premiereDate: Date;
+      endDate: Date;
+      status: "comming-soon" | "now-showing" | "end";
+      averageRating: number;
+      totalRatings: number;
+    }
+  ];
+}

@@ -23,9 +23,11 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
+  const [showEmailVerificationModal, setShowEmailVerificationModal] =
+    useState(false);
   const [userEmail, setUserEmail] = useState("");
-  const { user, accessToken, isLoading, isHydrated, clearAuth } = useAuthStore();
+  const { user, accessToken, isLoading, isHydrated, clearAuth } =
+    useAuthStore();
 
   // Handle case when there's no data in localStorage
   useEffect(() => {
@@ -38,58 +40,68 @@ const Header = () => {
   // Only fetch user info if we have accessToken but no user data (first time login)
   // This prevents unnecessary API calls when user info is already available in localStorage
   const shouldFetchUserInfo = accessToken && !user && !isLoading;
-  
+
   useGetUserInfo(shouldFetchUserInfo ? accessToken : null, {
     onSuccess: (data) => {
-      console.log('User info fetched successfully:', data);
+      console.log("User info fetched successfully:", data);
     },
     onError: (error) => {
-      console.error('Failed to fetch user info:', error);
+      console.error("Failed to fetch user info:", error);
       // If fetching user info fails, clear the tokens as they might be invalid
       clearAuth();
-    }
+    },
   });
 
-  const handleRegistrationSuccess = (data: { user?: { email: string }; email?: string }) => {
+  const handleRegistrationSuccess = (data: {
+    user?: { email: string };
+    email?: string;
+  }) => {
     setUserEmail(data.user?.email || data.email || "");
     setShowRegisterModal(false);
     setShowEmailVerificationModal(true);
   };
 
-  const handleLoginSuccess = (data: { data: { accessToken: string; refreshToken: string; fullName: string; role: string } }) => {
-    console.log('Login successful:', data);
+  const handleLoginSuccess = (data: {
+    data: {
+      accessToken: string;
+      refreshToken: string;
+      fullName: string;
+      role: string;
+    };
+  }) => {
+    console.log("Login successful:", data);
     setShowLoginModal(false);
-    
+
     // Tokens đã được set trong useLogin hook
     // Redirect ngay lập tức dựa trên role từ response
     const role = data.data.role;
-    console.log('Redirecting with role from response:', role);
-    
+    console.log("Redirecting with role from response:", role);
+
     if (!role) {
-      window.location.href = '/';
+      window.location.href = "/";
       return;
     }
 
     const roleLower = role.toLowerCase();
-    let targetPath = '/';
-    
+    let targetPath = "/";
+
     switch (roleLower) {
-      case 'admin':
-        targetPath = '/admin';
+      case "admin":
+        targetPath = "/admin";
         break;
-      case 'partner':
-        targetPath = '/partner';
+      case "partner":
+        targetPath = "/partner";
         break;
-      case 'manager':
-        targetPath = '/manager';
+      case "manager":
+        targetPath = "/manager";
         break;
-      case 'user':
+      case "user":
       default:
-        targetPath = '/';
+        targetPath = "/";
         break;
     }
-    
-    console.log('Redirecting to:', targetPath);
+
+    console.log("Redirecting to:", targetPath);
     window.location.href = targetPath;
   };
 
@@ -112,28 +124,18 @@ const Header = () => {
 
   return (
     <>
-      <div className="md:hidden fixed top-4 right-4 z-50 flex gap-40 items-center">
+      <div className="">
         <div className="relative">
           {isOpen ? (
-            <IoIosSearch
-              className="w-6 h-6 cursor-pointer transition-colors duration-300 hover:text-orange-500"
-            />
+            <IoIosSearch className="w-6 h-6 cursor-pointer transition-colors duration-300 hover:text-orange-500" />
           ) : (
             <></>
           )}
         </div>
-
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-md bg-gray-800 text-white transition-all duration-300"
-        >
-          {isOpen ? <FaTimes /> : <FaBars />}
-        </button>
       </div>
 
       <div
-        className={`fixed inset-x-0 top-4 z-50 h-16 border-none transition-all duration-700
-        sm:inset-x-6 flex items-center justify-between px-4 max-md:hidden`}
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-2 bg-white/10 backdrop-blur-md border-b border-white/20 shadow-lg`}
       >
         <div className="flex items-center gap-10">
           <Link href={"/"} className="max-md:flex-1">
@@ -172,7 +174,7 @@ const Header = () => {
                 {item.title}
               </Link>
             ))}
-            
+
             {/* Show user avatar if logged in, otherwise show login/register buttons */}
             {isLoading ? (
               // Show loading skeleton while initializing
@@ -185,27 +187,35 @@ const Header = () => {
             ) : (
               <>
                 {/* Login button */}
-                <button 
+                <button
                   onClick={() => setShowLoginModal(true)}
-                  className="px-4 py-2 rounded-lg font-medium outline-none text-sm border transition-all duration-300 hover:bg-gray-50" 
-                  style={{backgroundColor:"transparent", color:"#FFFFFF", borderColor:"#FFFFFF"}}
+                  className="px-4 py-2 rounded-lg font-medium outline-none text-sm border transition-all duration-300 hover:bg-gray-50"
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "#FFFFFF",
+                    borderColor: "#FFFFFF",
+                  }}
                 >
                   Đăng Nhập
                 </button>
 
                 {/* Register button */}
-                <button 
+                <button
                   onClick={() => setShowRegisterModal(true)}
-                  className="px-4 py-2 rounded-lg font-medium outline-none text-sm border relative overflow-hidden group transition-all duration-300" 
-                  style={{backgroundColor:"#F84565", color:"#FFFFFF", borderColor:"#F84565"}}
+                  className="px-4 py-2 rounded-lg font-medium outline-none text-sm border relative overflow-hidden group transition-all duration-300"
+                  style={{
+                    backgroundColor: "#F84565",
+                    color: "#FFFFFF",
+                    borderColor: "#F84565",
+                  }}
                 >
-                  <span 
-                    className="absolute -inset-1 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out rounded-lg" 
-                    style={{zIndex:1}}
+                  <span
+                    className="absolute -inset-1 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out rounded-lg"
+                    style={{ zIndex: 1 }}
                   ></span>
-                  <span 
-                    className="relative transition-colors duration-300 text-white group-hover:text-[#F84565]" 
-                    style={{zIndex:2}}
+                  <span
+                    className="relative transition-colors duration-300 text-white group-hover:text-[#F84565]"
+                    style={{ zIndex: 2 }}
                   >
                     Đăng Ký
                   </span>
@@ -213,7 +223,7 @@ const Header = () => {
               </>
             )}
           </div>
-          
+
           {/* User button */}
         </div>
       </div>

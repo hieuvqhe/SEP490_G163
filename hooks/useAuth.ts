@@ -11,8 +11,12 @@ interface UseLoginOptions {
 
 export const useLogin = (options: UseLoginOptions = {}) => {
   return useMutation({
-    mutationFn: (data: LoginFormData) => authService.login(data),
+    mutationFn: (data: LoginFormData) => {
+      console.log('useLogin mutationFn called with:', data);
+      return authService.login(data);
+    },
     onSuccess: (data) => {
+      console.log('useLogin onSuccess called with:', data);
       // BƯỚC 2: Cập nhật store sau khi đăng nhập thành công
       const { setTokens } = useAuthStore.getState();
       setTokens(data.data.accessToken, data.data.refreshToken, data.data.role);
@@ -21,19 +25,65 @@ export const useLogin = (options: UseLoginOptions = {}) => {
       options.onSuccess?.(data);
     },
     onError: (error: any) => {
-      // ... (logic xử lý lỗi giữ nguyên)
+      console.log('useLogin onError called with:', error);
+      // Debug: Log the error structure to understand what we're getting
+      console.log('Login error structure:', error);
+      console.log('Error type:', typeof error);
+      console.log('Error keys:', Object.keys(error || {}));
+      
+      // Handle validation errors (field-specific errors)
       if (error.errors) {
+        console.log('Handling field errors:', error.errors);
+        console.log('Error.errors structure:', JSON.stringify(error.errors, null, 2));
         const fieldErrors: Record<string, string> = {};
         Object.entries(error.errors).forEach(([field, messages]) => {
+          console.log(`Processing field: ${field}, messages:`, messages, 'type:', typeof messages);
           if (Array.isArray(messages) && messages.length > 0) {
             fieldErrors[field.toLowerCase()] = messages[0];
+          } else if (typeof messages === 'string') {
+            fieldErrors[field.toLowerCase()] = messages;
+          } else if (messages && typeof messages === 'object') {
+            // Handle case where messages is an object with nested structure
+            const messageValue = messages.message || messages.error || messages.detail || String(messages);
+            fieldErrors[field.toLowerCase()] = messageValue;
           }
         });
-        options.onFieldError?.(fieldErrors);
-      } else {
-        const errorMessage = error.message || error.error || 'Đăng nhập thất bại. Vui lòng thử lại.';
-        options.onError?.(errorMessage);
+        console.log('Calling options.onFieldError with:', fieldErrors);
+        console.log('options.onFieldError exists:', !!options.onFieldError);
+        
+        // If we have field errors, show them
+        if (Object.keys(fieldErrors).length > 0) {
+          options.onFieldError?.(fieldErrors);
+        } else {
+          // If no field errors, show general error message
+          const errorMessage = error.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+          console.log('No field errors, showing general error:', errorMessage);
+          options.onError?.(errorMessage);
+        }
+        return;
       }
+      
+      // Handle general errors - try multiple possible error message properties
+      let errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.error) {
+        errorMessage = error.error;
+      } else if (error.detail) {
+        errorMessage = error.detail;
+      } else if (error.title) {
+        errorMessage = error.title;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.toString && error.toString() !== '[object Object]') {
+        errorMessage = error.toString();
+      }
+      
+      console.log('Final error message:', errorMessage);
+      console.log('Calling options.onError with:', errorMessage);
+      console.log('options.onError exists:', !!options.onError);
+      options.onError?.(errorMessage);
     }
   });
 };
