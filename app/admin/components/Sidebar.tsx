@@ -1,18 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Home,
-  Users,
-  Film,
-  BarChart3,
-  Settings,
-  ChevronRight,
-  FileText,
-  CreditCard,
-  ScanLine,
-  Tag,
-  Building2,
-} from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Users, Film, BarChart3, Settings, ChevronRight } from "lucide-react";
 import { useGetUsers } from "@/apis/admin.api";
 
 interface AdminSidebarProps {
@@ -28,7 +15,6 @@ export const AdminSidebar = ({
   isCollapsed,
   accessToken,
 }: AdminSidebarProps) => {
-
   // Get total users count for display
   const { data: usersData, isLoading } = useGetUsers({ limit: 1 }, accessToken);
 
@@ -37,7 +23,7 @@ export const AdminSidebar = ({
       id: "users",
       label: "Quản lý người dùng",
       icon: Users,
-      count: isLoading ? "..." : (usersData?.result?.total || 0),
+      count: isLoading ? "..." : usersData?.result?.total || 0,
       color: "from-emerald-500 to-teal-500",
     },
   ];
@@ -129,7 +115,9 @@ export const AdminSidebar = ({
                 <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent font-heading">
                   Quản trị viên rạp chiếu
                 </h1>
-                <p className="text-xs text-gray-400 font-body">Bảng điều khiển quản lý</p>
+                <p className="text-xs text-gray-400 font-body">
+                  Bảng điều khiển quản lý
+                </p>
               </motion.div>
             )}
           </AnimatePresence>

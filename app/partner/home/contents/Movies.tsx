@@ -1,20 +1,10 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  Star, 
-  Plus, 
-  Search, 
-  Edit, 
-  Eye, 
-  Trash2, 
-  Calendar,
-  AlertTriangle,
-  X
-} from "lucide-react";
-// import { 
-//   getMyMovies, 
+import { Plus, Search, Trash2, AlertTriangle } from "lucide-react";
+// import {
+//   getMyMovies,
 //   deleteMovie,
 //   type Movie,
 //   type MovieListResponse,
@@ -23,15 +13,17 @@ import {
 //   formatMovieReleaseDate,
 //   getMovieStatusDisplay
 // } from '../../../apis/staff.api';
-import AddMovieModal from './movies/AddMovieModal';
-import EditMovieModal from './movies/EditMovieModal';
+// import AddMovieModal from "./movies/AddMovieModal";
+// import EditMovieModal from "./movies/EditMovieModal";
 
 const Movies = () => {
   // const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<'coming_soon' | 'now_showing' | 'ended' | ''>('');
+  const [statusFilter, setStatusFilter] = useState<
+    "coming_soon" | "now_showing" | "ended" | ""
+  >("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -43,7 +35,10 @@ const Movies = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   // const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [movieToDelete, setMovieToDelete] = useState<{id: string, title: string} | null>(null);
+  const [movieToDelete, setMovieToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   // Form states for modals
   // const [formData, setFormData] = useState<MovieCreateRequest>({
@@ -63,9 +58,9 @@ const Movies = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Upload states for modals
-  const [isUploadingPoster, setIsUploadingPoster] = useState(false);
-  const [isUploadingTrailer, setIsUploadingTrailer] = useState(false);
-  const [posterPreview, setPosterPreview] = useState<string | null>(null);
+  // const [isUploadingPoster, setIsUploadingPoster] = useState(false);
+  // const [isUploadingTrailer, setIsUploadingTrailer] = useState(false);
+  // const [posterPreview, setPosterPreview] = useState<string | null>(null);
   const [trailerPreview, setTrailerPreview] = useState<string | null>(null);
 
   // Fetch movies from API
@@ -73,14 +68,14 @@ const Movies = () => {
   //   try {
   //     setLoading(true);
   //     setError(null);
-      
+
   //     const response: MovieListResponse = await getMyMovies(
   //       page,
   //       limit,
   //       searchTerm || undefined,
   //       statusFilter || undefined
   //     );
-      
+
   //     setMovies(response.result.movies);
   //     setTotalPages(response.result.total_pages);
   //     setTotal(response.result.total);
@@ -94,10 +89,10 @@ const Movies = () => {
   // };
 
   // Handle movie deletion
-  const handleDeleteMovie = (movieId: string, movieTitle: string) => {
-    setMovieToDelete({ id: movieId, title: movieTitle });
-    setShowDeleteModal(true);
-  };
+  // const handleDeleteMovie = (movieId: string, movieTitle: string) => {
+  //   setMovieToDelete({ id: movieId, title: movieTitle });
+  //   setShowDeleteModal(true);
+  // };
 
   // Confirm delete movie
   // const confirmDeleteMovie = async () => {
@@ -132,10 +127,12 @@ const Movies = () => {
   // };
 
   // Handle filter change
-  const handleFilterChange = (newFilter: 'coming_soon' | 'now_showing' | 'ended' | '') => {
-    setStatusFilter(newFilter);
-    setPage(1); // Reset to first page when filtering
-  };
+  // const handleFilterChange = (
+  //   newFilter: "coming_soon" | "now_showing" | "ended" | ""
+  // ) => {
+  //   setStatusFilter(newFilter);
+  //   setPage(1); // Reset to first page when filtering
+  // };
 
   // Modal handlers
   // const handleAddMovie = () => {
@@ -211,18 +208,18 @@ const Movies = () => {
   // }, [page, statusFilter]);
 
   // Get status styling
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'now_showing':
-        return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-      case 'coming_soon':
-        return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
-      case 'ended':
-        return 'bg-red-500/20 text-red-400 border border-red-500/30';
-      default:
-        return 'bg-slate-500/20 text-slate-400 border border-slate-500/30';
-    }
-  };
+  // const getStatusStyle = (status: string) => {
+  //   switch (status) {
+  //     case "now_showing":
+  //       return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+  //     case "coming_soon":
+  //       return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
+  //     case "ended":
+  //       return "bg-red-500/20 text-red-400 border border-red-500/30";
+  //     default:
+  //       return "bg-slate-500/20 text-slate-400 border border-slate-500/30";
+  //   }
+  // };
 
   return (
     <div>
@@ -237,7 +234,9 @@ const Movies = () => {
           <div>
             <h2 className="text-2xl font-bold text-white">Movie Management</h2>
             <p className="text-slate-400 text-sm">
-              {total > 0 ? `${total} movie${total !== 1 ? 's' : ''} found` : 'No movies found'}
+              {total > 0
+                ? `${total} movie${total !== 1 ? "s" : ""} found`
+                : "No movies found"}
             </p>
           </div>
           <motion.button
@@ -254,9 +253,12 @@ const Movies = () => {
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4">
           {/* <form onSubmit={handleSearch} className="flex-1"> */}
-          <form  className="flex-1">
+          <form className="flex-1">
             <div className="relative">
-              <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+              <Search
+                size={20}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
+              />
               <input
                 type="text"
                 placeholder="Search movies..."
@@ -266,11 +268,11 @@ const Movies = () => {
               />
             </div>
           </form>
-          
+
           <div className="flex gap-2">
             <select
               value={statusFilter}
-              onChange={(e) => handleFilterChange(e.target.value as any)}
+              // onChange={(e) => handleFilterChange(e.target.value as any)}
               className="bg-slate-800/60 border border-slate-700/50 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
             >
               <option value="">All Status</option>
@@ -299,7 +301,10 @@ const Movies = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
-              <div key={index} className="bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700/50 overflow-hidden animate-pulse">
+              <div
+                key={index}
+                className="bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700/50 overflow-hidden animate-pulse"
+              >
                 <div className="aspect-[2/3] bg-slate-700/50" />
                 <div className="p-6 space-y-4">
                   <div className="h-6 bg-slate-700/50 rounded" />
@@ -667,7 +672,9 @@ const Movies = () => {
                     Delete Movie
                   </h3>
                   <p className="text-slate-300 mb-4">
-                    Are you sure you want to delete "{movieToDelete.title}"? This action cannot be undone and will permanently remove the movie from your collection.
+                    Are you sure you want to delete: {movieToDelete.title}?
+                    This action cannot be undone and will permanently remove the
+                    movie from your collection.
                   </p>
                 </div>
               </div>

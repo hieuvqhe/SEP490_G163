@@ -57,7 +57,7 @@ const Page = () => {
       )}
 
       {/* <FileUpload /> */}
-      <CloudinaryUpload />
+      {/* <CloudinaryUpload /> */}
     </div>
   );
 };

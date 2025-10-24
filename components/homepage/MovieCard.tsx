@@ -3,6 +3,7 @@
 import { BiStar } from "react-icons/bi";
 import { redirect, useRouter } from "next/navigation";
 import { Movie } from "@/types/movie.type";
+import Image from "next/image";
 
 type MovieCardProps = {
   movie: Movie;
@@ -24,7 +25,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
           }}
           className="relative w-full h-full cursor-pointer overflow-hidden rounded-lg group"
         >
-          <img
+          <Image
             src={movie.posterUrl}
             alt={movie.title}
             width={300}

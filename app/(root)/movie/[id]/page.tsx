@@ -1,4 +1,5 @@
 import { getMoviesById } from "@/apis/movie.api";
+import Image from "next/image";
 import { BiSolidComment } from "react-icons/bi";
 import { FaHeart } from "react-icons/fa";
 
@@ -32,11 +33,13 @@ async function page({ params }: { params: Promise<{ id: string }> }) {
           {/* Left Section - Poster & Info */}
           <div className="flex flex-col items-start lg:w-1/3 space-y-6">
             {/* Poster */}
-            <div className="w-full max-w-sm">
-              <img
+            <div className="w-full max-w-sm relative aspect-[2/3]">
+              <Image
                 src={movie.posterUrl}
                 alt={movie.title}
-                className="w-full rounded-lg shadow-2xl"
+                fill
+                className="rounded-lg shadow-2xl object-cover"
+                priority
               />
             </div>
 

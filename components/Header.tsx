@@ -1,9 +1,7 @@
 "use client";
 
 import { IoIosSearch } from "react-icons/io";
-import { FaTimes } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import { FaBars } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
 import {

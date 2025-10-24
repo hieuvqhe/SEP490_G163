@@ -1,13 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Upload,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
+import { Upload, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useUploadToCloudinary } from "@/apis/cloudinary.api";
+import Image from "next/image";
 
 const CloudinaryUpload = () => {
   const uploadMutation = useUploadToCloudinary();
@@ -73,10 +69,12 @@ const CloudinaryUpload = () => {
         )}
 
         {previewUrl && (
-          <img
+          <Image
             src={previewUrl}
             alt="preview"
-            className="w-20 h-20 object-cover rounded-xl mt-3 shadow-md border border-white/20"
+            width={80}
+            height={80}
+            className="object-cover rounded-xl shadow-md border border-white/20"
           />
         )}
       </label>

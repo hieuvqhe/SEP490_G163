@@ -1,37 +1,43 @@
-import { Shield, LogOut, Bell, Settings, Search, Menu, X } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import { Shield, LogOut, Bell, Settings, Search, Menu, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { User } from "@/types/user.type";
 
 interface AdminHeaderProps {
-  user: any;
+  user: User | null;
   onLogout: () => void;
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;
 }
 
-export const AdminHeader = ({ user, onLogout, isSidebarCollapsed, onToggleSidebar }: AdminHeaderProps) => {
+export const AdminHeader = ({
+  user,
+  onLogout,
+  isSidebarCollapsed,
+  onToggleSidebar,
+}: AdminHeaderProps) => {
   return (
-    <motion.header 
+    <motion.header
       className="bg-white/10 backdrop-blur-xl border-b border-white/20 px-6 py-4 relative overflow-hidden"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
       {/* Animated background gradient */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-purple-500/10"
-        animate={{ 
+        animate={{
           background: [
             "linear-gradient(to right, rgba(147, 51, 234, 0.1), rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))",
             "linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1), rgba(59, 130, 246, 0.1))",
-            "linear-gradient(to right, rgba(147, 51, 234, 0.1), rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))"
-          ]
+            "linear-gradient(to right, rgba(147, 51, 234, 0.1), rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))",
+          ],
         }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
-      
+
       <div className="flex items-center justify-between relative z-10">
-        <motion.div 
+        <motion.div
           className="flex items-center space-x-4"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -43,16 +49,24 @@ export const AdminHeader = ({ user, onLogout, isSidebarCollapsed, onToggleSideba
             className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors group"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title={isSidebarCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
+            title={
+              isSidebarCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"
+            }
           >
             <motion.div
               animate={{ rotate: isSidebarCollapsed ? 0 : 180 }}
               transition={{ duration: 0.3 }}
             >
               {isSidebarCollapsed ? (
-                <Menu size={20} className="text-white group-hover:text-purple-200" />
+                <Menu
+                  size={20}
+                  className="text-white group-hover:text-purple-200"
+                />
               ) : (
-                <X size={20} className="text-white group-hover:text-purple-200" />
+                <X
+                  size={20}
+                  className="text-white group-hover:text-purple-200"
+                />
               )}
             </motion.div>
           </motion.button>
@@ -64,16 +78,16 @@ export const AdminHeader = ({ user, onLogout, isSidebarCollapsed, onToggleSideba
           >
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full blur-lg opacity-50"
-              animate={{ 
+              animate={{
                 scale: [1, 1.2, 1],
-                opacity: [0.3, 0.6, 0.3]
+                opacity: [0.3, 0.6, 0.3],
               }}
               transition={{ duration: 2, repeat: Infinity }}
             />
             <Shield size={32} className="text-white relative z-10" />
           </motion.div>
           <div>
-            <motion.h1 
+            <motion.h1
               className="text-2xl font-bold bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent font-heading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -81,7 +95,7 @@ export const AdminHeader = ({ user, onLogout, isSidebarCollapsed, onToggleSideba
             >
               Bảng điều khiển quản trị
             </motion.h1>
-            <motion.p 
+            <motion.p
               className="text-gray-300 text-sm font-body"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -93,14 +107,17 @@ export const AdminHeader = ({ user, onLogout, isSidebarCollapsed, onToggleSideba
         </motion.div>
 
         {/* Center Search Bar */}
-        <motion.div 
+        <motion.div
           className="hidden md:flex items-center space-x-4 flex-1 max-w-md mx-8"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           <div className="relative flex-1">
-            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            />
             <motion.input
               type="text"
               placeholder="Tìm kiếm người dùng, phim, đặt vé..."
@@ -111,7 +128,7 @@ export const AdminHeader = ({ user, onLogout, isSidebarCollapsed, onToggleSideba
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="flex items-center space-x-4"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -124,7 +141,7 @@ export const AdminHeader = ({ user, onLogout, isSidebarCollapsed, onToggleSideba
             whileTap={{ scale: 0.95 }}
           >
             <Bell size={20} className="text-white" />
-            <motion.div 
+            <motion.div
               className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -142,28 +159,27 @@ export const AdminHeader = ({ user, onLogout, isSidebarCollapsed, onToggleSideba
           </motion.button>
 
           {/* User Info */}
-          <motion.div 
+          <motion.div
             className="text-right"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <p className="font-medium text-white font-body">{user?.name || 'Quản trị viên'}</p>
-            <motion.span 
+            <p className="font-medium text-white font-body">
+              {user?.fullname || "Quản trị viên"}
+            </p>
+            <motion.span
               className="inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs px-3 py-1 rounded-full font-medium font-body"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.3, delay: 0.5, type: "spring" }}
             >
-              {user?.role?.toUpperCase() || 'ADMIN'}
+              {user?.role?.toUpperCase() || "ADMIN"}
             </motion.span>
           </motion.div>
 
           {/* Logout Button */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               onClick={onLogout}
               variant="outline"

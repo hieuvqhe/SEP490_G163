@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import Overview from "./contents/Overview";
-import TheaterInfo from "./contents/TheaterInfo";
+// import Overview from "./contents/Overview";
+// import TheaterInfo from "./contents/TheaterInfo";
 import Movies from "./contents/Movies";
-import Showtimes from "./contents/Showtimes";
-import Bookings from "./contents/Bookings";
-import ContractDetails from "./contents/ContractDetails";
+// import Showtimes from "./contents/Showtimes";
+// import Bookings from "./contents/Bookings";
+// import ContractDetails from "./contents/ContractDetails";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";

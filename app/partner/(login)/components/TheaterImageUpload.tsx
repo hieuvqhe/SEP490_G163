@@ -12,7 +12,7 @@ type TheaterImgsUploadProps = {
 
 function TheaterImgsUpload({
   fieldChange = () => {},
-  handleTheaterFileSelect = () => {}
+  handleTheaterFileSelect = () => {},
 }: TheaterImgsUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [fileUrls, setFileUrls] = useState<string[]>([]);
@@ -26,14 +26,22 @@ function TheaterImgsUpload({
       setFiles((prev) => {
         const newFiles = [...prev, ...acceptedFiles];
         fieldChange(newFiles);
+
         return newFiles;
       });
 
       setFileUrls((prev) => [...prev, ...newUrls]);
-      handleTheaterFileSelect(files)
     },
     [fieldChange]
   );
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (files.length > 0) {
+      fieldChange(files);
+      handleTheaterFileSelect(files);
+    }
+  }, [files]);
 
   const removeFile = (index: number) => {
     // Clean up the object URL to prevent memory leaks

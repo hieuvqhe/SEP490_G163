@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { FlipWords } from "./FlipWords";
-import { InputGroupTextExample } from "./InputGroupTest";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 
 // --- SVG ICONS (Original Logos) ---
 const HtmlIcon = ({ className }: { className?: string }) => (
@@ -176,7 +176,7 @@ const CodeDisplay = ({ isVisible }: { isVisible: boolean }) => {
         </div>
 
         <div className="bg-gray-900">
-          <img
+          {/* <img
             src="/image.png"
             alt="Code snippet for formcarry setup"
             className="w-full h-auto object-cover"
@@ -186,6 +186,14 @@ const CodeDisplay = ({ isVisible }: { isVisible: boolean }) => {
               target.src =
                 "https://placehold.co/1200x600/111827/FFFFFF?text=Image+Not+Found";
             }}
+          /> */}
+
+          <Image
+            src={"/image.png"}
+            alt={"Code snippet for formcarry setup"}
+            width={1200}
+            height={600}
+            className={"w-full h-auto object-cover"}
           />
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import { motion, type Variants } from "framer-motion";
 
@@ -14,7 +14,6 @@ import {
   Lock,
   Image,
   FileImage,
-  Camera,
 } from "lucide-react";
 import { useCreatePartner } from "@/hooks/userPartner";
 import { PartnerCreateRequest } from "@/apis/partner.api";
@@ -194,8 +193,8 @@ const Newsletter = () => {
 
     if (isSuccess) {
       showToast(data.message);
-    }else{
-      showToast("Đăng ký thất bại. Vui lòng thử lại.");
+    } else {
+      showToast(data?.error.email.message);
     }
   };
 
@@ -254,16 +253,19 @@ const Newsletter = () => {
       case "business":
         setFormData((prev) => ({
           ...prev,
-          businessRegistrationCertificateUrl: uploadMutation.data?.secure_url || "",
+          businessRegistrationCertificateUrl: uploadMutation.data?.secure_url,
         }));
         break;
       case "identity":
-        setFormData((prev) => ({ ...prev, identityCardUrl: fileUrl }));
+        setFormData((prev) => ({
+          ...prev,
+          identityCardUrl: uploadMutation.data?.secure_url,
+        }));
         break;
       case "tax":
         setFormData((prev) => ({
           ...prev,
-          taxRegistrationCertificateUrl: fileUrl,
+          taxRegistrationCertificateUrl: uploadMutation.data?.secure_url,
         }));
         break;
       case "theater":
@@ -273,13 +275,37 @@ const Newsletter = () => {
     }
   };
 
-  const handleTheaterFileSelect = (file: File[]) => {
-    const fileUrls = file.map((item) => URL.createObjectURL(item));
+  const handleTheaterFileSelect = useCallback(
+    async (files: File[]) => {
+      if (!files || files.length === 0) return;
 
-    setFormData((prev) => ({ ...prev, theaterPhotosUrls: fileUrls }));
+      const previewUrls = files.map((file) => URL.createObjectURL(file));
+      setFormData((prev) => ({
+        ...prev,
+        theaterPhotosUrls: previewUrls,
+      }));
 
-    return () => fileUrls.forEach((url) => URL.revokeObjectURL(url));
-  };
+      try {
+        const uploadPromises = files.map((file) =>
+          uploadMutation.mutateAsync(file)
+        );
+
+        const uploadedResults = await Promise.all(uploadPromises);
+
+        const uploadedUrls = uploadedResults.map((res) => res.secure_url);
+
+        setFormData((prev) => ({
+          ...prev,
+          theaterPhotosUrls: uploadedUrls,
+        }));
+
+        previewUrls.forEach((url) => URL.revokeObjectURL(url));
+      } catch (error) {
+        console.error("❌ Upload thất bại:", error);
+      }
+    },
+    [setFormData, uploadMutation]
+  );
 
   return (
     <div className="relative font-sans w-full min-h-screen flex items-center justify-center overflow-hidden p-4 bg-gray-800/50 dark:bg-black transition-colors duration-300">

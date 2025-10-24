@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useGetTopRateMovie } from "@/hooks/useMovie";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 
 interface TopRateMovie {
   movieId: number;
@@ -29,9 +30,10 @@ const StoryCard = ({
       whileHover={{ y: -8, transition: { type: "spring", stiffness: 300 } }}
       onDoubleClick={() => redirect(`/movie/${movie.movieId}`)}
     >
-      <img
+      <Image
         src={movie.posterUrl}
         alt={movie.title}
+        fill
         className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none"
         onLoad={onImageLoad}
       />
