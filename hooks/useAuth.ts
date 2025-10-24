@@ -36,7 +36,7 @@ export const useLogin = (options: UseLoginOptions = {}) => {
         console.log('Handling field errors:', error.errors);
         console.log('Error.errors structure:', JSON.stringify(error.errors, null, 2));
         const fieldErrors: Record<string, string> = {};
-        Object.entries(error.errors).forEach(([field, messages]) => {
+        Object.entries(error.errors).forEach(([field, messages]: [string, any]) => {
           console.log(`Processing field: ${field}, messages:`, messages, 'type:', typeof messages);
           if (Array.isArray(messages) && messages.length > 0) {
             fieldErrors[field.toLowerCase()] = messages[0];
