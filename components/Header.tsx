@@ -16,6 +16,7 @@ import EmailVerificationModal from "@/components/EmailVerificationModal";
 import UserAvatar from "@/components/UserAvatar";
 import { useAuthStore } from "@/store/authStore";
 import { useGetUserInfo } from "@/hooks/useAuth";
+import { redirect } from "next/navigation";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,21 +51,31 @@ const Header = () => {
     },
   });
 
-  const handleRegistrationSuccess = (data: { result?: { email: string }; email?: string }) => {
+  const handleRegistrationSuccess = (data: {
+    result?: { email: string };
+    email?: string;
+  }) => {
     setUserEmail(data.result?.email || data.email || "");
     setShowRegisterModal(false);
     setShowEmailVerificationModal(true);
   };
 
-  const handleLoginSuccess = (data: { result: { accessToken: string; refreshToken: string; fullName: string; role: string } }) => {
-    console.log('Login successful:', data);
+  const handleLoginSuccess = (data: {
+    result: {
+      accessToken: string;
+      refreshToken: string;
+      fullName: string;
+      role: string;
+    };
+  }) => {
+    console.log("Login successful:", data);
     setShowLoginModal(false);
 
     // Tokens đã được set trong useLogin hook
     // Redirect ngay lập tức dựa trên role từ response
     const role = data.result.role;
-    console.log('Redirecting with role from response:', role);
-    
+    console.log("Redirecting with role from response:", role);
+
     if (!role) {
       window.location.href = "/";
       return;
@@ -123,96 +134,88 @@ const Header = () => {
       </div>
 
       <div
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-2 bg-white/10 backdrop-blur-md border-b border-white/20 shadow-lg`}
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-3 
+  bg-gradient-to-r from-gray-900/70 via-gray-800/60 to-gray-900/70 
+  backdrop-blur-xl border-b border-white/10 shadow-lg transition-all duration-300`}
       >
-        <div className="flex items-center gap-10">
-          <Link href={"/"} className="max-md:flex-1">
+        {/* Left Section: Logo + Search */}
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2">
             <Image
-              src={"/logo.png"}
-              alt=""
-              className={`transition-all duration-300`}
-              width={60}
-              height={60}
+              src="/logo.png"
+              alt="TicketXpress Logo"
+              width={55}
+              height={55}
+              className="transition-transform duration-300 hover:scale-105"
             />
           </Link>
 
           <InputGroup
-            className="h-11 w-xs lg:w-md  rounded-full backdrop-blur bg-gray-400/20 
-          border-gray-300/20 overflow-hidden 
-          transition-[width] duration-300"
+            className="hidden md:flex h-11 w-[20rem] xl:w-[28rem] rounded-full backdrop-blur-md 
+      bg-white/10 border border-white/20 overflow-hidden 
+      focus-within:border-blue-400 transition-all duration-300"
           >
             <InputGroupInput
-              placeholder="Tìm tên phim, diễn viên"
-              className="border-0 focus:border-0 focus:ring-0 focus-visible:ring-0 focus:outline-none"
+              placeholder="Tìm tên phim, diễn viên..."
+              className="border-0 bg-transparent text-white placeholder:text-gray-400 
+        focus:ring-0 focus:outline-none px-4"
             />
             <InputGroupAddon>
-              <SearchIcon />
+              <SearchIcon className="text-gray-300 hover:text-blue-400 transition-colors duration-300" />
             </InputGroupAddon>
           </InputGroup>
         </div>
-        <div>
-          <div className="flex items-center gap-4">
+
+        {/* Right Section: Navigation + User Actions */}
+        <div className="flex items-center gap-6">
+          {/* Navigation Links */}
+          <div className="hidden lg:flex items-center gap-6">
             {navigationItems.map((item, index) => (
               <Link
                 key={index}
-                className="nav-hover-btn"
                 href={item.link}
-                onClick={() => setIsOpen(!isOpen)}
+                className="text-gray-200 font-medium hover:text-white transition-all duration-300 
+          relative group"
               >
                 {item.title}
+                <span
+                  className="absolute left-0 -bottom-1 w-0 h-[2px] bg-gradient-to-r from-blue-500 to-pink-500 
+            transition-all duration-300 group-hover:w-full"
+                />
               </Link>
             ))}
+          </div>
 
-            {/* Show user avatar if logged in, otherwise show login/register buttons */}
-            {isLoading ? (
-              // Show loading skeleton while initializing
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-9 bg-gray-300/20 rounded-lg animate-pulse"></div>
-                <div className="w-20 h-9 bg-gray-300/20 rounded-lg animate-pulse"></div>
-              </div>
-            ) : user ? (
-              <UserAvatar />
-            ) : (
-              <>
-                {/* Login button */}
+          {/* Loading or User or Auth Buttons */}
+          {isLoading ? (
+            <div className="flex items-center gap-3">
+              <div className="w-20 h-9 bg-gray-500/20 rounded-lg animate-pulse" />
+              <div className="w-20 h-9 bg-gray-500/20 rounded-lg animate-pulse" />
+            </div>
+          ) : user ? (
+            <UserAvatar />
+          ) : (
+            <div className="flex items-center gap-3">
+              <p onClick={() => redirect("/partner")} className="text-sm text-gray-300 cursor-pointer">Dành cho đối tác</p>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowLoginModal(true)}
-                  className="px-4 py-2 rounded-lg font-medium outline-none text-sm border transition-all duration-300 hover:bg-gray-50"
-                  style={{
-                    backgroundColor: "transparent",
-                    color: "#FFFFFF",
-                    borderColor: "#FFFFFF",
-                  }}
+                  className="px-5 py-2 rounded-lg text-sm font-medium border border-white/30 
+            text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
                 >
                   Đăng Nhập
                 </button>
-
-                {/* Register button */}
                 <button
                   onClick={() => setShowRegisterModal(true)}
-                  className="px-4 py-2 rounded-lg font-medium outline-none text-sm border relative overflow-hidden group transition-all duration-300"
-                  style={{
-                    backgroundColor: "#F84565",
-                    color: "#FFFFFF",
-                    borderColor: "#F84565",
-                  }}
+                  className="px-5 py-2 rounded-lg text-sm font-medium bg-gradient-to-r 
+            from-pink-500 to-red-500 text-white shadow-md hover:shadow-pink-500/30 
+            transition-all duration-300 hover:scale-105"
                 >
-                  <span
-                    className="absolute -inset-1 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out rounded-lg"
-                    style={{ zIndex: 1 }}
-                  ></span>
-                  <span
-                    className="relative transition-colors duration-300 text-white group-hover:text-[#F84565]"
-                    style={{ zIndex: 2 }}
-                  >
-                    Đăng Ký
-                  </span>
+                  Đăng Ký
                 </button>
-              </>
-            )}
-          </div>
-
-          {/* User button */}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

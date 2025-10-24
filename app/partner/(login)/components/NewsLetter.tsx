@@ -194,7 +194,7 @@ const Newsletter = () => {
     if (isSuccess) {
       showToast(data.message);
     } else {
-      showToast(data?.error.email.message);
+      showToast(data.message);
     }
   };
 
@@ -310,7 +310,7 @@ const Newsletter = () => {
   return (
     <div className="relative font-sans w-full min-h-screen flex items-center justify-center overflow-hidden p-4 bg-gray-800/50 dark:bg-black transition-colors duration-300">
       <motion.div
-        className="relative z-10 container mx-auto text-center max-w-3xl"
+        className="relative z-10 container mx-auto text-center max-w-3xl py-28"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
