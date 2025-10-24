@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useGetTopRateMovie } from "@/hooks/useMovie";
+import { redirect } from "next/navigation";
 
 interface TopRateMovie {
   movieId: number;
@@ -15,12 +16,18 @@ interface TopRateMovie {
   totalRatings: number;
 }
 
-const StoryCard = ({ movie, onImageLoad }: { movie: TopRateMovie; onImageLoad: () => void }) => {
+const StoryCard = ({
+  movie,
+  onImageLoad,
+}: {
+  movie: TopRateMovie;
+  onImageLoad: () => void;
+}) => {
   return (
     <motion.div
       className="relative w-72 h-96 flex-shrink-0 rounded-lg overflow-hidden shadow-xl group"
       whileHover={{ y: -8, transition: { type: "spring", stiffness: 300 } }}
-      onDoubleClick={() => console.log(movie.title)}
+      onDoubleClick={() => redirect(`/movie/${movie.movieId}`)}
     >
       <img
         src={movie.posterUrl}
@@ -113,7 +120,11 @@ export default function CarouselCards() {
             dragElastic={0.15}
           >
             {topRateMovies?.map((movie) => (
-              <StoryCard key={movie.movieId} movie={movie} onImageLoad={calculateConstraints} />
+              <StoryCard
+                key={movie.movieId}
+                movie={movie}
+                onImageLoad={calculateConstraints}
+              />
             ))}
           </motion.div>
         </motion.div>

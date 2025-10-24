@@ -39,7 +39,7 @@ const HeroSection = () => {
       title: "Deadpool & Wolverine: Song Sát Tái Xuất",
       description:
         "Bộ đôi lắm mồm trở lại cùng hành trình hỗn loạn chưa từng có. Khởi chiếu 15/10.",
-      image_url: "./deadpool-wolverine.webp",
+      image_url: "/deadpool-wolverine.webp",
       link_url: "/movies/deadpool-wolverine",
       type: "home_slider",
       position: 1,
@@ -60,7 +60,7 @@ const HeroSection = () => {
       title: "Joker: Folie à Deux - Cuồng loạn trở lại",
       description:
         "Joaquin Phoenix tái xuất cùng Lady Gaga trong phần tiếp theo đầy ám ảnh.",
-      image_url: "./joker_-folie-deux-2024-poster.avif",
+      image_url: "/joker_-folie-deux-2024-poster.avif",
       link_url: "/movies/joker-folie",
       type: "home_slider",
       position: 2,

@@ -78,7 +78,7 @@ export interface PartnerCreateRequest {
   businessRegistrationCertificateUrl: string;
   taxRegistrationCertificateUrl: string;
   identityCardUrl: string;
-  theaterPhotosUrls: [string];
+  theaterPhotosUrls: string[];
 }
 
 export interface PartnerCreateResponse {

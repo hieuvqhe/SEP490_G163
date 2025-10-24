@@ -6,6 +6,8 @@ import NewsletterSection from "./components/NewsLetter";
 
 import LoginForm from "./components/LoginForm";
 import Navbar from "./components/Navbar";
+import FileUpload from "./components/FileUpload";
+import CloudinaryUpload from "./components/CloudinaryUpload";
 
 const Page = () => {
   const [loginForm, setLoginForm] = useState<boolean>(false);
@@ -53,6 +55,9 @@ const Page = () => {
           onSuccess={handleLoginSuccess}
         />
       )}
+
+      {/* <FileUpload /> */}
+      <CloudinaryUpload />
     </div>
   );
 };

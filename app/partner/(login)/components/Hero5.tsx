@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { FlipWords } from "./FlipWords";
 import { InputGroupTextExample } from "./InputGroupTest";
+import { redirect } from "next/navigation";
 
 // --- SVG ICONS (Original Logos) ---
 const HtmlIcon = ({ className }: { className?: string }) => (
@@ -274,7 +275,10 @@ export default function Hero5() {
               isVisible ? "animate-slide-up animation-delay-400" : "opacity-0"
             }`}
           >
-            <button className="group inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full font-medium text-base sm:text-lg transition-all duration-200 hover:bg-gray-800 dark:hover:bg-gray-200 hover:scale-105 hover:shadow-lg">
+            <button
+              onClick={() => redirect("/")}
+              className="group inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full font-medium text-base sm:text-lg transition-all duration-200 hover:bg-gray-800 dark:hover:bg-gray-200 hover:scale-105 hover:shadow-lg"
+            >
               Khám Phá Ngay
               <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:translate-x-1" />
             </button>

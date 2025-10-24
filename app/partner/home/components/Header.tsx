@@ -64,7 +64,7 @@ const Header = () => {
                 >
                   TicketXpress
                 </h1>
-                <p className="text-slate-400">Partner Management Dashboard</p>
+                <p className="text-slate-400">Hệ thống quản lí rạp - Đối tác</p>
               </div>
             </div>
           </div>
@@ -87,28 +87,20 @@ const Header = () => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-slate-700 text-white border border-slate-500" align="start">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel>Truy cập nhanh</DropdownMenuLabel>
                   <DropdownMenuGroup>
                     <DropdownMenuItem>
-                      Profile
+                      Tài khoản của tôi
                       <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      Billing
-                      <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      Settings
+                      Cài đặt
                       <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      Keyboard shortcuts
-                      <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
-                    Log out
+                    Đăng xuất
                     <DropdownMenuShortcut>
                       <GoSignOut/>
                     </DropdownMenuShortcut>
