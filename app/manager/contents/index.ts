@@ -8,3 +8,4 @@ export {
 } from "./RegisterPartner/RegisterModal";
 export { default as ContractSigning } from "./ContractPartner/ContractSigning";
 export { default as ContractManagement } from "./ContractPartner/ContractManagement";
+export { default as ManageMovie } from "./ManageMovie/ManageMovie";

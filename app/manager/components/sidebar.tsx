@@ -16,6 +16,7 @@ import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import MovieCreationIcon from '@mui/icons-material/MovieCreation';
 import { useRouter } from 'next/navigation';
 
 const drawerWidth = 240;
@@ -90,7 +91,8 @@ export default function PersistentDrawerLeft({ children, open = false, onClose }
             { text: 'Dashboard', icon: <InboxIcon />, path: '/manager' },
             { text: 'Quản Lý Đăng Ký', icon: <MailIcon />, path: '/manager/register' },
             { text: 'Ký Kết Hợp Đồng', icon: <DescriptionIcon />, path: '/manager/contract-signing' },
-            { text: 'Quản Lý Hợp Đồng', icon: <AssignmentTurnedInIcon />, path: '/manager/contract-management' }
+            { text: 'Quản Lý Hợp Đồng', icon: <AssignmentTurnedInIcon />, path: '/manager/contract-management' },
+            { text: 'Quản Lý Phim', icon: <MovieCreationIcon />, path: '/manager/movie-management' }
           ].map((item, index) => (
             <ListItem key={item.text} disablePadding>
                 <ListItemButton 

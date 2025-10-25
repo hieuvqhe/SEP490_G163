@@ -1,5 +1,5 @@
 import { BASE_URL } from "@/constants";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export interface GetActorsParams {
 	page?: number;
@@ -96,11 +96,86 @@ class ManagerActorService {
 
 			const result = await response.json();
 			if (!response.ok) {
-				// If backend returns 404-like error message, propagate
 				throw result as ManagerActorApiError;
 			}
 
 			return result as GetActorByIdResponse;
+		} catch (error: any) {
+			if (error?.name === "TypeError") {
+				throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerActorApiError;
+			}
+			throw error;
+		}
+	}
+
+	async createActor(data: { name: string; avatarUrl?: string }, accessToken: string): Promise<GetActorByIdResponse> {
+		try {
+			const url = `${this.baseURL}/actors`;
+			const response = await fetch(url, {
+				method: "POST",
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${accessToken}`,
+				},
+				body: JSON.stringify({ name: data.name, avatarUrl: data.avatarUrl }),
+			});
+
+			const result = await response.json();
+			if (!response.ok) {
+				throw result as ManagerActorApiError;
+			}
+			return result as GetActorByIdResponse;
+		} catch (error: any) {
+			if (error?.name === "TypeError") {
+				throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerActorApiError;
+			}
+			throw error;
+		}
+	}
+
+		async updateActor(actorId: number, data: { name: string; avatarUrl?: string }, accessToken: string): Promise<GetActorByIdResponse> {
+			try {
+				const url = `${this.baseURL}/actors/${actorId}`;
+				const response = await fetch(url, {
+					method: "PUT",
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${accessToken}`,
+					},
+					body: JSON.stringify({ name: data.name, avatarUrl: data.avatarUrl }),
+				});
+
+				const result = await response.json();
+				if (!response.ok) {
+					throw result as ManagerActorApiError;
+				}
+				return result as GetActorByIdResponse;
+			} catch (error: any) {
+				if (error?.name === "TypeError") {
+					throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerActorApiError;
+				}
+				throw error;
+			}
+		}
+
+	async deleteActor(actorId: number, accessToken: string): Promise<{ message: string; result: null }> {
+		try {
+			const url = `${this.baseURL}/actors/${actorId}`;
+			const response = await fetch(url, {
+				method: "DELETE",
+				headers: {
+					Accept: "application/json",
+					Authorization: `Bearer ${accessToken}`,
+				},
+			});
+
+			const result = await response.json();
+			if (!response.ok) {
+				throw result as ManagerActorApiError;
+			}
+			return result as { message: string; result: null };
 		} catch (error: any) {
 			if (error?.name === "TypeError") {
 				throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerActorApiError;
@@ -129,5 +204,43 @@ export const useGetActorById = (actorId?: number, accessToken?: string) => {
 		enabled: !!accessToken && typeof actorId === "number",
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
+	});
+};
+
+export const useCreateActor = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ data, accessToken }: { data: { name: string; avatarUrl?: string }; accessToken: string }) =>
+			managerActorService.createActor(data, accessToken),
+		onSuccess: () => {
+			// Invalidate actors list to fetch the new actor
+			queryClient.invalidateQueries({ queryKey: ["manager-actors"] });
+		},
+	});
+};
+
+export const useUpdateActor = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ actorId, data, accessToken }: { actorId: number; data: { name: string; avatarUrl?: string }; accessToken: string }) =>
+      managerActorService.updateActor(actorId, data, accessToken),
+    onSuccess: () => {
+      // Invalidate actors list and actor detail cache
+      queryClient.invalidateQueries({ queryKey: ["manager-actors"] });
+      queryClient.invalidateQueries({ queryKey: ["manager-actor"] });
+    },
+  });
+};
+
+export const useDeleteActor = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ actorId, accessToken }: { actorId: number; accessToken: string }) =>
+			managerActorService.deleteActor(actorId, accessToken),
+		onSuccess: () => {
+			// Invalidate actors list and specific actor cache
+			queryClient.invalidateQueries({ queryKey: ["manager-actors"] });
+			queryClient.invalidateQueries({ queryKey: ["manager-actor"] });
+		},
 	});
 };

@@ -1,11 +1,7 @@
-import React from "react";
+import { ToastProvider } from "@/components/ToastProvider";
 
-const layout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div>
-      {children}
-    </div>
-  );
+const PartnerLayout = ({ children }: { children: React.ReactNode }) => {
+  return <ToastProvider>{children}</ToastProvider>;
 };
 
-export default layout;
+export default PartnerLayout;

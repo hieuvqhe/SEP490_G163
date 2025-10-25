@@ -45,6 +45,11 @@ const DocumentPreviewCard = ({ title, url, Icon, accentColor, alt }: DocumentPre
 );
 
 export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps) => {
+  const theaterPhotoUrls = partner.theaterPhotosUrl
+    ?.split(";")
+    .map((url) => url.trim())
+    .filter((url) => url.length > 0);
+
   return (
     <motion.div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur"
@@ -55,7 +60,7 @@ export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps
       onClick={onClose}
     >
       <motion.div 
-        className="mx-4 w-full max-w-4xl overflow-y-auto max-h-[90vh] rounded-2xl border border-white/10 bg-white/10 p-8 text-white shadow-2xl backdrop-blur-xl"
+        className="mx-4 w-full max-w-5xl overflow-y-auto max-h-[92vh] rounded-2xl border border-white/10 bg-white/10 p-10 text-white shadow-2xl backdrop-blur-xl"
         initial={{ opacity: 0, scale: 0.8, y: 50 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.8, y: 50 }}
@@ -88,7 +93,7 @@ export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* Basic Information */}
             <div className="space-y-4">
               <h4 className="border-b border-white/10 pb-2 font-heading text-lg font-semibold text-white">
@@ -183,7 +188,7 @@ export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps
               Tài liệu đính kèm
             </h4>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {partner.businessRegistrationCertificateUrl && (
                 <DocumentPreviewCard
                   title="Giấy phép kinh doanh"
@@ -214,14 +219,36 @@ export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps
                 />
               )}
 
-              {partner.theaterPhotosUrl && (
-                <DocumentPreviewCard
-                  title="Hình ảnh rạp chiếu"
-                  url={partner.theaterPhotosUrl}
-                  Icon={Image}
-                  accentColor="text-orange-400"
-                  alt="Hình ảnh rạp chiếu của đối tác"
-                />
+              {theaterPhotoUrls && theaterPhotoUrls.length > 0 && (
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white backdrop-blur-lg col-span-full">
+                  <div className="mb-3 flex items-center gap-3">
+                    <Image size={20} className="text-orange-400" />
+                    <p className="font-body text-sm font-medium text-white">Hình ảnh rạp chiếu</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {theaterPhotoUrls.map((url, index) => (
+                      <a
+                        key={`${url}-${index}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group block"
+                      >
+                        <div className="relative overflow-hidden rounded-lg border border-white/10 bg-black/40">
+                          <img
+                            src={url}
+                            alt={`Hình ảnh rạp chiếu của đối tác ${index + 1}`}
+                            className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 font-body">
+                            Nhấp để xem kích thước lớn
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>

@@ -107,6 +107,7 @@ export interface ApiError {
   errors?: Record<string, { msg: string; path: string; location: string }>;
   message?: string;
   isNetworkError?: boolean;
+  status?: number;
 }
 
 export interface UpdateUserInfoData {
@@ -305,7 +306,11 @@ class AuthService {
       const result = await response.json();
 
       if (!response.ok) {
-        throw result as ApiError;
+        const errorData = (result && typeof result === 'object') ? result : { message: String(result) };
+        throw {
+          ...(errorData as Record<string, unknown>),
+          status: response.status,
+        } as ApiError;
       }
 
       return result.result; // Return only the user data from result

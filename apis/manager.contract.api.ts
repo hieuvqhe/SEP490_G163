@@ -52,14 +52,50 @@ export interface GetContractsResponse {
 export interface ManagerApiError {
   message: string;
   detail?: string;
-  Errors?: {
-    auth?: {
-      Msg: string;
-      Path: string;
-      Location: string;
-    };
-  };
+  errors?: Record<string, unknown>;
+  Errors?: Record<string, unknown>;
 }
+
+export class ManagerContractApiError extends Error {
+  status?: number;
+  detail?: string;
+  errors?: Record<string, unknown>;
+
+  constructor(
+    message: string,
+    options: { status?: number; detail?: string; errors?: Record<string, unknown> } = {}
+  ) {
+    super(message);
+    this.name = "ManagerContractApiError";
+    this.status = options.status;
+    this.detail = options.detail;
+    this.errors = options.errors;
+  }
+}
+
+const toManagerContractApiError = (
+  response: Response,
+  payload: unknown
+): ManagerContractApiError => {
+  const data = (payload && typeof payload === "object" ? payload : {}) as Record<string, unknown>;
+  const message =
+    typeof data.message === "string" && data.message.trim() !== ""
+      ? data.message
+      : "Yêu cầu thất bại";
+  const detail =
+    typeof data.detail === "string" && data.detail.trim() !== ""
+      ? data.detail
+      : undefined;
+  const errorsCandidate =
+    (data.errors && typeof data.errors === "object" ? data.errors : undefined) ??
+    (data.Errors && typeof data.Errors === "object" ? data.Errors : undefined);
+
+  return new ManagerContractApiError(message, {
+    status: response.status,
+    detail,
+    errors: errorsCandidate as Record<string, unknown> | undefined,
+  });
+};
 
 export interface GetPartnersWithoutContractsParams {
   page?: number;
@@ -70,6 +106,10 @@ export interface GetPartnersWithoutContractsParams {
 export interface PartnerWithoutContract {
   partnerId: number;
   partnerName: string;
+  email?: string | null;
+  phone?: string | null;
+  userEmail?: string | null;
+  userPhone?: string | null;
 }
 
 export interface GetPartnersWithoutContractsResponse {
@@ -302,14 +342,33 @@ class ManagerContractService {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw result as ManagerApiError;
+        throw toManagerContractApiError(response, result);
       }
       return result;
     } catch (error: any) {
-      if (error.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
+      if (error instanceof ManagerContractApiError) {
+        throw error;
       }
-      throw error;
+
+      if (error?.name === "TypeError") {
+        throw new ManagerContractApiError(
+          "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+          { status: undefined }
+        );
+      }
+
+      if (error && typeof error.message === "string") {
+        const errorsCandidate =
+          (error.errors && typeof error.errors === "object" ? error.errors : undefined) ??
+          (error.Errors && typeof error.Errors === "object" ? error.Errors : undefined);
+
+        throw new ManagerContractApiError(error.message, {
+          detail: typeof error.detail === "string" ? error.detail : undefined,
+          errors: errorsCandidate as Record<string, unknown> | undefined,
+        });
+      }
+
+      throw new ManagerContractApiError("Yêu cầu thất bại");
     }
   }
 
