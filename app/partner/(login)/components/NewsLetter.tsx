@@ -52,6 +52,8 @@ const itemVariants: Variants = {
   },
 };
 
+type ValidationErrors = Record<string, string | undefined>;
+
 const Newsletter = () => {
   const [formData, setFormData] = useState<PartnerCreateRequest>({
     email: "",
@@ -69,15 +71,36 @@ const Newsletter = () => {
     theaterPhotosUrls: [""],
   });
 
-  // passwordTest: Sondai123@
 
-  const [errors, setErrors] = useState<{
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-  }>({});
 
-  const { mutate: createPartner, isSuccess, data } = useCreatePartner();
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
+  const { showToast } = useToast();
+
+  const { mutate: createPartner, isPending } = useCreatePartner({
+    onSuccess: (response) => {
+      showToast(response.message ?? "Đăng ký thành công", undefined, "success");
+    },
+    onError: (message, fieldErrors) => {
+      if (fieldErrors) {
+        setErrors((prev) => ({
+          ...prev,
+          ...fieldErrors,
+        }));
+      }
+
+      const title = message && message.trim() !== ""
+        ? message
+        : "Đăng ký không thành công";
+      const detailMessage = fieldErrors
+        ? Object.values(fieldErrors)
+            .filter((msg): msg is string => Boolean(msg && msg.trim()))
+            .join("\n")
+        : undefined;
+
+      showToast(title, detailMessage, "error");
+    },
+  });
 
   const uploadMutation = useUploadToCloudinary();
 
@@ -118,11 +141,12 @@ const Newsletter = () => {
     }));
 
     // Clear error when user starts typing
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
     }
 
     // Validate specific fields as user types
@@ -162,24 +186,23 @@ const Newsletter = () => {
   };
 
   const validateForm = () => {
-    const newErrors: {
-      email?: string;
-      password?: string;
-      confirmPassword?: string;
-    } = {};
+    const newErrors: ValidationErrors = {};
 
-    newErrors.email = validateEmail(formData.email);
-    newErrors.password = validatePassword(formData.password);
-    newErrors.confirmPassword = validateConfirmPassword(
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    const confirmPasswordError = validateConfirmPassword(
       formData.confirmPassword,
       formData.password
     );
 
+    if (emailError) newErrors.email = emailError;
+    if (passwordError) newErrors.password = passwordError;
+    if (confirmPasswordError) newErrors.confirmPassword = confirmPasswordError;
+
     setErrors(newErrors);
-    return !Object.values(newErrors).some((error) => error !== undefined);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const { showToast } = useToast();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -190,12 +213,6 @@ const Newsletter = () => {
 
     console.log("Form data:", formData);
     createPartner(formData);
-
-    if (isSuccess) {
-      showToast(data.message);
-    } else {
-      showToast(data.message);
-    }
   };
 
   // "taxCode": yêu cầu mã từ 10 - 12 chữ số
@@ -235,44 +252,43 @@ const Newsletter = () => {
   };
 
   const handleFileSelect = (file: File) => {
-    // Here you would typically upload the file to your server
-    // For now, we'll just update the form data with a placeholder URL
-    let fileUrl = "";
-
     uploadMutation.mutate(file, {
       onSuccess: (data) => {
         console.log("✅ Upload success:", data.secure_url);
-        fileUrl = data.secure_url;
+        const secureUrl = data.secure_url;
+
+        setFormData((prev) => {
+          switch (currentFileType) {
+            case "business":
+              return {
+                ...prev,
+                businessRegistrationCertificateUrl: secureUrl,
+              };
+            case "identity":
+              return {
+                ...prev,
+                identityCardUrl: secureUrl,
+              };
+            case "tax":
+              return {
+                ...prev,
+                taxRegistrationCertificateUrl: secureUrl,
+              };
+            case "theater":
+              return {
+                ...prev,
+                theaterPhotosUrls: [secureUrl],
+              };
+            default:
+              return prev;
+          }
+        });
       },
       onError: (error) => {
         console.error("❌ Upload failed:", error);
+        showToast("Tải file thất bại", "Vui lòng thử lại.", "error");
       },
     });
-
-    switch (currentFileType) {
-      case "business":
-        setFormData((prev) => ({
-          ...prev,
-          businessRegistrationCertificateUrl: uploadMutation.data?.secure_url,
-        }));
-        break;
-      case "identity":
-        setFormData((prev) => ({
-          ...prev,
-          identityCardUrl: uploadMutation.data?.secure_url,
-        }));
-        break;
-      case "tax":
-        setFormData((prev) => ({
-          ...prev,
-          taxRegistrationCertificateUrl: uploadMutation.data?.secure_url,
-        }));
-        break;
-      case "theater":
-        // For theater photos, we'll add to the first position
-        setFormData((prev) => ({ ...prev, theaterPhotosUrls: [fileUrl] }));
-        break;
-    }
   };
 
   const handleTheaterFileSelect = useCallback(
@@ -481,9 +497,18 @@ const Newsletter = () => {
                   placeholder="Mã số thuế"
                   value={formData.taxCode}
                   onChange={handleInputChange}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                  className={`w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 ${
+                    errors.taxCode
+                      ? "border-red-500 dark:border-red-500"
+                      : "border-gray-600 dark:border-gray-600"
+                  }`}
                   required
                 />
+                {errors.taxCode && (
+                  <p className="mt-1 text-sm text-red-400 dark:text-red-400 text-left">
+                    {errors.taxCode}
+                  </p>
+                )}
               </div>
 
               {/* Address */}

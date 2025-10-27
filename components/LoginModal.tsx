@@ -59,6 +59,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegis
     password: ''
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const { showToast } = useToast();
   const searchParams = useSearchParams();
@@ -94,12 +95,32 @@ export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegis
     },
     onFieldError: (fieldErrors) => {
       // Map lỗi email từ API sang emailOrUsername field
-      const mappedErrors = { ...fieldErrors };
+      const mappedErrors: Record<string, string> = { ...fieldErrors };
+      // map email -> emailOrUsername for our form
       if (fieldErrors.email && !fieldErrors.emailOrUsername) {
         mappedErrors.emailOrUsername = fieldErrors.email;
         delete mappedErrors.email;
       }
-      setErrors(mappedErrors);
+
+      // Known form fields
+      const knownFields = new Set(['emailOrUsername', 'password', 'email']);
+
+      // Extract non-field errors (like partner) to show as a general error message
+      const nonFieldMessages: string[] = [];
+      Object.entries(mappedErrors).forEach(([k, v]) => {
+        if (!knownFields.has(k)) {
+          nonFieldMessages.push(v as string);
+          delete mappedErrors[k];
+        }
+      });
+
+      if (nonFieldMessages.length > 0) {
+        setGeneralError(nonFieldMessages.join('. '));
+      } else {
+        setGeneralError(null);
+      }
+
+      setErrors(mappedErrors as ValidationErrors);
     }
   });
 
@@ -185,6 +206,12 @@ export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegis
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Đăng Nhập</h2>
         </div>
+
+        {generalError && (
+          <div className="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-700">
+            {generalError}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4"

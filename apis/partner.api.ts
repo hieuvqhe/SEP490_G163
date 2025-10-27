@@ -2,6 +2,18 @@ import { getAccessToken } from "@/store/authStore";
 import axios from "axios";
 import { BASE_URL } from "@/constants";
 
+export class PartnerApiError extends Error {
+  status?: number;
+  errors?: Record<string, unknown>;
+
+  constructor(message: string, status?: number, errors?: Record<string, unknown>) {
+    super(message);
+    this.name = "PartnerApiError";
+    this.status = status;
+    this.errors = errors;
+  }
+}
+
 // Create authenticated axios instance for staff requests
 const createPartnerRequest = () => {
   const token = getAccessToken();
@@ -19,22 +31,23 @@ const handlePartnerError = (error: unknown): Error => {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;
     const message = error.response?.data?.message;
+    const errors = error.response?.data?.errors;
 
     if (status === 401) {
-      throw new Error("Unauthorized. Please login as staff.");
+      throw new PartnerApiError("Unauthorized. Please login as staff.", status, errors);
     } else if (status === 403) {
-      throw new Error("Access denied. Staff privileges required.");
+      throw new PartnerApiError("Access denied. Staff privileges required.", status, errors);
     } else if (status === 404) {
-      throw new Error(message || "Resource not found.");
+      throw new PartnerApiError(message || "Resource not found.", status, errors);
     } else if (status === 400) {
-      throw new Error(message || "Invalid request data.");
+      throw new PartnerApiError(message || "Invalid request data.", status, errors);
     } else if (status === 500) {
-      throw new Error("Server error. Please try again later.");
+      throw new PartnerApiError("Server error. Please try again later.", status, errors);
     } else {
-      throw new Error(message || "Request failed.");
+      throw new PartnerApiError(message || "Request failed.", status, errors);
     }
   }
-  throw new Error("Network error. Please check your connection.");
+  throw new PartnerApiError("Network error. Please check your connection.");
 };
 
 // ===============================

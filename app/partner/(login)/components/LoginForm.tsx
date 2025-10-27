@@ -1,11 +1,12 @@
 import { useToast } from '@/components/ToastProvider';
 import { useLogin } from "@/hooks/useAuth";
+import { LoginResponse } from "@/services/authService";
 import { Lock, User } from "lucide-react";
 import { useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
 interface LoginFormProps {
-  onSuccess: (data: LoginSuccessResponse) => void;
+  onSuccess: (data: LoginResponse) => void;
   setLoginForm: (value: boolean) => void;
   action: () => void;
 }
@@ -13,17 +14,6 @@ interface LoginFormProps {
 interface ValidationErrors {
   emailOrUsername?: string;
   password?: string;
-}
-
-interface LoginSuccessResponse {
-  data: {
-    accessToken: string;
-    refreshToken: string;
-    expireAt: string;
-    fullName: string;
-    role: string;
-  };
-  message?: string;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({

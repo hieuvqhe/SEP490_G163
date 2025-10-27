@@ -36,17 +36,42 @@ export const useLogin = (options: UseLoginOptions = {}) => {
         console.log('Handling field errors:', error.errors);
         console.log('Error.errors structure:', JSON.stringify(error.errors, null, 2));
         const fieldErrors: Record<string, string> = {};
-        Object.entries(error.errors).forEach(([field, messages]) => {
+        Object.entries(error.errors).forEach(([field, messages]: [string, any]) => {
           console.log(`Processing field: ${field}, messages:`, messages, 'type:', typeof messages);
-          if (Array.isArray(messages) && messages.length > 0) {
-            fieldErrors[field.toLowerCase()] = messages[0];
-          } else if (typeof messages === 'string') {
-            fieldErrors[field.toLowerCase()] = messages;
-          } else if (messages && typeof messages === 'object') {
-            // Handle case where messages is an object with nested structure
-            const messageValue = messages.message || messages.error || messages.detail || String(messages);
-            fieldErrors[field.toLowerCase()] = messageValue;
+
+          const extractMessage = (value: any): string | undefined => {
+            if (!value) return undefined;
+            if (typeof value === 'string') return value;
+            if (Array.isArray(value)) {
+              const first = value[0];
+              return typeof first === 'string'
+                ? first
+                : (first?.msg || first?.message || first?.error || first?.detail || (first ? JSON.stringify(first) : undefined));
+            }
+            if (typeof value === 'object') {
+              return value.msg || value.message || value.error || value.detail || JSON.stringify(value);
+            }
+            return undefined;
+          };
+
+          const message = extractMessage(messages);
+          if (!message) return;
+
+          const normalizedField = field.toLowerCase();
+          let targetField = normalizedField;
+
+          switch (normalizedField) {
+            case 'email':
+            case 'username':
+              targetField = 'emailOrUsername';
+              break;
+            case 'password_digit':
+            case 'password':
+              targetField = 'password';
+              break;
           }
+
+          fieldErrors[targetField] = message;
         });
         console.log('Calling options.onFieldError with:', fieldErrors);
         console.log('options.onFieldError exists:', !!options.onFieldError);
@@ -166,6 +191,18 @@ export const useGetUserInfo = (accessToken: string | null, options: UseGetUserIn
     gcTime: 10 * 60 * 1000,
   });
 
+  const isRefreshingRef = React.useRef(false);
+
+  const refreshMutationOptions = React.useMemo(() => ({
+    onError: (message: string) => {
+      isRefreshingRef.current = false;
+      options.onError?.(message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      useAuthStore.getState().clearAuth();
+    },
+  }), [options]);
+
+  const refreshMutation = useRefreshToken(refreshMutationOptions);
+
   // Handle success and error using useEffect
   React.useEffect(() => {
     if (query.isSuccess && query.data) {
@@ -184,6 +221,31 @@ export const useGetUserInfo = (accessToken: string | null, options: UseGetUserIn
       // Handle auth errors format: {"message": "Xác thực thất bại", "errors": {"auth": {...}}}
       // Also handle case with capital "Errors" and "Msg"
       const error = query.error as ApiError;
+      if ((error.status === 401 || error.status === 403) && !isRefreshingRef.current) {
+        const { refreshToken } = useAuthStore.getState();
+        if (!refreshToken) {
+          options.onError?.('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          useAuthStore.getState().clearAuth();
+          return;
+        }
+
+        isRefreshingRef.current = true;
+
+        refreshMutation
+          .mutateAsync({ refreshToken })
+          .then(() => {
+            query.refetch();
+          })
+          .catch(() => {
+            // onError handler already clears auth and reports message
+          })
+          .finally(() => {
+            isRefreshingRef.current = false;
+          });
+
+        return;
+      }
+
       if (error.errors && error.errors.auth && typeof error.errors.auth === 'object') {
         const authError = error.errors.auth;
         if ('msg' in authError && typeof authError.msg === 'string') {

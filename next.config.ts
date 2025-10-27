@@ -33,7 +33,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "cdn.cinemaapp.com",
-      },
+      }
     ],
   },
 };

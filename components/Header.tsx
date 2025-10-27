@@ -116,8 +116,8 @@ const Header = () => {
 
   const navigationItems = [
     { title: "Xem Ngay", link: "/" },
-    { title: "Điểm Thưởng", link: "/movies" },
-    { title: "Yêu Thích", link: "/movies" },
+    { title: "Điểm Thưởng", link: "/movies", requiresAuth: true },
+    { title: "Yêu Thích", link: "/movies", requiresAuth: true },
     { title: "Đang chiếu", link: "/movies" },
   ];
 
@@ -158,7 +158,7 @@ const Header = () => {
       bg-white/10 border border-white/20 overflow-hidden 
       focus-within:border-blue-400 transition-all duration-300 [box-shadow:var(--shadow-s)]"
           >
-            <InputGroupInput 
+            <InputGroupInput
               placeholder="Tìm tên phim, diễn viên..."
               className="border-0 bg-transparent text-white placeholder:text-gray-400 
         focus:ring-0 focus:outline-none px-4"
@@ -168,62 +168,58 @@ const Header = () => {
             </InputGroupAddon>
           </InputGroup>
         </div>
-
-        {/* Right Section: Navigation + User Actions */}
-        <div className="flex items-center gap-6">
-          {/* Navigation Links */}
-          <div className="hidden lg:flex items-center gap-6">
-            {navigationItems.map((item, index) => (
-              <Link
-                key={index}
-                href={item.link}
-                className="text-gray-200 font-medium hover:text-white transition-all duration-300 
-          relative group"
-              >
-                {item.title}
-                <span
-                  className="absolute left-0 -bottom-1 w-0 h-[2px] bg-gradient-to-r from-blue-500 to-pink-500 
-            transition-all duration-300 group-hover:w-full"
-                />
-              </Link>
-            ))}
-          </div>
-
-          {/* Loading or User or Auth Buttons */}
-          {isLoading ? (
-            <div className="flex items-center gap-3">
-              <div className="w-20 h-9 bg-gray-500/20 rounded-lg animate-pulse" />
-              <div className="w-20 h-9 bg-gray-500/20 rounded-lg animate-pulse" />
-            </div>
-          ) : user ? (
-            <UserAvatar />
-          ) : (
-            <div className="flex items-center gap-3">
-              <p
-                onClick={() => redirect("/partner")}
-                className="text-sm text-gray-300 cursor-pointer"
-              >
-                Dành cho đối tác
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="px-5 py-2 rounded-lg text-sm font-medium border border-white/30 
-            text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
+        <div>
+          <div className="flex items-center gap-4">
+            {navigationItems
+              .filter((item) => !item.requiresAuth || !!user)
+              .map((item, index) => (
+                <Link
+                  key={index}
+                  className="nav-hover-btn"
+                  href={item.link}
+                  onClick={() => setIsOpen(!isOpen)}
                 >
-                  Đăng Nhập
-                </button>
-                <button
-                  onClick={() => setShowRegisterModal(true)}
-                  className="px-5 py-2 rounded-lg text-sm font-medium bg-gradient-to-r 
+                  {item.title}
+                </Link>
+              ))}
+
+            <Link
+              href="/partner"
+              className="px-5 py-2 rounded-full font-semibold text-sm bg-gradient-to-r from-[#F84565] to-[#FF7A45] text-white shadow-lg shadow-[#F84565]/40 transition-transform duration-300 hover:scale-105"
+            >
+              Đăng ký làm đối tác
+            </Link>
+
+            {/* Loading or User or Auth Buttons */}
+            {isLoading ? (
+              <div className="flex items-center gap-3">
+                <div className="w-20 h-9 bg-gray-500/20 rounded-lg animate-pulse" />
+                <div className="w-20 h-9 bg-gray-500/20 rounded-lg animate-pulse" />
+              </div>
+            ) : user ? (
+              <UserAvatar />
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="px-5 py-2 rounded-lg text-sm font-medium border border-white/30 
+            text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                  >
+                    Đăng Nhập
+                  </button>
+                  <button
+                    onClick={() => setShowRegisterModal(true)}
+                    className="px-5 py-2 rounded-lg text-sm font-medium bg-gradient-to-r 
             from-pink-500 to-red-500 text-white shadow-md hover:shadow-pink-500/30 
             transition-all duration-300 hover:scale-105"
-                >
-                  Đăng Ký
-                </button>
+                  >
+                    Đăng Ký
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
