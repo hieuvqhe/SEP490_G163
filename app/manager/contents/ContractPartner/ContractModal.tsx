@@ -72,9 +72,6 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
   const queryClient = useQueryClient();
   const createContractMutation = useCreateContract();
 
-  const contactPhone = partner?.phone ?? partner?.userPhone ?? null;
-  const contactEmail = partner?.email ?? partner?.userEmail ?? null;
-
   const defaultValues = useMemo((): CreateContractForm => ({
     partnerId: partner?.partnerId || 0,
     contractNumber: partner ? `${partner.partnerName}_Contract` : '',

@@ -193,6 +193,16 @@ export const useGetUserInfo = (accessToken: string | null, options: UseGetUserIn
 
   const isRefreshingRef = React.useRef(false);
 
+  const refreshMutationOptions = React.useMemo(() => ({
+    onError: (message: string) => {
+      isRefreshingRef.current = false;
+      options.onError?.(message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      useAuthStore.getState().clearAuth();
+    },
+  }), [options]);
+
+  const refreshMutation = useRefreshToken(refreshMutationOptions);
+
   // Handle success and error using useEffect
   React.useEffect(() => {
     if (query.isSuccess && query.data) {
@@ -220,19 +230,16 @@ export const useGetUserInfo = (accessToken: string | null, options: UseGetUserIn
         }
 
         isRefreshingRef.current = true;
-        const { mutateAsync } = useRefreshToken({
-          onError: (message) => {
-            options.onError?.(message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-            useAuthStore.getState().clearAuth();
-          },
-        });
 
-        mutateAsync({ refreshToken })
+        refreshMutation
+          .mutateAsync({ refreshToken })
           .then(() => {
-            isRefreshingRef.current = false;
             query.refetch();
           })
           .catch(() => {
+            // onError handler already clears auth and reports message
+          })
+          .finally(() => {
             isRefreshingRef.current = false;
           });
 

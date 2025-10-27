@@ -105,8 +105,8 @@ const Header = () => {
 
   const navigationItems = [
     { title: "Xem Ngay", link: "/" },
-    { title: "Điểm Thưởng", link: "/movies" },
-    { title: "Yêu Thích", link: "/movies" },
+    { title: "Điểm Thưởng", link: "/movies", requiresAuth: true },
+    { title: "Yêu Thích", link: "/movies", requiresAuth: true },
     { title: "Đang chiếu", link: "/movies" },
   ];
 
@@ -152,16 +152,25 @@ const Header = () => {
         </div>
         <div>
           <div className="flex items-center gap-4">
-            {navigationItems.map((item, index) => (
-              <Link
-                key={index}
-                className="nav-hover-btn"
-                href={item.link}
-                onClick={() => setIsOpen(!isOpen)}
-              >
-                {item.title}
-              </Link>
-            ))}
+            {navigationItems
+              .filter((item) => !item.requiresAuth || !!user)
+              .map((item, index) => (
+                <Link
+                  key={index}
+                  className="nav-hover-btn"
+                  href={item.link}
+                  onClick={() => setIsOpen(!isOpen)}
+                >
+                  {item.title}
+                </Link>
+              ))}
+
+            <Link
+              href="/partner"
+              className="px-5 py-2 rounded-full font-semibold text-sm bg-gradient-to-r from-[#F84565] to-[#FF7A45] text-white shadow-lg shadow-[#F84565]/40 transition-transform duration-300 hover:scale-105"
+            >
+              Đăng ký làm đối tác
+            </Link>
 
             {/* Show user avatar if logged in, otherwise show login/register buttons */}
             {isLoading ? (

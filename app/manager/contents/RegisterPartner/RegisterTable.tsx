@@ -132,7 +132,7 @@ export const RegisterTable = ({
                     <div className="flex items-center justify-end gap-2 text-xs">
                       <motion.button
                         onClick={() => onViewPartner(partner)}
-                        className="flex items-center gap-1 rounded-lg bg-blue-500/20 px-3 py-2 font-semibold text-blue-200 transition hover:bg-blue-500/30"
+                        className="flex w-28 items-center justify-center gap-2 rounded-lg bg-blue-500/20 px-3 py-2 font-semibold text-blue-200 transition hover:bg-blue-500/30"
                         title="Xem chi tiết"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -142,7 +142,7 @@ export const RegisterTable = ({
                       </motion.button>
                       <motion.button
                         onClick={() => onApprovePartner(partner.partnerId)}
-                        className="flex items-center gap-1 rounded-lg bg-emerald-500/20 px-3 py-2 font-semibold text-emerald-200 transition hover:bg-emerald-500/30"
+                        className="flex w-28 items-center justify-center gap-2 rounded-lg bg-emerald-500/20 px-3 py-2 font-semibold text-emerald-200 transition hover:bg-emerald-500/30"
                         title="Duyệt đối tác"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -152,7 +152,7 @@ export const RegisterTable = ({
                       </motion.button>
                       <motion.button
                         onClick={() => onRejectPartner(partner.partnerId)}
-                        className="flex items-center gap-1 rounded-lg bg-red-500/20 px-3 py-2 font-semibold text-red-200 transition hover:bg-red-500/30"
+                        className="flex w-28 items-center justify-center gap-2 rounded-lg bg-red-500/20 px-3 py-2 font-semibold text-red-200 transition hover:bg-red-500/30"
                         title="Từ chối đối tác"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
