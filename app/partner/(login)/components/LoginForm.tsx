@@ -113,7 +113,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       onClick={handleBackdropClick}
     >
       <div className="relative w-full max-w-md mx-4">
-        <div className="bg-white/60 backdrop-blur-md rounded-3xl shadow-2xl p-8 border border-white/20">
+        <div className="bg-zinc-800/80 backdrop-blur-md rounded-3xl [box-shadow:var(--shadow-m)] p-8 ">
           {/* Close Button */}
           <button
             onClick={() => setLoginForm(false)}
@@ -124,8 +124,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold text-zinc-50 mb-2">Welcome</h2>
+            <p className="text-zinc-50/50">
               Trở thành đối tác của chúng tôi?{" "}
               <a
                 href="#"
@@ -187,7 +187,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   onChange={handleInputChange}
                   className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-gray-700">Remember Me</span>
+                <span className="text-zinc-50/50">Remember Me</span>
               </label>
 
               <a
@@ -201,7 +201,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             {/* Sign In Button */}
             <button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-full shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full h-12 bg-zinc-700/70 [box-shadow:var(--shadow-m)] text-zinc-50 font-semibold rounded-full shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
             >
               Sign In
             </button>

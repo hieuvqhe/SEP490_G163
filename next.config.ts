@@ -22,6 +22,18 @@ const nextConfig = {
         hostname: "www.themoviedb.org",
         pathname: "/t/p/**",
       },
+      {
+        protocol: "https",
+        hostname: "i.pinimg.com",
+      },
+      {
+        protocol: "https",
+        hostname: "sm.ign.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.cinemaapp.com",
+      },
     ],
   },
 };

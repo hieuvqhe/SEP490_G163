@@ -134,9 +134,12 @@ const Header = () => {
       </div>
 
       <div
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-3 
-  bg-gradient-to-r from-gray-900/70 via-gray-800/60 to-gray-900/70 
-  backdrop-blur-xl border-b border-white/10 shadow-lg transition-all duration-300`}
+        className={`fixed top-0 left-0 right-0 z-50 
+    flex items-center justify-between
+    mx-5 mt-3 px-8 py-3
+    bg-zinc-800/80 rounded-full
+    [box-shadow:var(--shadow-m)]
+    backdrop-blur-xl transition-all duration-300`}
       >
         {/* Left Section: Logo + Search */}
         <div className="flex items-center gap-8">
@@ -153,9 +156,9 @@ const Header = () => {
           <InputGroup
             className="hidden md:flex h-11 w-[20rem] xl:w-[28rem] rounded-full backdrop-blur-md 
       bg-white/10 border border-white/20 overflow-hidden 
-      focus-within:border-blue-400 transition-all duration-300"
+      focus-within:border-blue-400 transition-all duration-300 [box-shadow:var(--shadow-s)]"
           >
-            <InputGroupInput
+            <InputGroupInput 
               placeholder="Tìm tên phim, diễn viên..."
               className="border-0 bg-transparent text-white placeholder:text-gray-400 
         focus:ring-0 focus:outline-none px-4"
@@ -196,7 +199,12 @@ const Header = () => {
             <UserAvatar />
           ) : (
             <div className="flex items-center gap-3">
-              <p onClick={() => redirect("/partner")} className="text-sm text-gray-300 cursor-pointer">Dành cho đối tác</p>
+              <p
+                onClick={() => redirect("/partner")}
+                className="text-sm text-gray-300 cursor-pointer"
+              >
+                Dành cho đối tác
+              </p>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowLoginModal(true)}
