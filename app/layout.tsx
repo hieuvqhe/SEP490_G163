@@ -33,6 +33,7 @@ export default function RootLayout({
       >
         <QueryProvider>
           <ToastProvider>
+            
             <AuthInitializer />
           
             {children}

@@ -1,7 +1,13 @@
+"use client"
+
 import { getMoviesById } from "@/apis/movie.api";
 import Image from "next/image";
-import { BiSolidComment } from "react-icons/bi";
-import { FaHeart } from "react-icons/fa";
+import {
+  BiComment,
+  BiMoviePlay,
+  BiShare,
+} from "react-icons/bi";
+import SelectService from "./RadioButton";
 
 async function page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -12,6 +18,12 @@ async function page({ params }: { params: Promise<{ id: string }> }) {
   const data = await getMoviesById(movieId);
   const movie = data?.result;
   if (!movie) return null;
+
+  const options = [
+    { icon: BiComment, text: "Comment", value: "comment" },
+    { icon: BiMoviePlay, text: "Watch", value: "watch" },
+    { icon: BiShare, text: "Share", value: "share" },
+  ];
 
   return (
     <div className="relative min-h-screen w-full bg-black">
@@ -119,22 +131,11 @@ async function page({ params }: { params: Promise<{ id: string }> }) {
                 Buy Ticket
               </button>
 
-              <div className="flex flex-col items-center">
-                <FaHeart />
-                <p className="text-xs text-white">Yêu thích</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <BiSolidComment />
-                <p className="text-xs text-white">Bình luận</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <BiSolidComment />
-                <p className="text-xs text-white">Bình luận</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <BiSolidComment />
-                <p className="text-xs text-white">Bình luận</p>
-              </div>
+              {/* <SelectService
+                onChange={() => console.log("change")}
+                options={options}
+                selected={"comment"}
+              /> */}
 
               <div className="rounded-md px-5 py-2 bg-[#4742EB]/40">
                 <p>{movie.averageRating} IMDB</p>

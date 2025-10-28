@@ -1,4 +1,11 @@
-import { createPartner, PartnerApiError, PartnerCreateRequest, PartnerCreateResponse } from "@/apis/partner.api";
+import {
+  createPartner,
+  generateSasSignature,
+  GenerateSasSignatureResponse,
+  PartnerApiError,
+  PartnerCreateRequest,
+  PartnerCreateResponse,
+} from "@/apis/partner.api";
 import { useMutation } from "@tanstack/react-query";
 
 interface UseCreatePartnerOptions {
@@ -25,9 +32,10 @@ const extractErrorMessage = (value: unknown): string | undefined => {
     const first = value[0];
     if (typeof first === "string") return first;
     if (first && typeof first === "object") {
-      const candidate = (first as { msg?: string; message?: string; error?: string }).msg
-        || (first as { msg?: string; message?: string; error?: string }).message
-        || (first as { msg?: string; message?: string; error?: string }).error;
+      const candidate =
+        (first as { msg?: string; message?: string; error?: string }).msg ||
+        (first as { msg?: string; message?: string; error?: string }).message ||
+        (first as { msg?: string; message?: string; error?: string }).error;
       if (candidate) return candidate;
       return JSON.stringify(first);
     }
@@ -35,16 +43,28 @@ const extractErrorMessage = (value: unknown): string | undefined => {
   }
 
   if (typeof value === "object") {
-    const obj = value as { msg?: string; message?: string; error?: string; detail?: string };
-    return obj.msg || obj.message || obj.error || obj.detail || JSON.stringify(value);
+    const obj = value as {
+      msg?: string;
+      message?: string;
+      error?: string;
+      detail?: string;
+    };
+    return (
+      obj.msg || obj.message || obj.error || obj.detail || JSON.stringify(value)
+    );
   }
 
   return String(value);
 };
 
 export const useCreatePartner = (options: UseCreatePartnerOptions = {}) => {
-  return useMutation<PartnerCreateResponse, PartnerApiError, PartnerCreateRequest>({
-    mutationFn: (partnerData: PartnerCreateRequest) => createPartner(partnerData),
+  return useMutation<
+    PartnerCreateResponse,
+    PartnerApiError,
+    PartnerCreateRequest
+  >({
+    mutationFn: (partnerData: PartnerCreateRequest) =>
+      createPartner(partnerData),
     onSuccess: (data) => {
       console.log("Create partner success:", data);
       options.onSuccess?.(data);
@@ -52,9 +72,10 @@ export const useCreatePartner = (options: UseCreatePartnerOptions = {}) => {
     onError: (error) => {
       console.log("Create partner error:", error);
 
-      const message = typeof error.message === "string" && error.message.trim() !== ""
-        ? error.message
-        : "Đăng ký thất bại. Vui lòng thử lại.";
+      const message =
+        typeof error.message === "string" && error.message.trim() !== ""
+          ? error.message
+          : "Đăng ký thất bại. Vui lòng thử lại.";
 
       let fieldErrors: Record<string, string> | undefined;
 
@@ -75,5 +96,11 @@ export const useCreatePartner = (options: UseCreatePartnerOptions = {}) => {
 
       options.onError?.(message, fieldErrors);
     },
+  });
+};
+
+export const useGenerateSasSignature = () => {
+  return useMutation<GenerateSasSignatureResponse, PartnerApiError, string>({
+    mutationFn: (fileName: string) => generateSasSignature(fileName),
   });
 };

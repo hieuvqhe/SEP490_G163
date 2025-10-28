@@ -8,6 +8,7 @@ import LoginForm from "./components/LoginForm";
 import Navbar from "./components/Navbar";
 import FileUpload from "./components/FileUpload";
 import CloudinaryUpload from "./components/CloudinaryUpload";
+import { redirect } from "next/navigation";
 
 const Page = () => {
   const [loginForm, setLoginForm] = useState<boolean>(false);
@@ -34,10 +35,10 @@ const Page = () => {
       return;
     }
 
-    const targetPath = "/partner";
+    const targetPath = "/partner/home";
     if (role === "partner") {
       console.log("Redirecting to:", targetPath);
-      window.location.href = targetPath;
+      redirect(targetPath);
     }
   };
 

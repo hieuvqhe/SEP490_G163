@@ -6,7 +6,11 @@ export class PartnerApiError extends Error {
   status?: number;
   errors?: Record<string, unknown>;
 
-  constructor(message: string, status?: number, errors?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    status?: number,
+    errors?: Record<string, unknown>
+  ) {
     super(message);
     this.name = "PartnerApiError";
     this.status = status;
@@ -34,15 +38,35 @@ const handlePartnerError = (error: unknown): Error => {
     const errors = error.response?.data?.errors;
 
     if (status === 401) {
-      throw new PartnerApiError("Unauthorized. Please login as staff.", status, errors);
+      throw new PartnerApiError(
+        "Unauthorized. Please login as staff.",
+        status,
+        errors
+      );
     } else if (status === 403) {
-      throw new PartnerApiError("Access denied. Staff privileges required.", status, errors);
+      throw new PartnerApiError(
+        "Access denied. Staff privileges required.",
+        status,
+        errors
+      );
     } else if (status === 404) {
-      throw new PartnerApiError(message || "Resource not found.", status, errors);
+      throw new PartnerApiError(
+        message || "Resource not found.",
+        status,
+        errors
+      );
     } else if (status === 400) {
-      throw new PartnerApiError(message || "Invalid request data.", status, errors);
+      throw new PartnerApiError(
+        message || "Invalid request data.",
+        status,
+        errors
+      );
     } else if (status === 500) {
-      throw new PartnerApiError("Server error. Please try again later.", status, errors);
+      throw new PartnerApiError(
+        "Server error. Please try again later.",
+        status,
+        errors
+      );
     } else {
       throw new PartnerApiError(message || "Request failed.", status, errors);
     }
@@ -266,6 +290,30 @@ export const uploadSignaturesImage = async (
     const response = await partnerApi.post(
       `/partners/contracts/${contractId}/upload-signature`,
       signaturesData
+    );
+    return response.data;
+  } catch (error) {
+    throw handlePartnerError(error);
+  }
+};
+
+export interface GenerateSasSignatureResponse {
+  message: string;
+  result: {
+    sasUrl: string;
+    blobUrl: string;
+    expiresAt: Date;
+  };
+}
+
+export const generateSasSignature = async (
+  fileName: string
+): Promise<GenerateSasSignatureResponse> => {
+  try {
+    const partnerApi = createPartnerRequest();
+    const response = await partnerApi.post(
+      `/partners/contracts/generate-signature-upload-sas`,
+      fileName
     );
     return response.data;
   } catch (error) {

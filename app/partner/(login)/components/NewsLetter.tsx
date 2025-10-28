@@ -15,7 +15,7 @@ import {
   Image,
   FileImage,
 } from "lucide-react";
-import { useCreatePartner } from "@/hooks/userPartner";
+import { useCreatePartner } from "@/hooks/usePartner";
 import { PartnerCreateRequest } from "@/apis/partner.api";
 import { useToast } from "@/components/ToastProvider";
 import FileUpload from "./FileUpload";
