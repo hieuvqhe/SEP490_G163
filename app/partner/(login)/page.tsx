@@ -35,7 +35,7 @@ const Page = () => {
       return;
     }
 
-    const targetPath = "/partner/home";
+    const targetPath = "/partner";
     if (role === "partner") {
       console.log("Redirecting to:", targetPath);
       redirect(targetPath);

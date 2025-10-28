@@ -1,7 +1,8 @@
-import { useToast } from '@/components/ToastProvider';
+import { useToast } from "@/components/ToastProvider";
 import { useLogin } from "@/hooks/useAuth";
 import { LoginResponse } from "@/services/authService";
 import { Lock, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
@@ -47,22 +48,16 @@ const LoginForm: React.FC<LoginFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const router = useRouter();
+
   const loginMutation = useLogin({
     onSuccess: (data) => {
       showToast("Đăng nhập thành công!", undefined, "success");
+      router.push("/partner/home");
       onSuccess(data);
     },
     onError: (error) => {
       console.log("LoginForm onError called with:", error);
-      const errorMessage = error || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
-      showToast("Lỗi đăng nhập", errorMessage, "error");
-      console.log("loi roi niu");
-      
-    },
-    onFieldError: (fieldErrors) => {
-      console.log("LoginForm onFieldError called with:", fieldErrors);
-      setErrors(fieldErrors);
-      showToast("Lỗi đăng nhập", JSON.stringify(fieldErrors.emailOrUsername), "error");
     },
   });
 
@@ -77,12 +72,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log("Submitting login with data:", formData);
-      loginMutation.mutate(formData, {
-        onError: (error) => {
-          console.log("Direct mutation onError called with:", error);
-        }
-      });
+      loginMutation.mutate(formData);
     }
   };
 
@@ -140,11 +130,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 placeholder="Email Address"
                 required
                 className={`w-full h-12 bg-gray-100/80 rounded-full pl-12 pr-4 text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
-                  errors.emailOrUsername ? 'border-red-500 border-2' : ''
+                  errors.emailOrUsername ? "border-red-500 border-2" : ""
                 }`}
               />
               {errors.emailOrUsername && (
-                <p className="text-red-500 text-sm mt-1 px-2">{errors.emailOrUsername}</p>
+                <p className="text-red-500 text-sm mt-1 px-2">
+                  {errors.emailOrUsername}
+                </p>
               )}
             </div>
 
@@ -159,11 +151,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 placeholder="Password"
                 required
                 className={`w-full h-12 bg-gray-100/80 rounded-full pl-12 pr-4 text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
-                  errors.password ? 'border-red-500 border-2' : ''
+                  errors.password ? "border-red-500 border-2" : ""
                 }`}
               />
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1 px-2">{errors.password}</p>
+                <p className="text-red-500 text-sm mt-1 px-2">
+                  {errors.password}
+                </p>
               )}
             </div>
 
@@ -173,7 +167,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 <input
                   type="checkbox"
                   name="rememberMe"
-                //   checked={formData.rememberMe}
+                  //   checked={formData.rememberMe}
                   onChange={handleInputChange}
                   className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
