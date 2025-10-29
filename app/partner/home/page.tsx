@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 import Movies from "./contents/Movies";
+import CinemaInfo from "./contents/Cinema/CinemaInfo";
+import ScreenManagement from "./contents/Cinema/ScreenManagement";
+import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement";
 import { motion } from "framer-motion";
 import {
   SidebarInset,
@@ -31,6 +34,15 @@ const PartnerHomepage = () => {
 
       // case "theaters":
       //   return <TheaterInfo />;
+
+      case "cinema":
+        return <CinemaInfo />;
+
+      case "screen":
+        return <ScreenManagement />;
+
+      case "seat-type":
+        return <SeatTypeManagement />;
 
       case "movies":
         return <Movies />;
