@@ -58,6 +58,18 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
         isActive: true,
         items: [
           {
+            title: "Tổng quan Rạp",
+            url: "cinema",
+          },
+          {
+            title: "Phòng Chiếu",
+            url: "screen",
+          },
+          {
+            title: "Loại Ghế",
+            url: "seat-type",
+          },
+          {
             title: "Sơ Đồ Rạp",
             url: "seating-chart",
           },

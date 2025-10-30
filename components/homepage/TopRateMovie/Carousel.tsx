@@ -36,6 +36,7 @@ const StoryCard = ({
         fill
         className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none"
         onLoad={onImageLoad}
+        sizes="(max-width: 768px) 80vw, 18rem"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
       <div className="relative z-10 flex flex-col justify-end h-full p-6 text-white">

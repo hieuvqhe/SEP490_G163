@@ -1,0 +1,255 @@
+import { Button } from "@/components/ui/button";
+import PaginationControls from "../../CinemaInfo/components/PaginationControls";
+import { cn } from "@/lib/utils";
+import { ArrowUpDown, Eye, Monitor, PencilLine } from "lucide-react";
+import type {
+  PartnerScreen,
+  PartnerScreensPagination,
+} from "@/apis/partner.screen.api";
+
+interface ScreenTableProps {
+  screens: PartnerScreen[];
+  loading: boolean;
+  errorMessage?: string;
+  pagination?: PartnerScreensPagination;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  onSortChange: (field: string) => void;
+  onPageChange: (page: number) => void;
+  onView: (screen: PartnerScreen) => void;
+  onEdit: (screen: PartnerScreen) => void;
+  onDelete: (screen: PartnerScreen) => void;
+}
+
+const DisableIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    {...props}
+  >
+    <path
+      d="M20 15V6C20 5.44772 19.5523 5 19 5H9.5M4 8.5V15C4 15.5523 4.44772 16 5 16H12V20M12 20H16M12 20H8M3 3L21 21"
+      stroke="#c5420eff"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const ScreenTable = ({
+  screens,
+  loading,
+  errorMessage,
+  pagination,
+  sortBy,
+  sortOrder,
+  onSortChange,
+  onPageChange,
+  onView,
+  onEdit,
+  onDelete,
+}: ScreenTableProps) => {
+  const renderSortIcon = (columnKey: string) => {
+    if (sortBy !== columnKey) return <ArrowUpDown className="size-4 text-slate-500" />;
+    return (
+      <ArrowUpDown
+        className={cn(
+          "size-4 text-orange-400",
+          sortOrder === "asc" && "rotate-180"
+        )}
+      />
+    );
+  };
+
+  const renderStatusBadge = (screen: PartnerScreen) => {
+    const active = screen.isActive;
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold tracking-wide",
+          active
+            ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-200"
+            : "border border-rose-500/30 bg-rose-500/15 text-rose-200"
+        )}
+      >
+        <span className={cn("size-1.5 rounded-full", active ? "bg-emerald-300" : "bg-rose-300")} />
+        {active ? "Đang hoạt động" : "Ngừng hoạt động"}
+      </span>
+    );
+  };
+
+  const renderCapacity = (screen: PartnerScreen) => (
+    <div className="text-sm text-slate-200">
+      <p>{screen.capacity} ghế</p>
+      <p className="text-xs text-slate-500">
+        {screen.seatRows} hàng × {screen.seatColumns} ghế
+      </p>
+    </div>
+  );
+
+  const totalPages = pagination?.totalPages ?? 1;
+  const currentPage = pagination?.currentPage ?? 1;
+
+  return (
+    <div className="rounded-xl border border-slate-800/60 bg-slate-900/40 backdrop-blur">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-800/80">
+          <thead className="bg-slate-900/70 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <tr>
+              <th className="px-4 py-3 text-left">
+                <button
+                  type="button"
+                  onClick={() => onSortChange("screenName")}
+                  className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                >
+                  Tên phòng
+                  {renderSortIcon("screenName")}
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">Mã phòng</th>
+              <th className="px-4 py-3 text-left">
+                <button
+                  type="button"
+                  onClick={() => onSortChange("screenType")}
+                  className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                >
+                  Loại phòng
+                  {renderSortIcon("screenType")}
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">Âm thanh</th>
+              <th className="px-4 py-3 text-left">
+                <button
+                  type="button"
+                  onClick={() => onSortChange("capacity")}
+                  className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                >
+                  Sức chứa
+                  {renderSortIcon("capacity")}
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">Trạng thái</th>
+              <th className="px-4 py-3 text-left">
+                <button
+                  type="button"
+                  onClick={() => onSortChange("updatedDate")}
+                  className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                >
+                  Cập nhật
+                  {renderSortIcon("updatedDate")}
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800/80">
+            {loading ? (
+              [...Array(5)].map((_, index) => (
+                <tr key={index} className="animate-pulse">
+                  {[...Array(8)].map((__, cellIndex) => (
+                    <td key={cellIndex} className="px-4 py-4">
+                      <div className="h-4 rounded bg-slate-800/60" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : errorMessage ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-6 text-center text-sm text-rose-300">
+                  {errorMessage}
+                </td>
+              </tr>
+            ) : screens.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-10 text-center text-sm text-slate-400">
+                  Chưa có phòng chiếu nào cho rạp này.
+                </td>
+              </tr>
+            ) : (
+              screens.map((screen) => (
+                <tr key={screen.screenId} className="bg-slate-900/30 transition-colors hover:bg-slate-900/50">
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-10 items-center justify-center rounded-lg bg-slate-800/80 text-orange-300">
+                        <Monitor className="size-5" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-100">{screen.screenName}</p>
+                        <p className="text-xs text-slate-500">#{screen.screenId}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 font-mono text-xs text-slate-400">{screen.code}</td>
+                  <td className="px-4 py-4 text-sm text-slate-200 capitalize">
+                    {screen.screenType || "—"}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-slate-300">{screen.soundSystem || "—"}</td>
+                  <td className="px-4 py-4">{renderCapacity(screen)}</td>
+                  <td className="px-4 py-4">{renderStatusBadge(screen)}</td>
+                  <td className="px-4 py-4 text-sm text-slate-400">
+                    {new Date(screen.updatedDate).toLocaleString("vi-VN")}
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon-sm"
+                        className="border-slate-700 text-slate-200 hover:bg-slate-800"
+                        onClick={() => onView(screen)}
+                        title="Xem chi tiết"
+                      >
+                        <Eye className="size-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon-sm"
+                        className="border-slate-700 text-slate-200 hover:bg-slate-800"
+                        onClick={() => onEdit(screen)}
+                        title="Chỉnh sửa"
+                      >
+                        <PencilLine className="size-4" />
+                      </Button>
+                      {screen.isActive ? (
+                        <Button
+                          variant="outline"
+                          size="icon-sm"
+                          className="border-rose-600/50 text-rose-300 hover:bg-rose-500/20"
+                          onClick={() => onDelete(screen)}
+                          title="Vô hiệu hoá"
+                        >
+                          <DisableIcon className="size-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="icon-sm"
+                          className="border-slate-800 text-slate-500 opacity-70"
+                          disabled
+                          title="Phòng đã bị vô hiệu hoá"
+                        >
+                          <DisableIcon className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        loading={loading}
+        onPageChange={onPageChange}
+      />
+    </div>
+  );
+};
+
+export default ScreenTable;

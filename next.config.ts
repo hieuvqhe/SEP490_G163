@@ -25,14 +25,17 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "i.pinimg.com",
+        pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "sm.ign.com",
+        pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "cdn.cinemaapp.com",
+        pathname: "/**",
       }
     ],
   },

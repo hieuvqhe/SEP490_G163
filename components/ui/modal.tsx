@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,8 @@ interface ModalProps {
   title?: string;
   size?: "sm" | "md" | "lg" | "xl";
   animation?: "scale" | "slide" | "fade" | "bounce";
+  contentClassName?: string;
+  contentStyle?: CSSProperties;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -19,6 +21,8 @@ const Modal: React.FC<ModalProps> = ({
   title,
   size = "md",
   animation = "scale",
+  contentClassName,
+  contentStyle,
 }) => {
   // Animation variants based on animation type
   const getModalVariants = (animationType: string) => {
@@ -204,8 +208,10 @@ const Modal: React.FC<ModalProps> = ({
               "relative rounded-lg shadow-xl w-full mx-4 max-h-[90vh] overflow-auto",
               "bg-white dark:bg-gray-900",
               "border-0 dark:border dark:border-gray-700",
-              sizeClasses[size]
+              sizeClasses[size],
+              contentClassName
             )}
+            style={contentStyle}
             variants={modalVariants}
             initial="hidden"
             animate="visible"
