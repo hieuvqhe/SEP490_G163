@@ -42,7 +42,13 @@ export function NavMain({ ...props }: NavMainProps) {
             className="hover:bg-zinc-800 
           hover:text-zinc-200 text-zinc-200"
           >
-            <SidebarMenuButton tooltip={"menu"}>
+            <SidebarMenuButton
+              onClick={() =>
+                props.setActiveTab?.("home") &&
+                console.log("home")
+              }
+              tooltip={"menu"}
+            >
               <HomeIcon />
               <span>{"Trang Chủ"}</span>
             </SidebarMenuButton>

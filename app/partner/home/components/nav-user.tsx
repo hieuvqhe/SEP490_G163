@@ -44,7 +44,7 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent hover:bg-zinc-700 
           hover:text-zinc-50 text-zinc-50 active:bg-zinc-700 data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-full">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>

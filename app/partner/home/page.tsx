@@ -18,16 +18,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import ContractDetails from "./contents/Contract/ContractDetails";
-import ContractUpload from "./contents/Contract/ContractUpload";
+import ContractUpload from "./contents/contract/ContractUpload";
+import Page from "./contents/home/dashboard/page";
 
 const PartnerHomepage = () => {
   const [activeTab, setActiveTab] = useState<string>("overview");
 
   const renderContent = () => {
     switch (activeTab) {
-      // case "overview":
-      //   return <Overview />;
+      case "home":
+        return <Page />;
 
       // case "theaters":
       //   return <TheaterInfo />;

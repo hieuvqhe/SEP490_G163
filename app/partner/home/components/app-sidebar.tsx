@@ -50,13 +50,6 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       email: user?.email ?? "doitac@gmail.com",
       avatar: user?.avatarUrl ?? "/avatars/default-avatar.jpg",
     },
-    teams: [
-      {
-        name: "TicketXpress",
-        logo: Tickets,
-        plan: "Quản Lý - Đối Tác",
-      },
-    ],
     navMain: [
       {
         title: "Rạp Chiếu",
@@ -127,7 +120,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       {...props}
     >
       <SidebarHeader className="bg-zinc-800">
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher setActiveTab={props.setActiveTab} />
       </SidebarHeader>
       <SidebarContent className="bg-zinc-800">
         <NavMain setActiveTab={props.setActiveTab} items={data.navMain} />
