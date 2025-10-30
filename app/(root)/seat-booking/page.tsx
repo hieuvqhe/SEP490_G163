@@ -12,23 +12,31 @@ const Seat: React.FC<{
   data: SeatData;
   isSelected: boolean;
   onToggleSelect: () => void;
-}> = ({ data, isSelected, onToggleSelect }) => {
-  const { row, column, status } = data;
+  label: string;
+  isPreview: boolean;
+}> = ({ data, isSelected, onToggleSelect, label, isPreview }) => {
+  const { status } = data;
 
-  let color = "";
-  if (status === "Disabled") color = "bg-transparent";
-  else if (isSelected)
-    color = "bg-yellow-500 hover:bg-yellow-600 cursor-pointer";
+  let seatStyles = "";
+  let textColor = "text-white";
+
+  if (status === "Disabled") {
+    seatStyles = isPreview
+      ? "bg-transparent cursor-not-allowed"
+      : "bg-transparent border border-dashed border-gray-400 cursor-not-allowed";
+    textColor = "text-gray-400";
+  } else if (isSelected)
+    seatStyles = "bg-yellow-500 hover:bg-yellow-600 cursor-pointer";
   else if (status === "Available")
-    color = "bg-green-500 hover:bg-green-600 cursor-pointer";
-  else if (status === "Booked") color = "bg-red-500 cursor-pointer";
+    seatStyles = "bg-green-500 hover:bg-green-600 cursor-pointer";
+  else if (status === "Booked") seatStyles = "bg-red-500 cursor-pointer";
 
   return (
     <div
       onClick={() => status !== "Disabled" && onToggleSelect()}
-      className={`w-10 h-10 ${color} rounded-md flex items-center justify-center font-semibold text-white transition`}
+      className={`w-10 h-10 ${seatStyles} rounded-md flex items-center justify-center font-semibold ${textColor} transition`}
     >
-      {status === "Disabled" ? "" : `${row}${column}`}
+      {status === "Disabled" && isPreview ? "" : label}
     </div>
   );
 };
@@ -38,6 +46,7 @@ const Page = () => {
   const [cols, setCols] = useState<number>(5);
   const [seats, setSeats] = useState<SeatData[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [isPreview, setIsPreview] = useState<boolean>(false);
 
   const handleGenSeat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +171,16 @@ const Page = () => {
             </button>
           </div>
         )}
+        <button
+          onClick={() => setIsPreview((prev) => !prev)}
+          className={`px-4 py-1 rounded transition border ${
+            isPreview
+              ? "bg-purple-600 text-white border-purple-600 hover:bg-purple-700"
+              : "bg-white text-purple-600 border-purple-600 hover:bg-purple-50"
+          }`}
+        >
+          {isPreview ? "Thoát xem trước" : "Xem trước"}
+        </button>
       </div>
 
       {/* Lưới ghế có nhãn hàng & cột */}
@@ -209,18 +228,34 @@ const Page = () => {
                 className="grid gap-3"
                 style={{ gridTemplateColumns: `repeat(${cols}, 2.5rem)` }}
               >
-                {seats
-                  .filter((s) => s.row === rowLetter)
-                  .map((seat, index) => (
-                    <Seat
-                      key={index}
-                      data={seat}
-                      isSelected={selectedSeats.includes(
-                        `${seat.row}${seat.column}`
-                      )}
-                      onToggleSelect={() => toggleSelect(seat.row, seat.column)}
-                    />
-                  ))}
+                {(() => {
+                  const rowSeats = seats.filter((s) => s.row === rowLetter);
+                  let activeIndex = 0;
+
+                  return rowSeats.map((seat) => {
+                    const isDisabled = seat.status === "Disabled";
+                    if (!isDisabled) {
+                      activeIndex += 1;
+                    }
+
+                    const label = isDisabled
+                      ? "Z0"
+                      : `${seat.row}${activeIndex}`;
+
+                    return (
+                      <Seat
+                        key={`${seat.row}-${seat.column}`}
+                        data={seat}
+                        isSelected={selectedSeats.includes(
+                          `${seat.row}${seat.column}`
+                        )}
+                        onToggleSelect={() => toggleSelect(seat.row, seat.column)}
+                        label={label}
+                        isPreview={isPreview}
+                      />
+                    );
+                  });
+                })()}
               </div>
             </div>
           ))}
