@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import Movies from "./contents/Movies";
-import CinemaInfo from "./contents/Cinema/CinemaInfo";
-import ScreenManagement from "./contents/Cinema/ScreenManagement";
-import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement";
+import CinemaInfo from "./contents/cinema/CinemaInfo";
+import ScreenManagement from "./contents/cinema/ScreenManagement";
+import SeatTypeManagement from "./contents/cinema/SeatTypeManagement";
 import { motion } from "framer-motion";
 import {
   SidebarInset,
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import ContractUpload from "./contents/contract/ContractUpload";
 import Page from "./contents/home/dashboard/page";
+import SeatLayout from "./contents/seat/SeatLayout";
 
 const PartnerHomepage = () => {
   const [activeTab, setActiveTab] = useState<string>("overview");
@@ -41,8 +42,8 @@ const PartnerHomepage = () => {
       case "screen":
         return <ScreenManagement />;
 
-      case "seat-type":
-        return <SeatTypeManagement />;
+      case "seating-chart":
+        return <SeatLayout />;
 
       case "movies":
         return <Movies />;
@@ -113,12 +114,6 @@ const PartnerHomepage = () => {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {/* <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-          </div>
-          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" /> */}
           {renderContent()}
         </div>
       </SidebarInset>

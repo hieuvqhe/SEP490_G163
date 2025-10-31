@@ -60,7 +60,7 @@ const Page = () => {
           row,
           column: c,
           seatTypeId: 1,
-          status: "Available",
+          status: "Booked",
         });
       }
     });

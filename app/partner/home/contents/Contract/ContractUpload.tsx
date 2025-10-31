@@ -252,7 +252,7 @@ const ContractUpload = () => {
 
           {/* PDF Preview Modal */}
           <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-            <DialogContent className="max-w-5xl bg-zinc-900 text-zinc-100 border border-zinc-800 shadow-2xl rounded-2xl overflow-hidden">
+            <DialogContent className="!max-w-5xl bg-zinc-900 text-zinc-100 border border-zinc-800 shadow-2xl rounded-2xl overflow-hidden">
               <div className="flex items-center justify-between border-b border-zinc-800 px-6 pb-2 bg-zinc-900/70 backdrop-blur-md">
                 <div>
                   <h2 className="text-lg font-semibold text-white">
@@ -276,7 +276,7 @@ const ContractUpload = () => {
                       <div key={index} className="mb-4">
                         <Page
                           pageNumber={index + 1}
-                          width={600}
+                          width={750}
                           renderTextLayer={false}
                           renderAnnotationLayer={false}
                         />
