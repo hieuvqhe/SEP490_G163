@@ -90,11 +90,26 @@ const SeatLayout = () => {
     );
   };
 
-  const handleUpdateSelected = (newStatus: SeatData["status"]) => {
+  interface UpdateSeatParams {
+    newStatus: "Available" | "Disabled";
+    newColor: string;
+    newTypeId: number;
+  }
+
+  const handleUpdateSelected = ({
+    newStatus,
+    newColor,
+    newTypeId,
+  }: UpdateSeatParams) => {
     setSeats((prevSeats) =>
       prevSeats.map((seat) =>
         selectedSeats.includes(`${seat.row}${seat.column}`)
-          ? { ...seat, status: newStatus }
+          ? {
+              ...seat,
+              status: newStatus,
+              colorCode: newColor,
+              seatTypeId: newTypeId,
+            }
           : seat
       )
     );
@@ -211,8 +226,8 @@ const SeatLayout = () => {
         )}
       </div>
 
-      {/* Khu vực Zoom + Pan */}
       <div className="flex justify-between items-center">
+        {/* Khu vực Zoom + Pan */}
         <div className="flex flex-col [box-shadow:var(--shadow-m)] items-center justify-center w-3xl h-[80vh] mt-10 bg-zinc-800 rounded-lg shadow-inner overflow-hidden">
           <TransformWrapper
             minScale={0.5}
@@ -220,6 +235,7 @@ const SeatLayout = () => {
             wheel={{ step: 0.5 }}
             doubleClick={{ disabled: true }}
             panning={{ velocityDisabled: true }}
+
             // centerOnInit = {true}
           >
             <TransformComponent>
@@ -314,9 +330,10 @@ const SeatLayout = () => {
           </TransformWrapper>
         </div>
 
-        <div className="w-xs h-[80vh] mt-10 bg-zinc-900 rounded-xl border border-zinc-700 shadow-lg flex flex-col overflow-hidden [box-shadow:var(--shadow-m)]">
+        {/* Khu vực thao tác với ghế */}
+        <div className="w-xs h-[80vh] mt-10 bg-zinc-900 rounded-xl border border-zinc-700 shadow-xl flex flex-col overflow-hidden [box-shadow:var(--shadow-m)]">
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-700 bg-zinc-800/80 backdrop-blur-sm">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-700 bg-zinc-800/80 backdrop-blur-md">
             <h2 className="text-sm font-semibold text-zinc-100 tracking-wide uppercase">
               Thao tác ghế
             </h2>
@@ -328,48 +345,109 @@ const SeatLayout = () => {
           </div>
 
           {/* Nội dung */}
-          <div className="flex flex-col justify-between flex-1 p-5">
-            {/* Các nút hành động */}
-            <div className="space-y-4">
-              <p className="text-zinc-400 text-sm font-medium">
-                Cập nhật trạng thái:
-              </p>
+          <div className="flex flex-col justify-between flex-1 p-5 overflow-y-auto">
+            <div className="flex flex-col w-full gap-6">
+              {/* --- Cập nhật trạng thái --- */}
+              <div className="space-y-3">
+                <p className="text-zinc-400 text-sm font-medium uppercase tracking-wide">
+                  Cập nhật trạng thái
+                </p>
 
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => handleUpdateSelected("Booked")}
-                  className="bg-red-600/80 text-white px-3 py-2 rounded-md hover:bg-red-600 transition text-sm font-medium"
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() =>
+                      handleUpdateSelected({
+                        newStatus: "Available",
+                        newColor: selectedSeatType
+                          ? selectedSeatType.color
+                          : "#FFFFFF",
+                        newTypeId: selectedSeatType ? selectedSeatType.id : 0,
+                      })
+                    }
+                    className=" w-full opacity-80 px-4 py-2 bg-zinc-700 rounded-md font-medium transition border text-sm flex items-center justify-center gap-2 "
+                    style={
+                      selectedSeatType
+                        ? {
+                            backgroundColor: selectedSeatType.color,
+                            color: "#fff",
+                          }
+                        : {}
+                    }
+                    variant={"default"}
+                  >
+                    Mở
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      handleUpdateSelected({
+                        newStatus: "Disabled",
+                        newColor: "#808080",
+                        newTypeId: 0,
+                      })
+                    }
+                    className="w-full px-4 py-2 bg-zinc-700 rounded-md font-medium transition border text-sm flex items-center justify-center gap-2 "
+                    variant={"default"}
+                  >
+                    Vô hiệu
+                  </Button>
+                </div>
+              </div>
+
+              {/* --- Cập nhật loại ghế --- */}
+              <div className="space-y-3">
+                <p className="text-zinc-400 text-sm font-medium uppercase tracking-wide">
+                  Cập nhật loại ghế
+                </p>
+
+                <Select
+                  onValueChange={(value) => {
+                    const type = partnerSeatTypes?.find(
+                      (t: PartnerSeatType) => t.color === value
+                    );
+                    handleUpdateSelected({
+                      newStatus: "Available",
+                      newColor: type ? type.color : "#FFFFFF",
+                      newTypeId: type ? type.id : 0,
+                    });
+                  }}
                 >
-                  Đặt
-                </button>
-                <button
-                  onClick={() => handleUpdateSelected("Available")}
-                  className="bg-green-600/80 text-white px-3 py-2 rounded-md hover:bg-green-600 transition text-sm font-medium"
+                  <SelectTrigger className="w-full bg-zinc-800 border-zinc-700 text-zinc-100">
+                    <SelectValue placeholder="Chọn loại ghế" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 text-zinc-100 border-zinc-700">
+                    <SelectGroup>
+                      <SelectLabel>Các kiểu ghế</SelectLabel>
+                      {partnerSeatTypes?.map((seatType) => (
+                        <SelectItem key={seatType.id} value={seatType.color}>
+                          {seatType.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* --- Nút xem trước --- */}
+              <div className="pt-2 border-t border-zinc-700">
+                <Button
+                  onClick={() => setIsPreview((p) => !p)}
+                  className={`w-full px-4 py-2 bg-zinc-700 rounded-md font-medium transition border text-sm flex items-center justify-center gap-2 `}
+                  variant={"default"}
                 >
-                  Mở
-                </button>
-                <button
-                  onClick={() => handleUpdateSelected("Disabled")}
-                  className="bg-zinc-600/80 text-white px-3 py-2 rounded-md hover:bg-zinc-500 transition text-sm font-medium"
-                >
-                  Vô hiệu
-                </button>
+                  {isPreview ? "Xem ghế bị ẩn" : "Ẩn ghế"}
+                </Button>
               </div>
             </div>
+          </div>
 
-            {/* Nút xem trước */}
-            <div className="border-t border-zinc-700 pt-4 mt-4">
-              <button
-                onClick={() => setIsPreview((p) => !p)}
-                className={`w-full px-4 py-2 rounded-md font-medium transition border text-sm ${
-                  isPreview
-                    ? "bg-purple-600 text-white border-purple-600 hover:bg-purple-700"
-                    : "bg-transparent text-purple-400 border-purple-500 hover:bg-purple-500/10"
-                }`}
-              >
-                {isPreview ?"Xem ghế ẩn" : "Thoát xem trước"}
-              </button>
-            </div>
+          {/* Footer: Hoàn tất tạo sơ đồ */}
+          <div className="p-4 border-t border-zinc-700 bg-zinc-800/90 backdrop-blur-sm">
+            <button
+              onClick={() => console.log(seats)}
+              className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-500 transition font-medium text-sm shadow-md"
+            >
+              Hoàn tất tạo sơ đồ ghế
+            </button>
           </div>
         </div>
       </div>

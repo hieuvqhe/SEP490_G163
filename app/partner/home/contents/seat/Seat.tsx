@@ -28,7 +28,7 @@ export const Seat: React.FC<{
   return (
     <div
       onClick={() => status !== "Disabled" && onToggleSelect()}
-      className={`w-10 h-10 ${seatStyles} rounded-md flex items-center justify-center font-semibold ${textColor} transition`}
+      className={`w-10 h-10 ${seatStyles} opacity-80 rounded-md flex items-center justify-center font-semibold ${textColor} transition`}
       style={seatStyleInline}
     >
       {status === "Disabled" && isPreview ? "" : label}
