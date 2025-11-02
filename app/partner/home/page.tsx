@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Movies from "./contents/Movies";
-import CinemaInfo from "./contents/cinema/CinemaInfo";
-import ScreenManagement from "./contents/cinema/ScreenManagement";
-import SeatTypeManagement from "./contents/cinema/SeatTypeManagement";
+import CinemaInfo from "./contents/Cinema/CinemaInfo";
+import ScreenManagement from "./contents/Cinema/ScreenManagement";
+import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement";
 import { motion } from "framer-motion";
 import {
   SidebarInset,
@@ -21,12 +21,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import ContractUpload from "./contents/contract/ContractUpload";
+import ContractUpload from "./contents/Contract/ContractUpload";
 import Page from "./contents/home/dashboard/page";
 import SeatLayout from "./contents/seat/SeatLayout";
+import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 
 const PartnerHomepage = () => {
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const activeTab = usePartnerHomeStore((state) => state.activeTab);
+  const setActiveTab = usePartnerHomeStore((state) => state.setActiveTab);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -41,6 +43,9 @@ const PartnerHomepage = () => {
 
       case "screen":
         return <ScreenManagement />;
+
+      case "seat-type":
+        return <SeatTypeManagement />;
 
       case "seating-chart":
         return <SeatLayout />;

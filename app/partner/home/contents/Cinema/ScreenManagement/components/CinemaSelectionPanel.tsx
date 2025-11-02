@@ -77,13 +77,13 @@ const CinemaSelectionPanel = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-slate-300">
-          <MonitorPlay className="size-5 text-orange-400" />
+        <div className="flex items-center gap-2 text-[#f5f5f5]/80">
+          <MonitorPlay className="size-5 text-[#ff7a45]" />
           <div>
-            <p className="text-sm font-medium uppercase tracking-wide text-slate-400">
+            <p className="text-sm font-medium uppercase tracking-wide text-[#f5f5f5]/80">
               Rạp chiếu của bạn
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#9e9ea2]">
               Chọn rạp để quản lý danh sách phòng chiếu
             </p>
           </div>
@@ -91,10 +91,10 @@ const CinemaSelectionPanel = ({
       </div>
 
       <div className="relative">
-        <Search className="size-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+        <Search className="size-4 text-[#9e9ea2] absolute left-3 top-1/2 -translate-y-1/2" />
         <Input
           placeholder="Tìm kiếm theo tên, mã rạp, địa điểm..."
-          className="pl-9 bg-slate-900/70 border-slate-800/80 text-slate-200 placeholder:text-slate-500"
+          className="pl-9 border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] placeholder:text-[#9e9ea2] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
           value={searchTerm}
           onChange={(event) => onSearchChange(event.target.value)}
         />
@@ -106,7 +106,7 @@ const CinemaSelectionPanel = ({
           className="flex gap-3 overflow-x-auto pb-2 pr-1"
         >
           {loading ? (
-            <div className="flex min-h-[180px] min-w-full items-center justify-center text-sm text-slate-400">
+            <div className="flex min-h-[180px] min-w-full items-center justify-center text-sm text-[#9e9ea2]">
               Đang tải danh sách rạp...
             </div>
           ) : errorMessage ? (
@@ -115,14 +115,14 @@ const CinemaSelectionPanel = ({
               <Button
                 size="sm"
                 variant="outline"
-                className="mt-3 border-rose-500/50 text-rose-200 hover:bg-rose-500/20"
+                className="mt-3 border border-rose-500/50 text-rose-200 hover:bg-rose-500/20"
                 onClick={onRetry}
               >
                 Thử lại
               </Button>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex min-h-[180px] min-w-full items-center justify-center text-sm text-slate-400">
+            <div className="flex min-h-[180px] min-w-full items-center justify-center text-sm text-[#9e9ea2]">
               Không tìm thấy rạp phù hợp.
             </div>
           ) : (
@@ -135,21 +135,21 @@ const CinemaSelectionPanel = ({
                   onClick={() => onSelect(cinema)}
                   className={cn(
                     "min-w-[260px] shrink-0 rounded-lg border px-4 py-3 text-left transition-all",
-                    "border-slate-800/70 bg-slate-900/40 hover:border-orange-400/50 hover:bg-slate-900/70",
-                    isSelected && "border-orange-500/60 bg-orange-500/10 shadow-lg shadow-orange-500/20"
+                    "border-[#27272a] bg-[#151518] hover:border-[#ff7a45]/60 hover:bg-[#1c1c1f] shadow-lg shadow-black/20",
+                    isSelected && "border-[#ff7a45]/70 bg-[#ff7a45]/10 shadow-lg shadow-[#ff7a45]/30"
                   )}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="font-semibold text-slate-100">{cinema.cinemaName}</p>
-                      <p className="text-xs uppercase tracking-wide text-slate-500">
+                      <p className="font-semibold text-[#f5f5f5]">{cinema.cinemaName}</p>
+                      <p className="text-xs uppercase tracking-wide text-[#9e9ea2]">
                         #{cinema.cinemaId} · {cinema.code}
                       </p>
-                      <p className="mt-1 text-xs text-slate-400">{cinema.address}</p>
+                      <p className="mt-1 text-xs text-[#9e9ea2]">{cinema.address}</p>
                     </div>
-                    <div className="text-xs text-slate-400 text-right">
+                    <div className="text-xs text-[#9e9ea2] text-right">
                       <p>
-                        Tổng phòng: <span className="text-slate-200">{cinema.totalScreens ?? 0}</span>
+                        Tổng phòng: <span className="text-[#f5f5f5]">{cinema.totalScreens ?? 0}</span>
                       </p>
                       <p>
                         Đang hoạt động: <span className="text-emerald-300">{cinema.activeScreens ?? 0}</span>
@@ -168,8 +168,8 @@ const CinemaSelectionPanel = ({
               type="button"
               onClick={() => scrollByDistance(-320)}
               className={cn(
-                "absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-slate-700/60 bg-slate-900/80 p-2 text-slate-200 shadow-lg transition-opacity",
-                "hover:border-orange-400/60 hover:text-orange-200",
+                "absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-[#3a3a3d] bg-[#151518] p-2 text-[#f5f5f5] shadow-lg transition-opacity",
+                "hover:border-[#ff7a45]/60 hover:text-[#ff7a45]",
                 canScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none"
               )}
               aria-label="Cuộn danh sách rạp sang trái"
@@ -180,8 +180,8 @@ const CinemaSelectionPanel = ({
               type="button"
               onClick={() => scrollByDistance(320)}
               className={cn(
-                "absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-slate-700/60 bg-slate-900/80 p-2 text-slate-200 shadow-lg transition-opacity",
-                "hover:border-orange-400/60 hover:text-orange-200",
+                "absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-[#3a3a3d] bg-[#151518] p-2 text-[#f5f5f5] shadow-lg transition-opacity",
+                "hover:border-[#ff7a45]/60 hover:text-[#ff7a45]",
                 canScrollRight ? "opacity-100" : "opacity-0 pointer-events-none"
               )}
               aria-label="Cuộn danh sách rạp sang phải"

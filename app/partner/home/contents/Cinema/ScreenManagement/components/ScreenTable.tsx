@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import PaginationControls from "../../CinemaInfo/components/PaginationControls";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, Eye, Monitor, PencilLine } from "lucide-react";
+import { ArrowUpDown, Eye, LayoutPanelTop, Monitor, PencilLine } from "lucide-react";
 import type {
   PartnerScreen,
   PartnerScreensPagination,
@@ -19,6 +19,7 @@ interface ScreenTableProps {
   onView: (screen: PartnerScreen) => void;
   onEdit: (screen: PartnerScreen) => void;
   onDelete: (screen: PartnerScreen) => void;
+  onViewSeatLayout?: (screen: PartnerScreen) => void;
 }
 
 const DisableIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
@@ -51,13 +52,14 @@ const ScreenTable = ({
   onView,
   onEdit,
   onDelete,
+  onViewSeatLayout,
 }: ScreenTableProps) => {
   const renderSortIcon = (columnKey: string) => {
-    if (sortBy !== columnKey) return <ArrowUpDown className="size-4 text-slate-500" />;
+    if (sortBy !== columnKey) return <ArrowUpDown className="size-4 text-[#9e9ea2]" />;
     return (
       <ArrowUpDown
         className={cn(
-          "size-4 text-orange-400",
+          "size-4 text-[#ff7a45]",
           sortOrder === "asc" && "rotate-180"
         )}
       />
@@ -82,9 +84,9 @@ const ScreenTable = ({
   };
 
   const renderCapacity = (screen: PartnerScreen) => (
-    <div className="text-sm text-slate-200">
+    <div className="text-sm text-[#f5f5f5]">
       <p>{screen.capacity} ghế</p>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-[#9e9ea2]">
         {screen.seatRows} hàng × {screen.seatColumns} ghế
       </p>
     </div>
@@ -94,16 +96,16 @@ const ScreenTable = ({
   const currentPage = pagination?.currentPage ?? 1;
 
   return (
-    <div className="rounded-xl border border-slate-800/60 bg-slate-900/40 backdrop-blur">
+    <div className="rounded-xl border border-[#27272a] bg-[#151518] shadow-lg shadow-black/40">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-800/80">
-          <thead className="bg-slate-900/70 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <table className="min-w-full divide-y divide-[#27272a]">
+          <thead className="bg-[#27272a] text-xs font-semibold uppercase tracking-wider text-[#9e9ea2]">
             <tr>
               <th className="px-4 py-3 text-left">
                 <button
                   type="button"
                   onClick={() => onSortChange("screenName")}
-                  className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                  className="flex items-center gap-2 text-[#9e9ea2] transition hover:text-[#ff7a45]"
                 >
                   Tên phòng
                   {renderSortIcon("screenName")}
@@ -114,7 +116,7 @@ const ScreenTable = ({
                 <button
                   type="button"
                   onClick={() => onSortChange("screenType")}
-                  className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                  className="flex items-center gap-2 text-[#9e9ea2] transition hover:text-[#ff7a45]"
                 >
                   Loại phòng
                   {renderSortIcon("screenType")}
@@ -125,7 +127,7 @@ const ScreenTable = ({
                 <button
                   type="button"
                   onClick={() => onSortChange("capacity")}
-                  className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                  className="flex items-center gap-2 text-[#9e9ea2] transition hover:text-[#ff7a45]"
                 >
                   Sức chứa
                   {renderSortIcon("capacity")}
@@ -136,7 +138,7 @@ const ScreenTable = ({
                 <button
                   type="button"
                   onClick={() => onSortChange("updatedDate")}
-                  className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                  className="flex items-center gap-2 text-[#9e9ea2] transition hover:text-[#ff7a45]"
                 >
                   Cập nhật
                   {renderSortIcon("updatedDate")}
@@ -145,13 +147,13 @@ const ScreenTable = ({
               <th className="px-4 py-3 text-left">Thao tác</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/80">
+          <tbody className="divide-y divide-[#27272a]">
             {loading ? (
               [...Array(5)].map((_, index) => (
                 <tr key={index} className="animate-pulse">
                   {[...Array(8)].map((__, cellIndex) => (
                     <td key={cellIndex} className="px-4 py-4">
-                      <div className="h-4 rounded bg-slate-800/60" />
+                      <div className="h-4 rounded bg-[#27272a]" />
                     </td>
                   ))}
                 </tr>
@@ -164,40 +166,55 @@ const ScreenTable = ({
               </tr>
             ) : screens.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-sm text-slate-400">
+                <td colSpan={8} className="px-4 py-10 text-center text-sm text-[#9e9ea2]">
                   Chưa có phòng chiếu nào cho rạp này.
                 </td>
               </tr>
             ) : (
               screens.map((screen) => (
-                <tr key={screen.screenId} className="bg-slate-900/30 transition-colors hover:bg-slate-900/50">
+                <tr key={screen.screenId} className="bg-[#151518] transition-colors hover:bg-[#1c1c1f]">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-lg bg-slate-800/80 text-orange-300">
+                      <div className="flex size-10 items-center justify-center rounded-lg bg-[#27272a] text-[#ff7a45]">
                         <Monitor className="size-5" />
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-100">{screen.screenName}</p>
-                        <p className="text-xs text-slate-500">#{screen.screenId}</p>
+                        <p className="font-semibold text-[#f5f5f5]">{screen.screenName}</p>
+                        <p className="text-xs text-[#9e9ea2]">#{screen.screenId}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 font-mono text-xs text-slate-400">{screen.code}</td>
-                  <td className="px-4 py-4 text-sm text-slate-200 capitalize">
+                  <td className="px-4 py-4 font-mono text-xs text-[#9e9ea2]">{screen.code}</td>
+                  <td className="px-4 py-4 text-sm text-[#f5f5f5] capitalize">
                     {screen.screenType || "—"}
                   </td>
-                  <td className="px-4 py-4 text-sm text-slate-300">{screen.soundSystem || "—"}</td>
+                  <td className="px-4 py-4 text-sm text-[#d0d0d3]">{screen.soundSystem || "—"}</td>
                   <td className="px-4 py-4">{renderCapacity(screen)}</td>
                   <td className="px-4 py-4">{renderStatusBadge(screen)}</td>
-                  <td className="px-4 py-4 text-sm text-slate-400">
+                  <td className="px-4 py-4 text-sm text-[#9e9ea2]">
                     {new Date(screen.updatedDate).toLocaleString("vi-VN")}
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
+                      {onViewSeatLayout && (
+                        <Button
+                          variant="outline"
+                          size="icon-sm"
+                          className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
+                          onClick={() => onViewSeatLayout(screen)}
+                          title={
+                            screen.hasSeatLayout
+                              ? "Xem hoặc cập nhật sơ đồ ghế"
+                              : "Tạo sơ đồ ghế cho phòng này"
+                          }
+                        >
+                          <LayoutPanelTop className="size-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="icon-sm"
-                        className="border-slate-700 text-slate-200 hover:bg-slate-800"
+                        className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
                         onClick={() => onView(screen)}
                         title="Xem chi tiết"
                       >
@@ -206,7 +223,7 @@ const ScreenTable = ({
                       <Button
                         variant="outline"
                         size="icon-sm"
-                        className="border-slate-700 text-slate-200 hover:bg-slate-800"
+                        className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
                         onClick={() => onEdit(screen)}
                         title="Chỉnh sửa"
                       >
@@ -216,7 +233,7 @@ const ScreenTable = ({
                         <Button
                           variant="outline"
                           size="icon-sm"
-                          className="border-rose-600/50 text-rose-300 hover:bg-rose-500/20"
+                          className="border border-rose-600/50 text-rose-300 transition hover:bg-rose-500/20 hover:text-white"
                           onClick={() => onDelete(screen)}
                           title="Vô hiệu hoá"
                         >
@@ -226,7 +243,7 @@ const ScreenTable = ({
                         <Button
                           variant="outline"
                           size="icon-sm"
-                          className="border-slate-800 text-slate-500 opacity-70"
+                          className="border border-[#2b2b2e] text-[#9e9ea2]/60 opacity-70"
                           disabled
                           title="Phòng đã bị vô hiệu hoá"
                         >

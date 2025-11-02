@@ -138,7 +138,7 @@ const SeatTypeFormModal = ({
   const title = mode === "create" ? "Tạo loại ghế mới" : "Cập nhật loại ghế";
 
   const baseInputClasses =
-    "bg-[#151e3c] text-[#ccd0d7] border border-[#243164] placeholder:text-[#8a91a3] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30";
+    "bg-[#27272a] text-[#f5f5f5] border border-[#3a3a3d] placeholder:text-[#9e9ea2] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30";
   const errorInputClasses = "border-rose-500 focus-visible:border-rose-500 focus-visible:ring-rose-500/40";
 
   const getInputClassName = (key: SeatTypeFieldKey) => cn(baseInputClasses, errors[key] && errorInputClasses);
@@ -149,13 +149,13 @@ const SeatTypeFormModal = ({
       onClose={onClose}
       title={title}
       size="md"
-      contentClassName="bg-[#101828] text-[#ccd0d7] border border-[#243164] [&>div:first-child]:border-[#243164] [&>div:first-child]:bg-[#101828] [&>div:first-child] h3:text-[#ccd0d7] [&>div:first-child] button:text-[#ccd0d7] [&>div:first-child] button:hover:text-white [&>div:first-child] button:hover:bg-[#151e3c]"
+      contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child] button:text-[#f5f5f5]/70 [&>div:first-child] button:hover:text-white [&>div:first-child] button:hover:bg-[#27272a]"
     >
       <div className="space-y-6">
         <div className="grid gap-4">
           {FIELD_CONFIG.map((field) => (
             <div key={field.key} className="flex flex-col gap-2">
-              <label className="text-xs uppercase tracking-wide text-[#ccd0d7]">{field.label}</label>
+              <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">{field.label}</label>
               <Input
                 type={field.type ?? "text"}
                 value={values[field.key]}
@@ -164,14 +164,14 @@ const SeatTypeFormModal = ({
                 className={getInputClassName(field.key)}
                 disabled={field.disabledOnEdit && mode === "edit"}
               />
-              {field.helper && <p className="text-xs text-[#97a0b8]">{field.helper}</p>}
+              {field.helper && <p className="text-xs text-[#9e9ea2]">{field.helper}</p>}
               {errors[field.key] && <span className="text-xs text-rose-400">{errors[field.key]}</span>}
             </div>
           ))}
         </div>
 
         <div className="space-y-3">
-          <label className="text-xs uppercase tracking-wide text-[#ccd0d7]">Màu sắc</label>
+          <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">Màu sắc</label>
           <div className="grid grid-cols-6 gap-2">
             {COLOR_PRESETS.map((preset) => {
               const isSelected = preset.toLowerCase() === values.color.trim().toLowerCase();
@@ -182,7 +182,7 @@ const SeatTypeFormModal = ({
                   onClick={() => setValues((prev) => ({ ...prev, color: preset }))}
                   className={cn(
                     "h-10 rounded-lg border transition-all",
-                    isSelected ? "ring-2 ring-offset-2 ring-offset-[#101828] ring-[#ff7a45]" : "border-transparent",
+                    isSelected ? "ring-2 ring-offset-2 ring-offset-[#151518] ring-[#ff7a45]" : "border-transparent",
                   )}
                   style={{ backgroundColor: preset }}
                   aria-label={`Chọn màu ${preset}`}
@@ -195,7 +195,7 @@ const SeatTypeFormModal = ({
               type="color"
               value={values.color || "#ffffff"}
               onChange={(event) => setValues((prev) => ({ ...prev, color: event.target.value }))}
-              className="h-10 w-16 rounded border border-[#243164] bg-transparent"
+              className="h-10 w-16 rounded border border-[#3a3a3d] bg-transparent"
             />
             <Input
               value={values.color}
@@ -205,18 +205,18 @@ const SeatTypeFormModal = ({
             />
           </div>
           {errors.color && <span className="text-xs text-rose-400">{errors.color}</span>}
-          <p className="text-xs text-[#97a0b8]">Chọn nhanh từ bảng màu hoặc tự tuỳ chỉnh bằng mã HEX.</p>
+          <p className="text-xs text-[#9e9ea2]">Chọn nhanh từ bảng màu hoặc tự tuỳ chỉnh bằng mã HEX.</p>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs uppercase tracking-wide text-[#ccd0d7]">Mô tả</label>
+          <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">Mô tả</label>
           <Textarea
             value={values.description}
             onChange={(event) => handleChange("description", event)}
             placeholder="Mô tả chi tiết về loại ghế"
             className={getInputClassName("description")}
           />
-          <p className="text-xs text-[#97a0b8]">
+          <p className="text-xs text-[#9e9ea2]">
             Mô tả giúp nhân viên hiểu rõ mục đích và lưu ý khi sử dụng loại ghế này.
           </p>
         </div>
@@ -226,14 +226,14 @@ const SeatTypeFormModal = ({
             variant="outline"
             onClick={onClose}
             disabled={submitting}
-            className="border border-[#3b4a6b] bg-[#243164] text-[#ccd0d7] hover:bg-[#2c3b6a]"
+            className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] hover:bg-[#1c1c1f]"
           >
             Huỷ
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-[#ff7a45] text-[#101828] hover:bg-[#ff915f] shadow-lg shadow-[#ff7a45]/40"
+            className="bg-[#ff7a45] text-[#151518] hover:bg-[#ff8d60] shadow-lg shadow-[#ff7a45]/40"
           >
             {submitting ? "Đang xử lý..." : mode === "create" ? "Tạo mới" : "Cập nhật"}
           </Button>

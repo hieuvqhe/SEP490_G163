@@ -36,15 +36,15 @@ const CinemaToolbar = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 bg-slate-900/60 border border-slate-800/60 backdrop-blur rounded-xl p-4">
+    <div className="flex flex-col gap-4 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2 text-slate-300">
-          <Filter className="size-5 text-orange-400" />
+        <div className="flex items-center gap-2 text-[#f5f5f5]/80">
+          <Filter className="size-5 text-[#ff7a45]" />
           <div>
-            <p className="text-sm font-medium uppercase tracking-wide text-slate-400">
+            <p className="text-sm font-medium uppercase tracking-wide text-[#f5f5f5]/80">
               Bộ lọc rạp chiếu
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#9e9ea2]">
               Tìm kiếm, lọc và sắp xếp danh sách rạp bạn đang quản lý
             </p>
           </div>
@@ -55,7 +55,7 @@ const CinemaToolbar = ({
             variant="outline"
             size="sm"
             onClick={onReset}
-            className="border-slate-700 bg-slate-800/40 text-slate-200 hover:bg-slate-800/70"
+            className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]"
           >
             <SlidersHorizontal className="size-4" />
             Đặt lại
@@ -66,7 +66,7 @@ const CinemaToolbar = ({
             onClick={onRefresh}
             disabled={isRefreshing}
             className={cn(
-              "border-slate-700 bg-slate-800/40 text-slate-200 hover:bg-slate-800/70",
+              "border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]",
               isRefreshing && "opacity-70"
             )}
           >
@@ -77,7 +77,7 @@ const CinemaToolbar = ({
           <Button
             size="sm"
             onClick={onCreate}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
+            className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
           >
             <Plus className="size-4" />
             Tạo rạp mới
@@ -87,10 +87,10 @@ const CinemaToolbar = ({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
         <div className="relative">
-          <Search className="size-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9e9ea2]" />
           <Input
             placeholder="Tìm kiếm theo tên, mã rạp..."
-            className="pl-9 bg-slate-900/70 border-slate-800/80 text-slate-200 placeholder:text-slate-500"
+            className="pl-9 border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] placeholder:text-[#9e9ea2] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
             name="search"
             value={filters.search}
             onChange={handleInputChange}
@@ -98,14 +98,14 @@ const CinemaToolbar = ({
         </div>
         <Input
           placeholder="Thành phố"
-          className="bg-slate-900/70 border-slate-800/80 text-slate-200 placeholder:text-slate-500"
+          className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] placeholder:text-[#9e9ea2] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
           name="city"
           value={filters.city}
           onChange={handleInputChange}
         />
         <Input
           placeholder="Quận / Huyện"
-          className="bg-slate-900/70 border-slate-800/80 text-slate-200 placeholder:text-slate-500"
+          className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] placeholder:text-[#9e9ea2] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
           name="district"
           value={filters.district}
           onChange={handleInputChange}
@@ -114,11 +114,17 @@ const CinemaToolbar = ({
           name="status"
           value={filters.status}
           onChange={handleInputChange}
-          className="h-9 rounded-md border bg-slate-900/70 border-slate-800/80 px-3 text-sm text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+          className="h-9 rounded-md border border-[#3a3a3d] bg-[#27272a] px-3 text-sm text-[#f5f5f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7a45]"
         >
-          <option value="all">Tất cả trạng thái</option>
-          <option value="active">Đang hoạt động</option>
-          <option value="inactive">Ngừng hoạt động</option>
+          <option value="all" className="bg-[#151518] text-[#f5f5f5]">
+            Tất cả trạng thái
+          </option>
+          <option value="active" className="bg-[#151518] text-[#f5f5f5]">
+            Đang hoạt động
+          </option>
+          <option value="inactive" className="bg-[#151518] text-[#f5f5f5]">
+            Ngừng hoạt động
+          </option>
         </select>
       </div>
     </div>

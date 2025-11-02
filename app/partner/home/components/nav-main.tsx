@@ -17,6 +17,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 
 interface NavMainProps {
   items: {
@@ -32,7 +33,14 @@ interface NavMainProps {
   setActiveTab?: (tab: string) => void;
 }
 
-export function NavMain({ ...props }: NavMainProps) {
+export function NavMain({ items, setActiveTab }: NavMainProps) {
+  const setStoreActiveTab = usePartnerHomeStore((state) => state.setActiveTab);
+
+  const handleSetActiveTab = (tab: string) => {
+    setActiveTab?.(tab);
+    setStoreActiveTab(tab);
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-zinc-200">Platform</SidebarGroupLabel>
@@ -43,10 +51,10 @@ export function NavMain({ ...props }: NavMainProps) {
           hover:text-zinc-200 text-zinc-200"
           >
             <SidebarMenuButton
-              onClick={() =>
-                props.setActiveTab?.("home") &&
-                console.log("home")
-              }
+              onClick={() => {
+                handleSetActiveTab("home");
+                console.log("home");
+              }}
               tooltip={"menu"}
             >
               <HomeIcon />
@@ -54,7 +62,7 @@ export function NavMain({ ...props }: NavMainProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </Collapsible>
-        {props.items.map((item) => (
+        {items.map((item) => (
           <Collapsible
             key={item.title}
             asChild
@@ -77,10 +85,10 @@ export function NavMain({ ...props }: NavMainProps) {
                   {item.items?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton
-                        onClick={() =>
-                          props.setActiveTab?.(subItem.url ?? "") &&
-                          console.log(subItem?.url)
-                        }
+                        onClick={() => {
+                          handleSetActiveTab(subItem.url ?? "");
+                          console.log(subItem?.url);
+                        }}
                         // onClick={() => console.log(subItem?.url)}
                         className="text-zinc-200"
                         asChild

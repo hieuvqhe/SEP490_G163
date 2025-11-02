@@ -8,38 +8,35 @@ import LoginForm from "./components/LoginForm";
 import Navbar from "./components/Navbar";
 import FileUpload from "./components/FileUpload";
 import CloudinaryUpload from "./components/CloudinaryUpload";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { LoginResponse } from "@/services/authService";
 
 const Page = () => {
   const [loginForm, setLoginForm] = useState<boolean>(false);
   const newsletterRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
   const scrollToNewsletter = () => {
     newsletterRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleLoginSuccess = (data: {
-    data: {
-      accessToken: string;
-      refreshToken: string;
-      fullName: string;
-      role: string;
-    };
-  }) => {
+  const handleLoginSuccess = (data: LoginResponse) => {
     console.log("Login successful:", data);
-    const role = data.data.role;
+    const role = data.result?.role?.toLowerCase?.();
     console.log("Redirecting with role from response:", role);
 
     if (!role) {
-      window.location.href = "/";
+      router.push("/");
       return;
     }
 
-    const targetPath = "/partner";
-    if (role === "partner") {
-      console.log("Redirecting to:", targetPath);
-      redirect(targetPath);
+    if (role !== "partner") {
+      router.push("/");
+      return;
     }
+
+    setLoginForm(false);
+    router.push("/partner/home");
   };
 
   return (

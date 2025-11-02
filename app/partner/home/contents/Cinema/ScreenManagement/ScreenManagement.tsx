@@ -34,6 +34,7 @@ import {
 } from "./utils";
 import type { ScreenFilters, ScreenFormValues } from "./types";
 import { MonitorPlay } from "lucide-react";
+import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 
 const ScreenManagement = () => {
   const { showToast } = useToast();
@@ -55,6 +56,9 @@ const ScreenManagement = () => {
   const [deleteScreenId, setDeleteScreenId] = useState<number | null>(null);
   const [deleteScreenName, setDeleteScreenName] = useState<string>("");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const setActiveTab = usePartnerHomeStore((state) => state.setActiveTab);
+  const setSeatLayoutContext = usePartnerHomeStore((state) => state.setSeatLayoutContext);
 
   const invalidateScreens = useInvalidatePartnerScreens();
   const invalidateCinemas = useInvalidatePartnerCinemas();
@@ -167,6 +171,17 @@ const ScreenManagement = () => {
     setIsDetailOpen(true);
   };
 
+  const handleViewSeatLayout = (screen: PartnerScreen) => {
+    setSeatLayoutContext({
+      cinemaId: screen.cinemaId,
+      cinemaName: screen.cinemaName,
+      screenId: screen.screenId,
+      screenName: screen.screenName,
+    });
+    setIsDetailOpen(false);
+    setActiveTab("seating-chart");
+  };
+
   const handleDeleteClick = (screen: PartnerScreen) => {
     setDeleteScreenId(screen.screenId);
     setDeleteScreenName(screen.screenName);
@@ -261,7 +276,7 @@ const ScreenManagement = () => {
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
-        <div className="rounded-xl border border-slate-800/60 bg-slate-900/60 p-4 backdrop-blur">
+        <div className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
           <CinemaSelectionPanel
             cinemas={cinemas}
             loading={cinemasLoading || cinemasFetching}
@@ -298,22 +313,49 @@ const ScreenManagement = () => {
                 onView={handleDetailClick}
                 onEdit={handleEditClick}
                 onDelete={handleDeleteClick}
+                onViewSeatLayout={handleViewSeatLayout}
               />
+
+              {filteredScreens.length === 0 && !screensLoading && !screenErrorMessage && (
+                <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-[#27272a] bg-[#151518] p-10 text-center text-[#f5f5f5]/80 shadow-lg shadow-black/30">
+                  <MonitorPlay className="size-12 text-[#ff7a45]" />
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-[#f5f5f5]">
+                      Rạp này chưa có phòng chiếu nào
+                    </h3>
+                    <p className="text-sm text-[#9e9ea2]">
+                      Hãy tạo phòng chiếu mới để bắt đầu quản lý lịch chiếu và sơ đồ ghế cho rạp.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button onClick={handleCreateClick} className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]">
+                      Tạo phòng chiếu đầu tiên
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setActiveTab("seating-chart")}
+                      className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a]"
+                    >
+                      Đến trang sơ đồ ghế
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
-            <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-700/60 bg-slate-900/30 p-8 text-center text-slate-400">
-              <MonitorPlay className="size-10 text-orange-400" />
+            <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#27272a] bg-[#151518] p-8 text-center text-[#9e9ea2] shadow-lg shadow-black/30">
+              <MonitorPlay className="size-10 text-[#ff7a45]" />
               <div>
-                <p className="text-lg font-semibold text-slate-100">
+                <p className="text-lg font-semibold text-[#f5f5f5]">
                   Chọn một rạp để bắt đầu quản lý phòng chiếu
                 </p>
-                <p className="mt-2 text-sm text-slate-400">
+                <p className="mt-2 text-sm text-[#9e9ea2]">
                   Danh sách phòng sẽ hiển thị sau khi bạn chọn rạp thuộc quyền quản lý của mình.
                 </p>
               </div>
               <Button
                 variant="outline"
-                className="border-slate-700 text-slate-200 hover:bg-slate-800"
+                className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a]"
                 onClick={() => refetchCinemas()}
               >
                 Làm mới danh sách rạp
@@ -337,6 +379,7 @@ const ScreenManagement = () => {
         onClose={handleDetailClose}
         screen={detailQuery.data?.result ?? null}
         loading={detailQuery.isLoading}
+        onViewSeatLayout={handleViewSeatLayout}
       />
 
       <ScreenDeleteDialog

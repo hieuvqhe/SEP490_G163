@@ -13,6 +13,7 @@ import {
 import { TeamSwitcher } from "./team-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
+import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 import { useAuthStore } from "@/store/authStore";
 import { useGetUserInfo } from "@/hooks/useAuth";
 
@@ -20,9 +21,10 @@ export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   setActiveTab?: (tab: string) => void;
 }
 
-export function AppSidebar({ ...props }: AppSidebarProps) {
+export function AppSidebar({ setActiveTab: legacySetActiveTab, ...rest }: AppSidebarProps) {
   const { user, accessToken, isLoading, isHydrated, clearAuth } =
     useAuthStore();
+  const setStoreActiveTab = usePartnerHomeStore((state) => state.setActiveTab);
 
   React.useEffect(() => {
     if (isHydrated && !accessToken && !user && isLoading) {
@@ -125,17 +127,22 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
     ],
   };
 
+  const handleSetActiveTab = (tab: string) => {
+    legacySetActiveTab?.(tab);
+    setStoreActiveTab(tab);
+  };
+
   return (
     <Sidebar
       className="border-zinc-700 border-r-2"
       collapsible="icon"
-      {...props}
+      {...rest}
     >
       <SidebarHeader className="bg-zinc-800">
-        <TeamSwitcher setActiveTab={props.setActiveTab} />
+        <TeamSwitcher setActiveTab={handleSetActiveTab} />
       </SidebarHeader>
       <SidebarContent className="bg-zinc-800">
-        <NavMain setActiveTab={props.setActiveTab} items={data.navMain} />
+        <NavMain setActiveTab={handleSetActiveTab} items={data.navMain} />
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter className="bg-zinc-800">

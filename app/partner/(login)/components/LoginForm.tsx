@@ -29,6 +29,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const { showToast } = useToast();
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Validation functions
   const validateForm = (): boolean => {
@@ -44,6 +45,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       newErrors.password = "Mật khẩu là bắt buộc";
     }
 
+    setGeneralError(null);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -52,12 +54,52 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const loginMutation = useLogin({
     onSuccess: (data) => {
+      const role = data.result?.role?.toLowerCase?.();
+
+      if (role !== "partner") {
+        const message = "Bạn không có quyền truy cập trang này";
+        showToast("Không có quyền", message, "error");
+        setGeneralError(message);
+        setLoginForm(false);
+        router.push("/");
+        return;
+      }
+
       showToast("Đăng nhập thành công!", undefined, "success");
+      setErrors({});
+      setGeneralError(null);
       router.push("/partner/home");
       onSuccess(data);
     },
-    onError: (error) => {
-      console.log("LoginForm onError called with:", error);
+    onError: (errorMessage) => {
+      showToast("Lỗi đăng nhập", errorMessage, "error");
+      setGeneralError(errorMessage);
+    },
+    onFieldError: (fieldErrors) => {
+      const mappedErrors: Record<string, string> = { ...fieldErrors };
+
+      if (fieldErrors.email && !fieldErrors.emailOrUsername) {
+        mappedErrors.emailOrUsername = fieldErrors.email;
+        delete mappedErrors.email;
+      }
+
+      const knownFields = new Set(["emailOrUsername", "password", "email"]);
+      const nonFieldMessages: string[] = [];
+
+      Object.entries(mappedErrors).forEach(([key, value]) => {
+        if (!knownFields.has(key)) {
+          nonFieldMessages.push(value);
+          delete mappedErrors[key];
+        }
+      });
+
+      if (nonFieldMessages.length > 0) {
+        setGeneralError(nonFieldMessages.join(". "));
+      } else {
+        setGeneralError(null);
+      }
+
+      setErrors(mappedErrors as ValidationErrors);
     },
   });
 
@@ -67,6 +109,17 @@ const LoginForm: React.FC<LoginFormProps> = ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    if (errors[name as keyof ValidationErrors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
+
+    if (generalError) {
+      setGeneralError(null);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -119,15 +172,20 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {generalError && (
+              <div className="px-3 py-2 bg-red-500/10 border border-red-500/40 text-red-100 rounded-2xl text-sm">
+                {generalError}
+              </div>
+            )}
             {/* Email Input */}
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
               <input
-                type="email"
+                type="text"
                 name="emailOrUsername"
                 value={formData.emailOrUsername}
                 onChange={handleInputChange}
-                placeholder="Email Address"
+                placeholder="Email hoặc Tên đăng nhập"
                 required
                 className={`w-full h-12 bg-gray-100/80 rounded-full pl-12 pr-4 text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
                   errors.emailOrUsername ? "border-red-500 border-2" : ""
@@ -185,9 +243,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
             {/* Sign In Button */}
             <button
               type="submit"
-              className="w-full h-12 bg-zinc-700/70 [box-shadow:var(--shadow-m)] text-zinc-50 font-semibold rounded-full shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              disabled={loginMutation.isPending}
+              className={`w-full h-12 bg-zinc-700/70 [box-shadow:var(--shadow-m)] text-zinc-50 font-semibold rounded-full shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] ${
+                loginMutation.isPending ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
-              Sign In
+              {loginMutation.isPending ? "Đang đăng nhập..." : "Sign In"}
             </button>
           </form>
         </div>

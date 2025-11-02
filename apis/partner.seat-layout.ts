@@ -1,7 +1,7 @@
 import { BASE_URL } from "@/constants";
 import { getAccessToken } from "@/store/authStore";
 import axios from "axios";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface PartnerSeatLayoutSeatMap {
   seatMapId: number;
@@ -42,6 +42,37 @@ export interface GetPartnerSeatLayoutResponse {
     seats: PartnerSeatLayoutSeat[];
     availableSeatTypes: PartnerSeatLayoutSeatType[];
   };
+}
+
+export interface PartnerSeatLayoutSeatPayload {
+  seatId?: number;
+  row: string;
+  column: number;
+  seatTypeId: number;
+  status: string;
+}
+
+export interface SavePartnerSeatLayoutRequest {
+  totalRows: number;
+  totalColumns: number;
+  seats: PartnerSeatLayoutSeatPayload[];
+}
+
+export interface PartnerSeatLayoutMutationResult {
+  screenId: number;
+  totalRows: number;
+  totalColumns: number;
+  totalSeats: number;
+  createdSeats: number;
+  updatedSeats: number;
+  blockedSeats: number;
+  message: string;
+  updatedAt: string;
+}
+
+export interface SavePartnerSeatLayoutResponse {
+  message: string;
+  result: PartnerSeatLayoutMutationResult;
 }
 
 export class PartnerSeatLayoutApiError extends Error {
@@ -115,6 +146,52 @@ class PartnerSeatLayoutService {
       );
     }
   }
+
+  async createSeatLayout(
+    screenId: number,
+    payload: SavePartnerSeatLayoutRequest
+  ): Promise<SavePartnerSeatLayoutResponse> {
+    if (!screenId || screenId <= 0) {
+      throw new PartnerSeatLayoutApiError("Vui lòng chọn phòng chiếu hợp lệ.");
+    }
+
+    try {
+      const client = createPartnerSeatLayoutRequest();
+      const response = await client.post<SavePartnerSeatLayoutResponse>(
+        `${this.partnerBasePath}/screens/${screenId}/seat-layout`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      throw handlePartnerSeatLayoutError(
+        error,
+        "Không thể tạo layout ghế cho phòng chiếu này. Vui lòng thử lại."
+      );
+    }
+  }
+
+  async updateSeatLayout(
+    screenId: number,
+    payload: SavePartnerSeatLayoutRequest
+  ): Promise<SavePartnerSeatLayoutResponse> {
+    if (!screenId || screenId <= 0) {
+      throw new PartnerSeatLayoutApiError("Vui lòng chọn phòng chiếu hợp lệ.");
+    }
+
+    try {
+      const client = createPartnerSeatLayoutRequest();
+      const response = await client.put<SavePartnerSeatLayoutResponse>(
+        `${this.partnerBasePath}/screens/${screenId}/seat-layout`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      throw handlePartnerSeatLayoutError(
+        error,
+        "Không thể cập nhật layout ghế cho phòng chiếu này. Vui lòng thử lại."
+      );
+    }
+  }
 }
 
 export const partnerSeatLayoutService = new PartnerSeatLayoutService();
@@ -149,4 +226,52 @@ export const useInvalidatePartnerSeatLayout = () => {
       queryClient.invalidateQueries({ queryKey: ["partner-seat-layout"] });
     }
   };
+};
+
+export const useCreatePartnerSeatLayout = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      screenId,
+      payload,
+    }: {
+      screenId: number;
+      payload: SavePartnerSeatLayoutRequest;
+    }) => partnerSeatLayoutService.createSeatLayout(screenId, payload),
+    onSuccess: (_, variables) => {
+      if (variables?.screenId) {
+        queryClient.invalidateQueries({
+          queryKey: ["partner-seat-layout", variables.screenId],
+          exact: false,
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["partner-seat-layout"], exact: false });
+      }
+    },
+  });
+};
+
+export const useUpdatePartnerSeatLayout = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      screenId,
+      payload,
+    }: {
+      screenId: number;
+      payload: SavePartnerSeatLayoutRequest;
+    }) => partnerSeatLayoutService.updateSeatLayout(screenId, payload),
+    onSuccess: (_, variables) => {
+      if (variables?.screenId) {
+        queryClient.invalidateQueries({
+          queryKey: ["partner-seat-layout", variables.screenId],
+          exact: false,
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["partner-seat-layout"], exact: false });
+      }
+    },
+  });
 };
