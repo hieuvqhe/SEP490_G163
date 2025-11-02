@@ -299,10 +299,13 @@ const SeatLayout = () => {
                             return rowSeats.map((seat) => {
                               const isDisabled = seat.status === "Disabled";
                               if (!isDisabled) activeIndex += 1;
+                              
 
                               const label = isDisabled
                                 ? "Z0"
                                 : `${seat.row}${activeIndex}`;
+
+                              
 
                               return (
                                 <Seat
