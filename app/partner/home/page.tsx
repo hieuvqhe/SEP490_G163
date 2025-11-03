@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import Movies from "./contents/Movies";
+import React from "react";
 import CinemaInfo from "./contents/cinema/CinemaInfo";
 import ScreenManagement from "./contents/cinema/ScreenManagement";
 import SeatTypeManagement from "./contents/cinema/SeatTypeManagement";
@@ -11,7 +10,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { AppSidebar } from "./components/app-sidebar";
+import { AppSidebar } from "./components/sidebar/app-sidebar";
 import { Separator } from "@radix-ui/react-separator";
 import {
   Breadcrumb,
@@ -24,9 +23,13 @@ import {
 import ContractUpload from "./contents/contract/ContractUpload";
 import Page from "./contents/home/dashboard/page";
 import SeatLayout from "./contents/seat/SeatLayout";
+import { usePartnerHomeStore } from "@/store/partnerHomeStore";
+import ContractList from "./contents/contract/ContractList";
+import ManageMovies from "./contents/movies/ManageMovies";
 
 const PartnerHomepage = () => {
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const activeTab = usePartnerHomeStore((state) => state.activeTab);
+  const setActiveTab = usePartnerHomeStore((state) => state.setActiveTab);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -42,12 +45,17 @@ const PartnerHomepage = () => {
       case "screen":
         return <ScreenManagement />;
 
+      case "seat-type":
+        return <SeatTypeManagement />;
+
       case "seating-chart":
         return <SeatLayout />;
 
       case "movies":
-        return <Movies />;
+        return <ManageMovies />;
 
+      case "contract-list":
+        return <ContractList />;
       // case "showtimes":
       //   return <Showtimes />;
 

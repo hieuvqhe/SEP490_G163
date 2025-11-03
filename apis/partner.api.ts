@@ -19,7 +19,7 @@ export class PartnerApiError extends Error {
 }
 
 // Create authenticated axios instance for staff requests
-const createPartnerRequest = () => {
+export const createPartnerRequest = () => {
   const token = getAccessToken();
   return axios.create({
     baseURL: BASE_URL,
@@ -31,7 +31,7 @@ const createPartnerRequest = () => {
 };
 
 // Handle Partner API errors
-const handlePartnerError = (error: unknown): Error => {
+export const handlePartnerError = (error: unknown): Error => {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;
     const message = error.response?.data?.message;
@@ -164,6 +164,14 @@ export interface GetContractsResponse {
   message: string;
   result: {
     contracts: [Contract];
+    pagination: {
+      currentPage: number;
+      pageSize: number;
+      totalCount: number;
+      totalPages: number;
+      hasPrevious: boolean;
+      hasNext: boolean;
+    };
   };
 }
 
@@ -175,7 +183,7 @@ export interface GetContractsByIdResponse {
 export interface ContractQueryParams {
   page?: number;
   limit?: number;
-  status?: "active" | "inactive" | "terminated" | "pending";
+  status?: "active" | "inactive" | "terminated" | "pending" | "all";
   contractType?: "partnership" | "service" | "other";
   search?: string;
   sortBy: "asc" | "desc";
@@ -251,7 +259,9 @@ export const getPartnersContract = async (
 
     if (params?.page) queryParams.append("page", params.page.toString());
     if (params?.limit) queryParams.append("limit", params.limit.toString());
-    if (params?.status) queryParams.append("status", params.status);
+    if (params?.status && params.status !== "all") {
+      queryParams.append("status", params.status);
+    }
     if (params?.contractType)
       queryParams.append("contractType", params.contractType);
     if (params?.search) queryParams.append("search", params.search);

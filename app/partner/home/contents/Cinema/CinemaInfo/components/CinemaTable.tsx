@@ -53,10 +53,10 @@ const CinemaTable = ({
   onDelete,
 }: CinemaTableProps) => {
   const renderSortIcon = (columnKey: string) => {
-    if (sortBy !== columnKey) return <ArrowUpDown className="size-4 text-slate-500" />;
+    if (sortBy !== columnKey) return <ArrowUpDown className="size-4 text-[#9e9ea2]" />;
     return (
       <ArrowUpDown
-        className={`size-4 ${sortOrder === "asc" ? "text-orange-400 rotate-180" : "text-orange-400"}`}
+        className={`size-4 ${sortOrder === "asc" ? "text-[#ff7a45] rotate-180" : "text-[#ff7a45]"}`}
       />
     );
   };
@@ -78,9 +78,9 @@ const CinemaTable = ({
   };
 
   const renderScreens = (cinema: PartnerCinema) => (
-    <div className="flex flex-col text-sm text-slate-300">
+    <div className="flex flex-col text-sm text-[#d0d0d3]">
       <span>{cinema.activeScreens}/{cinema.totalScreens}</span>
-      <span className="text-xs text-slate-500">Hoạt động / Tổng</span>
+      <span className="text-xs text-[#9e9ea2]">Hoạt động / Tổng</span>
     </div>
   );
 
@@ -88,11 +88,11 @@ const CinemaTable = ({
   const currentPage = pagination?.currentPage ?? 1;
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800/60 backdrop-blur rounded-xl overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-[#27272a] bg-[#151518] shadow-lg shadow-black/40">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-800">
-          <thead className="bg-slate-900/80">
-            <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <table className="min-w-full divide-y divide-[#27272a]">
+          <thead className="bg-[#27272a]">
+            <tr className="text-left text-xs font-semibold uppercase tracking-wider text-[#9e9ea2]">
               {columns.map((column) => (
                 <th key={column.key as string} className="px-4 py-3">
                   {column.key === "cinemaId" ? (
@@ -101,7 +101,7 @@ const CinemaTable = ({
                     <button
                       type="button"
                       onClick={() => onSortChange(column.key as string)}
-                      className="flex items-center gap-2 text-slate-400 hover:text-orange-300"
+                      className="flex items-center gap-2 text-[#9e9ea2] transition hover:text-[#ff7a45]"
                     >
                       {column.label}
                       {renderSortIcon(column.key as string)}
@@ -113,13 +113,13 @@ const CinemaTable = ({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-[#27272a]">
             {loading ? (
               [...Array(5)].map((_, index) => (
                 <tr key={index} className="animate-pulse">
                   {columns.map((column) => (
                     <td key={column.key as string} className="px-4 py-4">
-                      <div className="h-4 rounded bg-slate-800/80" />
+                      <div className="h-4 rounded bg-[#27272a]" />
                     </td>
                   ))}
                 </tr>
@@ -132,26 +132,26 @@ const CinemaTable = ({
               </tr>
             ) : cinemas.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-10 text-center text-sm text-slate-400">
+                <td colSpan={columns.length} className="px-4 py-10 text-center text-sm text-[#9e9ea2]">
                   Không có rạp nào phù hợp với bộ lọc hiện tại.
                 </td>
               </tr>
             ) : (
               cinemas.map((cinema) => (
                 <Fragment key={cinema.cinemaId}>
-                  <tr className="bg-slate-900/40 transition-colors hover:bg-slate-900/70">
+                  <tr className="bg-[#151518] transition-colors hover:bg-[#1c1c1f]">
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
-                        <span className="font-semibold text-slate-100">{cinema.cinemaName}</span>
-                        <span className="text-xs text-slate-500">#{cinema.cinemaId}</span>
+                        <span className="font-semibold text-[#f5f5f5]">{cinema.cinemaName}</span>
+                        <span className="text-xs text-[#9e9ea2]">#{cinema.cinemaId}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-4 font-mono text-xs text-slate-400">{cinema.code}</td>
-                    <td className="px-4 py-4 text-sm text-slate-200">{cinema.city}</td>
-                    <td className="px-4 py-4 text-sm text-slate-300">{cinema.district}</td>
+                    <td className="px-4 py-4 font-mono text-xs text-[#9e9ea2]">{cinema.code}</td>
+                    <td className="px-4 py-4 text-sm text-[#f5f5f5]">{cinema.city}</td>
+                    <td className="px-4 py-4 text-sm text-[#d0d0d3]">{cinema.district}</td>
                     <td className="px-4 py-4">{renderScreens(cinema)}</td>
                     <td className="px-4 py-4">{renderStatusBadge(cinema)}</td>
-                    <td className="px-4 py-4 text-sm text-slate-400">
+                    <td className="px-4 py-4 text-sm text-[#9e9ea2]">
                       {new Date(cinema.updatedAt).toLocaleString("vi-VN")}
                     </td>
                     <td className="px-4 py-4">
@@ -159,7 +159,7 @@ const CinemaTable = ({
                         <Button
                           variant="outline"
                           size="icon-sm"
-                          className="border-slate-700 text-slate-200 hover:text-white hover:bg-slate-800"
+                          className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
                           onClick={() => onView(cinema)}
                           title="Xem chi tiết"
                         >
@@ -168,7 +168,7 @@ const CinemaTable = ({
                         <Button
                           variant="outline"
                           size="icon-sm"
-                          className="border-slate-700 text-slate-200 hover:text-white hover:bg-slate-800"
+                          className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
                           onClick={() => onEdit(cinema)}
                           title="Chỉnh sửa"
                         >
@@ -177,7 +177,7 @@ const CinemaTable = ({
                         <Button
                           variant="outline"
                           size="icon-sm"
-                          className="border-red-700/50 text-rose-300 hover:text-white hover:bg-rose-500/20"
+                          className="border border-rose-600/50 text-rose-300 transition hover:bg-rose-500/20 hover:text-white"
                           onClick={() => onDelete(cinema)}
                           title="Xoá rạp"
                         >

@@ -40,44 +40,44 @@ const SeatTypeDetailModal = ({ open, seatType, loading, onClose }: SeatTypeDetai
       onClose={onClose}
       title="Chi tiết loại ghế"
       size="md"
-      contentClassName="bg-[#101828] text-[#ccd0d7] border border-[#243164] [&>div:first-child]:border-[#243164] [&>div:first-child]:bg-[#101828] [&>div:first-child] h3:text-[#ccd0d7] [&>div:first-child] button:text-[#ccd0d7] [&>div:first-child] button:hover:text-white [&>div:first-child] button:hover:bg-[#151e3c]"
+      contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child] button:text-[#f5f5f5]/70 [&>div:first-child] button:hover:text-white [&>div:first-child] button:hover:bg-[#27272a]"
     >
       {loading ? (
         <div className="space-y-4">
           {[...Array(5)].map((_, index) => (
-            <div key={index} className="h-16 animate-pulse rounded-lg bg-[#151e3c]" />
+            <div key={index} className="h-16 animate-pulse rounded-lg bg-[#1c1c1f]" />
           ))}
         </div>
       ) : seatType ? (
-        <div className="space-y-5 text-[#ccd0d7]">
-          <div className="rounded-xl border border-[#243164] bg-[#151e3c] p-5 shadow-lg shadow-black/40">
+        <div className="space-y-5 text-[#f5f5f5]">
+          <div className="rounded-xl border border-[#27272a] bg-[#1c1c1f] p-5 shadow-lg shadow-black/40">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h3 className="text-xl font-semibold text-[#f0f3f8]">{seatType.name}</h3>
-                <p className="text-xs text-[#97a0b8]">#{seatType.id} • {seatType.code}</p>
+                <h3 className="text-xl font-semibold text-[#f5f5f5]">{seatType.name}</h3>
+                <p className="text-xs text-[#9e9ea2]">#{seatType.id} • {seatType.code}</p>
               </div>
               {statusBadge}
             </div>
             {seatType.description && (
-              <p className="mt-4 text-sm leading-relaxed text-[#ccd0d7] opacity-90">{seatType.description}</p>
+              <p className="mt-4 text-sm leading-relaxed text-[#f5f5f5]/80">{seatType.description}</p>
             )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-3">
-              <Info className="mt-1 size-4 text-orange-300" />
+            <div className="flex items-start gap-3 rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3">
+              <Info className="mt-1 size-4 text-[#ff7a45]" />
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-300">Phụ thu</p>
-                <p className="text-sm text-slate-100">{formatCurrency(seatType.surcharge)}</p>
+                <p className="text-xs uppercase tracking-wide text-[#9e9ea2]">Phụ thu</p>
+                <p className="text-sm text-[#f5f5f5]">{formatCurrency(seatType.surcharge)}</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-3">
-              <Palette className="mt-1 size-4 text-orange-300" />
+            <div className="flex items-start gap-3 rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3">
+              <Palette className="mt-1 size-4 text-[#ff7a45]" />
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-300">Màu sắc</p>
-                <div className="flex items-center gap-2 text-sm text-slate-100">
+                <p className="text-xs uppercase tracking-wide text-[#9e9ea2]">Màu sắc</p>
+                <div className="flex items-center gap-2 text-sm text-[#f5f5f5]">
                   <span
-                    className="size-5 rounded-full border border-slate-700"
+                    className="size-5 rounded-full border border-[#3a3a3d]"
                     style={{ backgroundColor: seatType.color }}
                     aria-hidden
                   />
@@ -88,45 +88,45 @@ const SeatTypeDetailModal = ({ open, seatType, loading, onClose }: SeatTypeDetai
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-3">
-              <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-slate-300">
-                <Tickets className="size-4 text-orange-300" /> Tổng ghế
+            <div className="rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-[#9e9ea2]">
+                <Tickets className="size-4 text-[#ff7a45]" /> Tổng ghế
               </p>
-              <p className="mt-2 text-lg font-semibold text-slate-100">{seatType.totalSeats}</p>
+              <p className="mt-2 text-lg font-semibold text-[#f5f5f5]">{seatType.totalSeats}</p>
             </div>
-            <div className="rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-3">
-              <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-slate-300">
-                <ShieldCheck className="size-4 text-orange-300" /> Đang hoạt động
+            <div className="rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-[#9e9ea2]">
+                <ShieldCheck className="size-4 text-[#ff7a45]" /> Đang hoạt động
               </p>
-              <p className="mt-2 text-lg font-semibold text-slate-100">{seatType.activeSeats}</p>
+              <p className="mt-2 text-lg font-semibold text-[#f5f5f5]">{seatType.activeSeats}</p>
             </div>
-            <div className="rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-3">
-              <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-slate-300">
-                <ShieldOff className="size-4 text-orange-300" /> Ngừng hoạt động
+            <div className="rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-[#9e9ea2]">
+                <ShieldOff className="size-4 text-[#ff7a45]" /> Ngừng hoạt động
               </p>
-              <p className="mt-2 text-lg font-semibold text-slate-100">{seatType.inactiveSeats}</p>
+              <p className="mt-2 text-lg font-semibold text-[#f5f5f5]">{seatType.inactiveSeats}</p>
             </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-3">
-              <CalendarClock className="mt-1 size-4 text-orange-300" />
+            <div className="flex items-start gap-3 rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3">
+              <CalendarClock className="mt-1 size-4 text-[#ff7a45]" />
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-300">Ngày tạo</p>
-                <p className="text-sm text-slate-100">{formatDateTime(seatType.createdAt, { includeTime: true })}</p>
+                <p className="text-xs uppercase tracking-wide text-[#9e9ea2]">Ngày tạo</p>
+                <p className="text-sm text-[#f5f5f5]">{formatDateTime(seatType.createdAt, { includeTime: true })}</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-3">
-              <CalendarClock className="mt-1 size-4 text-orange-300" />
+            <div className="flex items-start gap-3 rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3">
+              <CalendarClock className="mt-1 size-4 text-[#ff7a45]" />
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-300">Cập nhật lần cuối</p>
-                <p className="text-sm text-slate-100">{formatDateTime(seatType.updatedAt, { includeTime: true })}</p>
+                <p className="text-xs uppercase tracking-wide text-[#9e9ea2]">Cập nhật lần cuối</p>
+                <p className="text-sm text-[#f5f5f5]">{formatDateTime(seatType.updatedAt, { includeTime: true })}</p>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="text-center text-sm text-[#ccd0d7]">Không tìm thấy thông tin loại ghế.</div>
+        <div className="text-center text-sm text-[#f5f5f5]">Không tìm thấy thông tin loại ghế.</div>
       )}
     </Modal>
   );

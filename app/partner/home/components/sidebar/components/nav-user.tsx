@@ -1,10 +1,6 @@
-"use client"
+"use client";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,26 +9,33 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { CreditCardIcon, LogOutIcon, User2Icon } from "lucide-react"
-import { BiDotsVertical, BiNotification } from "react-icons/bi"
+} from "@/components/ui/sidebar";
+import { CreditCardIcon, LogOutIcon, User2Icon } from "lucide-react";
+import { redirect } from "next/navigation";
+import { BiDotsVertical, BiNotification } from "react-icons/bi";
 
 export function NavUser({
   user,
+  logout,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
+  logout?: () => void;
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
+  const handleLogOut = () => {
+    logout;
+    redirect("/partner");
+  };
 
   return (
     <SidebarMenu>
@@ -93,7 +96,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogOut}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>
@@ -101,5 +104,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

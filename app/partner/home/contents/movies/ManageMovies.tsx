@@ -23,7 +23,7 @@ import { useGetPartnersContract } from "@/hooks/usePartner";
 import Skeleton from "@mui/material/Skeleton";
 import { CustomPagination } from "@/components/custom/CustomPagination";
 
-export default function ContractList() {
+export default function ManageMovies() {
   const [search, setSearch] = useState<string>("");
   const [statusParams, setStatusParams] = useState<
     "active" | "inactive" | "terminated" | "pending" | "all"
@@ -53,9 +53,9 @@ export default function ContractList() {
 
       <div className="flex flex-col h-full justify-around">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold">Quản lý hợp đồng của tôi</h1>
+          <h1 className="text-2xl font-semibold">Quản lý phim chiếu</h1>
           <Button className="rounded-xl bg-emerald-600 hover:bg-emerald-500">
-            + Tạo hợp đồng mới
+            + Tạo phim mới
           </Button>
         </div>
         <div className="flex flex-col items-baseline gap-3">
@@ -105,7 +105,7 @@ export default function ContractList() {
 
           {/* Lưới hợp đồng */}
           {isLoading ? (
-            <ContractCardSkeleton />
+            <MovieSkeleton />
           ) : filteredContracts?.length === 0 ? (
             <div className="flex flex-col items-center justify-center w-full h-[45vh]">
               <p className="text-zinc-500 text-center mt-10">
@@ -170,7 +170,7 @@ export default function ContractList() {
   );
 }
 
-const ContractCardSkeleton = () => {
+const MovieSkeleton = () => {
   return (
     <Card className="bg-zinc-800 border border-zinc-700 rounded-2xl shadow-md p-4 w-[320px] h-[220px] flex flex-col justify-between">
       {/* Header */}

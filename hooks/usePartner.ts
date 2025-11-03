@@ -1,12 +1,14 @@
 import {
+  ContractQueryParams,
   createPartner,
   generateSasSignature,
   GenerateSasSignatureResponse,
+  getPartnersContract,
   PartnerApiError,
   PartnerCreateRequest,
   PartnerCreateResponse,
 } from "@/apis/partner.api";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 interface UseCreatePartnerOptions {
   onSuccess?: (response: PartnerCreateResponse) => void;
@@ -102,5 +104,13 @@ export const useCreatePartner = (options: UseCreatePartnerOptions = {}) => {
 export const useGenerateSasSignature = () => {
   return useMutation<GenerateSasSignatureResponse, PartnerApiError, string>({
     mutationFn: (fileName: string) => generateSasSignature(fileName),
+  });
+};
+
+export const useGetPartnersContract = (params?: ContractQueryParams) => {
+  return useQuery({
+    queryKey: ["partners-contract", params],
+    queryFn: () => getPartnersContract(params),
+    staleTime: 1000 * 60 * 1,
   });
 };
