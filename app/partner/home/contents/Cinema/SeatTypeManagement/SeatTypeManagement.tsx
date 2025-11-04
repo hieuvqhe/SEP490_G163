@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   PartnerSeatType,
   PartnerSeatTypeApiError,
@@ -57,6 +59,13 @@ const mapSeatTypeToFormValues = (seatType: Partial<PartnerSeatType> = {}): SeatT
   color: seatType.color ?? "",
   description: seatType.description ?? "",
 });
+
+const REQUIRED_SEAT_TYPES = [
+  { display: "Ghế mẫu", normalized: "ghế mẫu", code: "DRAFT", color: "#d4d4d4", description: "Ghế tạo mẫu" },
+  { display: "Không được chọn", normalized: "không được chọn", code: "DISABLE", color: "#27272A", description: "Tạo đường đi" },
+] as const;
+
+const normalizeSeatTypeName = (value?: string) => value?.trim().toLowerCase().normalize("NFC") ?? "";
 
 const parseSurcharge = (value: string): number => {
   const trimmed = value.trim();
@@ -158,6 +167,32 @@ const SeatTypeManagement = () => {
   }, [seatTypes, filters.status]);
   const paginationInfo = data?.result.pagination;
   const queryError = error as PartnerSeatTypeApiError | undefined;
+
+  const missingRequiredSeatTypes = useMemo(() => {
+    const normalizedSeatTypeNames = new Set(seatTypes.map((seatType) => normalizeSeatTypeName(seatType.name)));
+    return REQUIRED_SEAT_TYPES.filter((required) => !normalizedSeatTypeNames.has(required.normalized));
+  }, [seatTypes]);
+
+  const shouldShowRequiredSeatTypeAlert = !isLoading && missingRequiredSeatTypes.length > 0;
+
+  const formatMissingSeatTypeNames = () => {
+    const names = missingRequiredSeatTypes.map((item) => `"${item.display}"`);
+    if (names.length <= 1) return names[0] ?? "";
+    return `${names.slice(0, -1).join(", ")} và ${names[names.length - 1]}`;
+  };
+
+  const handleCreateRequiredSeatType = (template: (typeof REQUIRED_SEAT_TYPES)[number]) => {
+    setFormMode("create");
+    setEditingId(null);
+    setFormInitialValues({
+      code: template.code,
+      name: template.display,
+      surcharge: "0",
+      color: template.color,
+      description: template.description,
+    });
+    setFormOpen(true);
+  };
 
   const handleFiltersChange = (partial: Partial<SeatTypeFilters>) => {
     setFilters((prev) => ({ ...prev, ...partial }));
@@ -283,6 +318,50 @@ const SeatTypeManagement = () => {
 
   return (
     <div className="space-y-6">
+      {shouldShowRequiredSeatTypeAlert && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-amber-100">
+          <AlertTriangle className="mt-0.5 size-5 text-amber-400" />
+          <div className="space-y-3">
+            <p className="font-semibold">Cần tạo loại ghế bắt buộc</p>
+            <p className="text-sm text-amber-100/90">
+              Để tạo sơ đồ rạp, bạn cần có đủ hai loại ghế bắt buộc gồm {formatMissingSeatTypeNames()}. Vui lòng tạo các loại ghế này trong danh sách bên dưới.
+            </p>
+            <div className="space-y-2">
+              {missingRequiredSeatTypes.map((item) => (
+                <div
+                  key={item.code}
+                  className="flex items-centergap-3 rounded-lg border border-amber-400/40 bg-amber-500/5 p-3 text-sm text-amber-50/90 md:flex-row md:items-center md:justify-between"
+                >
+                  <div className="space-y-2 text-center md:text-center">
+                    <p className="font-semibold text-amber-50">{item.display}</p>
+                    <p>
+                      Mã loại ghế: <span className="font-mono text-amber-100">{item.code}</span>
+                    </p>
+                    <div className="flex flex-col items-center gap-2 md:flex-row md:items-center">
+                      <span>Màu đại diện:</span>
+                      <span
+                        className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 px-2 py-1 font-mono text-xs"
+                        style={{ backgroundColor: `${item.color}` }}
+                      >
+                        {item.color}
+                      </span>
+                    </div>
+                    <p>Mô tả gợi ý: {item.description}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-amber-400 text-[#151518] shadow hover:bg-amber-300"
+                    onClick={() => handleCreateRequiredSeatType(item)}
+                  >
+                    Tạo nhanh loại ghế này
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <SeatTypeToolbar
         filters={filters}
         onFiltersChange={handleFiltersChange}

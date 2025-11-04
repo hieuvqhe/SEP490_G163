@@ -48,6 +48,7 @@ export interface SeatData {
   seatTypeId: number;
   status: "Available" | "Blocked" | "Maintenance";
   colorCode: string;
+  seatName?: string;
 }
 
 const STATUS_MAINTENANCE = [
@@ -59,6 +60,7 @@ const STATUS_MAINTENANCE = [
 
 const TEMPLATE_SEAT_TYPE_NAME = "Ghế mẫu";
 const BLOCKED_SEAT_TYPE_NAME = "Không được chọn";
+const SEAT_TYPE_ACTION_DEFAULT = "none";
 
 const mapApiSeatStatusToLocal = (status?: string): SeatData["status"] => {
   const normalized = status?.toLowerCase() ?? "available";
@@ -92,11 +94,10 @@ const SeatLayout = () => {
   const [seats, setSeats] = useState<SeatData[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [isPreview, setIsPreview] = useState<boolean>(false);
-  const [selectedSeatType, setSelectedSeatType] =
-    useState<SeatTypeOption | null>(null);
-  const [seatTypeActionValue, setSeatTypeActionValue] = useState<
-    string | undefined
-  >(undefined);
+  const [selectedSeatTypeId, setSelectedSeatTypeId] = useState<number | null>(null);
+  const [seatTypeActionValue, setSeatTypeActionValue] = useState<string>(
+    SEAT_TYPE_ACTION_DEFAULT
+  );
   const [isSeatDataModalOpen, setIsSeatDataModalOpen] = useState(false);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
     "idle"
@@ -131,11 +132,16 @@ const SeatLayout = () => {
     [seatTypeOptions]
   );
 
+  const selectedSeatType = useMemo(() => {
+    if (!selectedSeatTypeId) return null;
+    return seatTypeOptions.find((type) => type.id === selectedSeatTypeId) ?? null;
+  }, [selectedSeatTypeId, seatTypeOptions]);
+
   useEffect(() => {
-    if (!selectedSeatType && templateSeatType) {
-      setSelectedSeatType(templateSeatType);
+    if (!selectedSeatTypeId && templateSeatType) {
+      setSelectedSeatTypeId(templateSeatType.id);
     }
-  }, [selectedSeatType, templateSeatType]);
+  }, [selectedSeatTypeId, templateSeatType]);
 
   useEffect(() => {
     if (
@@ -159,10 +165,8 @@ const SeatLayout = () => {
       column: seat.column,
       seatTypeId: seat.seatTypeId,
       status: mapApiSeatStatusToLocal(seat.status),
-      colorCode:
-        seat.seatTypeColor ||
-        apiSeatTypesById.get(seat.seatTypeId)?.color ||
-        "#64748b",
+      colorCode: seat.seatTypeColor || apiSeatTypesById.get(seat.seatTypeId)?.color || "#64748b",
+      seatName: seat.seatName,
     }));
 
     setSeats(mappedSeats);
@@ -193,6 +197,10 @@ const SeatLayout = () => {
 
     setSeats(newSeats);
     setSelectedSeats([]);
+    setSeatTypeActionValue(SEAT_TYPE_ACTION_DEFAULT);
+    if (fallbackSeatType) {
+      setSelectedSeatTypeId(fallbackSeatType.id);
+    }
   };
 
   const toggleSelect = (row: string, column: number) => {
@@ -224,6 +232,16 @@ const SeatLayout = () => {
         ? prev.filter((id) => !colIds.includes(id))
         : [...prev, ...colIds.filter((id) => !prev.includes(id))]
     );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedSeats.length === seats.length) {
+      setSelectedSeats([]);
+      return;
+    }
+
+    const allSeatIds = seats.map((seat) => `${seat.row}${seat.column}`);
+    setSelectedSeats(allSeatIds);
   };
 
   interface UpdateSeatParams {
@@ -350,15 +368,32 @@ const SeatLayout = () => {
     return map;
   }, [seats]);
 
-  const sanitizedSeatData = seats
-    .slice()
-    .sort((a, b) => {
-      const rowCompare = a.row.localeCompare(b.row, "vi");
+  const sanitizedSeatData = (() => {
+    const sortedSeats = seats
+      .slice()
+      .sort((a, b) => {
+        const rowCompare = a.row.localeCompare(b.row, "vi");
 
-      if (rowCompare !== 0) return rowCompare;
-      return a.column - b.column;
-    })
-    .map(({ colorCode, ...rest }) => rest);
+        if (rowCompare !== 0) return rowCompare;
+        return a.column - b.column;
+      });
+
+    const seatCounters = new Map<string, number>();
+
+    return sortedSeats.map(({ colorCode, ...rest }) => {
+      const currentCount = seatCounters.get(rest.row) ?? 0;
+      const isMaintenance = rest.status === "Maintenance";
+      const nextCount = isMaintenance ? currentCount : currentCount + 1;
+      seatCounters.set(rest.row, nextCount);
+
+      const seatName = isMaintenance ? "Z0" : `${rest.row}${nextCount}`;
+
+      return {
+        ...rest,
+        seatName,
+      };
+    });
+  })();
   const seatLayoutData = {
     totalRows: rows,
     totalColumns: cols,
@@ -402,12 +437,13 @@ const SeatLayout = () => {
     const payload: SavePartnerSeatLayoutRequest = {
       totalRows: rows,
       totalColumns: cols,
-      seats: seats.map((seat) => ({
+      seats: sanitizedSeatData.map((seat) => ({
         seatId: seat.seatId,
         row: seat.row,
         column: seat.column,
         seatTypeId: seat.seatTypeId,
         status: seat.status,
+        seatName: seat.seatName,
       })),
     };
 
@@ -547,17 +583,11 @@ const SeatLayout = () => {
                   <div className="space-y-2">
                     <Label htmlFor="seatType">Loại ghế mặc định</Label>
                     <Select
-                      value={
-                        selectedSeatType
-                          ? String(selectedSeatType.id)
-                          : undefined
-                      }
+                      value={selectedSeatTypeId ? String(selectedSeatTypeId) : undefined}
                       onValueChange={(value) => {
-                        const type =
-                          seatTypeOptions.find(
-                            (item) => item.id === Number(value)
-                          ) ?? null;
-                        setSelectedSeatType(type);
+                        const numericValue = Number(value);
+                        const type = seatTypeOptions.find((item) => item.id === numericValue) ?? null;
+                        setSelectedSeatTypeId(type ? type.id : null);
                       }}
                     >
                       <SelectTrigger className="bg-zinc-800 mb-0">
@@ -784,6 +814,22 @@ const SeatLayout = () => {
 
             <div className="flex h-[60vh] flex-col justify-between">
               <div className="space-y-6 overflow-y-auto px-5 py-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+                    Chọn ghế
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleSelectAll}
+                    className="border-zinc-700 bg-zinc-800 text-xs text-zinc-100 hover:bg-zinc-700"
+                  >
+                    {selectedSeats.length === seats.length && seats.length > 0
+                      ? "Bỏ chọn tất cả"
+                      : "Chọn tất cả"}
+                  </Button>
+                </div>
+
                 <div className="space-y-3">
                   <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
                     Cập nhật trạng thái
@@ -840,31 +886,30 @@ const SeatLayout = () => {
                     value={seatTypeActionValue}
                     onValueChange={(value) => {
                       setSeatTypeActionValue(value);
-                      const type = seatTypeOptions.find(
-                        (item) => item.id === Number(value)
-                      );
+                      if (value === SEAT_TYPE_ACTION_DEFAULT) {
+                        return;
+                      }
+
+                      const type = seatTypeOptions.find((item) => item.id === Number(value));
                       if (!type) {
-                        showToast(
-                          "Không tìm thấy loại ghế đã chọn.",
-                          undefined,
-                          "error"
-                        );
-                        setSeatTypeActionValue(undefined);
+                        showToast("Không tìm thấy loại ghế đã chọn.", undefined, "error");
+                        setSeatTypeActionValue(SEAT_TYPE_ACTION_DEFAULT);
                         return;
                       }
                       handleUpdateSelected({
                         status: "Available",
                         seatType: type,
                       });
-                      setSeatTypeActionValue(undefined);
+                      setSeatTypeActionValue(SEAT_TYPE_ACTION_DEFAULT);
                     }}
                   >
                     <SelectTrigger className="w-full bg-zinc-800 text-zinc-100">
-                      <SelectValue placeholder="Chọn loại ghế" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-800 text-zinc-100">
                       <SelectGroup>
                         <SelectLabel>Các kiểu ghế</SelectLabel>
+                        <SelectItem value={SEAT_TYPE_ACTION_DEFAULT}>---</SelectItem>
                         {seatTypeOptions.map((seatType) => (
                           <SelectItem
                             key={seatType.id}

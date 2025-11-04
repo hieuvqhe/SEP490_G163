@@ -36,7 +36,13 @@ const nextConfig = {
         protocol: "https",
         hostname: "cdn.cinemaapp.com",
         pathname: "/**",
-      }
+      },
+      {
+        protocol: "https",
+        hostname: "image.tmdb.org",
+        port: "",
+        pathname: "/t/p/**", // Cho phép tất cả ảnh poster, backdrop của TMDb
+      },
     ],
   },
 };

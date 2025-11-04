@@ -17,7 +17,9 @@ const ModernMovieCard = (props: MovieReq) => {
           <Image
             src={props.movie.posterUrl}
             alt={props.movie.title}
-            fill
+            // fill
+            width={400}
+            height={600}
             className="object-cover  object-[center_10%] transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
           />
 

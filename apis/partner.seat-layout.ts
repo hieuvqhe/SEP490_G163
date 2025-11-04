@@ -21,6 +21,7 @@ export interface PartnerSeatLayoutSeat {
   seatTypeName: string;
   seatTypeColor: string;
   status: string;
+  seatName: string;
 }
 
 export interface PartnerSeatLayoutSeatType {
@@ -50,6 +51,7 @@ export interface PartnerSeatLayoutSeatPayload {
   column: number;
   seatTypeId: number;
   status: string;
+  seatName: string;
 }
 
 export interface SavePartnerSeatLayoutRequest {

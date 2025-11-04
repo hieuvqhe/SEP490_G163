@@ -1,12 +1,13 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Modal from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SeatTypeFormValues } from "../types";
+import { useAuthStore } from "@/store/authStore";
 
 interface SeatTypeFormModalProps {
   open: boolean;
@@ -29,14 +30,6 @@ const FIELD_CONFIG: {
   required?: boolean;
 }[] = [
   {
-    key: "code",
-    label: "Mã loại ghế",
-    placeholder: "BROKEN",
-    helper: "Mã duy nhất, viết hoa và không khoảng trắng.",
-    disabledOnEdit: true,
-    required: true,
-  },
-  {
     key: "name",
     label: "Tên loại ghế",
     placeholder: "Ghế đang bảo trì",
@@ -55,11 +48,6 @@ const FIELD_CONFIG: {
     label: "Màu sắc (HEX)",
     required: true,
   },
-  {
-    key: "description",
-    label: "Mô tả",
-    placeholder: "Mô tả chi tiết về loại ghế",
-  },
 ];
 
 const COLOR_PRESETS = [
@@ -77,6 +65,20 @@ const COLOR_PRESETS = [
   "#14b8a6",
 ];
 
+const normalizeNameToCode = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    console.log("[SeatTypeFormModal] normalizeNameToCode: empty after trim", { input: value });
+    return "";
+  }
+  const withoutDiacritics = trimmed
+    .normalize("NFD")
+    .replace(/[\f-\u0012F\u001A\u001C\u001E\u001F\u001A\u001B]/g, "")
+    .replace(/[\u0300-\u036f]/g, "");
+  const generated = withoutDiacritics.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  return generated;
+};
+
 const SeatTypeFormModal = ({
   open,
   mode,
@@ -87,6 +89,12 @@ const SeatTypeFormModal = ({
 }: SeatTypeFormModalProps) => {
   const [values, setValues] = useState<SeatTypeFormValues>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<SeatTypeFieldKey, string>>>({});
+  const { user } = useAuthStore();
+
+  const partnerId = useMemo(() => {
+    if (!user || user.userId === undefined || user.userId === null) return "";
+    return String(user.userId).trim();
+  }, [user]);
 
   useEffect(() => {
     if (open) {
@@ -94,6 +102,19 @@ const SeatTypeFormModal = ({
       setErrors({});
     }
   }, [open, initialValues]);
+
+  useEffect(() => {
+    if (!open || mode !== "create") return;
+
+    const normalizedName = normalizeNameToCode(values.name);
+    if (!normalizedName || !partnerId) {
+      setValues((prev) => (prev.code === "" ? prev : { ...prev, code: "" }));
+      return;
+    }
+
+    const generated = `${normalizedName}_${partnerId}`;
+    setValues((prev) => (prev.code === generated ? prev : { ...prev, code: generated }));
+  }, [open, mode, partnerId, values.name]);
 
   const handleChange = (key: SeatTypeFieldKey, event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setValues((prev) => ({ ...prev, [key]: event.target.value }));
@@ -108,6 +129,10 @@ const SeatTypeFormModal = ({
         nextErrors[field.key] = `Vui lòng nhập ${field.label.toLowerCase()}`;
       }
     });
+
+    if (mode === "create" && !values.code.trim()) {
+      nextErrors.code = "Không thể tạo mã loại ghế, vui lòng kiểm tra lại tên loại ghế hoặc đăng nhập";
+    }
 
     if (!values.color.trim()) {
       nextErrors.color = "Vui lòng chọn màu";
@@ -152,6 +177,21 @@ const SeatTypeFormModal = ({
       contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child] button:text-[#f5f5f5]/70 [&>div:first-child] button:hover:text-white [&>div:first-child] button:hover:bg-[#27272a]"
     >
       <div className="space-y-6">
+        <div className="flex flex-col gap-2">
+          <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">Mã loại ghế</label>
+          <Input
+            value={values.code}
+            readOnly
+            placeholder="Sẽ được tạo tự động"
+            className={cn(
+              getInputClassName("code"),
+              "cursor-not-allowed select-all bg-[#1f1f23] text-[#f5f5f5]/90"
+            )}
+          />
+          <p className="text-xs text-[#9e9ea2]">Mã được tạo từ tên loại ghế và ID đối tác, không thể chỉnh sửa.</p>
+          {errors.code && <span className="text-xs text-rose-400">{errors.code}</span>}
+        </div>
+
         <div className="grid gap-4">
           {FIELD_CONFIG.map((field) => (
             <div key={field.key} className="flex flex-col gap-2">
