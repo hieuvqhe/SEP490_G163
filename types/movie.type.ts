@@ -31,7 +31,7 @@ export interface Movie {
 export interface GetMovieResponse {
   message: string;
   result: {
-    movies: [Movie];
+    movies: Movie[];
     total: number;
     page: number;
     limit: number;

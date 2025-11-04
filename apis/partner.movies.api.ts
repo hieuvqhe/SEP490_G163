@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createPartnerRequest, handlePartnerError } from "./partner.api";
 import {
   GetActorByIdResponse,
@@ -200,7 +200,7 @@ interface DeleteActorFromMovieSubRes {
 const partnerApi = createPartnerRequest();
 
 class PartnerMoviesManagement {
-  private readonly basePath = "/partners/movie-submissions";
+  private readonly basePath = "/api/partners/movie-submissions";
 
   createMovieSubmission = async (
     movieData: CreateMovieSubmissionReq
@@ -287,7 +287,7 @@ class PartnerMoviesManagement {
 }
 
 class PartnerActorsManagement {
-  private readonly basePath = "/partners/movie-submissions";
+  private readonly basePath = "/api/partners/movie-submissions";
 
   getActors = async (params: GetActorsParams): Promise<GetActorsResponse> => {
     try {
@@ -300,9 +300,9 @@ class PartnerActorsManagement {
       if (params.sortBy) queryParams.append("sortBy", params.sortBy);
       if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
-      const url = `${this.basePath}/actors${
+      const url = `${this.basePath}/actors/available${
         queryParams.toString() ? "?" + queryParams.toString() : ""
-      }/avaiable`;
+      }`;
 
       const response = await partnerApi.get(url);
 
@@ -461,8 +461,18 @@ export const useDeleteMovieSub = (movieId: number) => {
 
 export const useGetActors = (params?: GetActorsParams) => {
   return useQuery<GetActorsResponse>({
-    queryKey: ["partner", "actors", params],
-    queryFn: () => partnerActorsService.getActors(params || { page: 1, limit: 10 }),
+    queryKey: [
+      "partner",
+      "actors",
+      params?.page ?? 1,
+      params?.limit ?? 10,
+      params?.search ?? "",
+      params?.sortBy ?? "",
+      params?.sortOrder ?? "",
+    ],
+    queryFn: () =>
+      partnerActorsService.getActors(params || { page: 1, limit: 10 }),
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -506,9 +516,17 @@ export const useCreateNewActor = (submissionId: number) => {
 export const useUpdateActorInMovieSub = (submissionId: number) => {
   const queryClient = useQueryClient();
 
-  return useMutation<CreateNewActorResponse, Error, { actorId: number; newActor: NewActorReq }>({
+  return useMutation<
+    CreateNewActorResponse,
+    Error,
+    { actorId: number; newActor: NewActorReq }
+  >({
     mutationFn: ({ actorId, newActor }) =>
-      partnerActorsService.updateActorsInMovieSub(submissionId, actorId, newActor),
+      partnerActorsService.updateActorsInMovieSub(
+        submissionId,
+        actorId,
+        newActor
+      ),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

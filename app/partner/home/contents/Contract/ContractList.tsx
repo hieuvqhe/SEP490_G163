@@ -114,48 +114,56 @@ export default function ContractList() {
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {partnerContracts?.map((contract) => (
-                <Card
-                  key={contract.contractId}
-                  className="bg-zinc-800 border border-zinc-700 rounded-2xl shadow-md p-4 hover:shadow-lg hover:-translate-y-1 transition-all"
-                >
-                  <CardHeader className="flex justify-between items-center p-0">
-                    <CardTitle className="text-zinc-100 text-lg font-semibold">
-                      {contract.title}
-                    </CardTitle>
-                    <Badge
-                      variant="outline"
-                      className={
-                        contract.status === "active"
-                          ? "border-emerald-500 text-emerald-400"
-                          : contract.status === "terminated"
-                          ? "border-red-500 text-red-400"
-                          : "border-yellow-500 text-yellow-400"
-                      }
-                    >
-                      {contract.status}
-                    </Badge>
-                  </CardHeader>
+              {!partnerContracts ? (
+                <div className="flex flex-col items-center justify-center w-full h-[45vh]">
+                  <p className="text-zinc-500 text-center mt-10">
+                    Không có hợp đồng nào phù hợp.
+                  </p>
+                </div>
+              ) : (
+                partnerContracts?.map((contract) => (
+                  <Card
+                    key={contract.contractId}
+                    className="bg-zinc-800 border border-zinc-700 rounded-2xl shadow-md p-4 hover:shadow-lg hover:-translate-y-1 transition-all"
+                  >
+                    <CardHeader className="flex justify-between items-center p-0">
+                      <CardTitle className="text-zinc-100 text-lg font-semibold">
+                        {contract.title}
+                      </CardTitle>
+                      <Badge
+                        variant="outline"
+                        className={
+                          contract.status === "active"
+                            ? "border-emerald-500 text-emerald-400"
+                            : contract.status === "terminated"
+                            ? "border-red-500 text-red-400"
+                            : "border-yellow-500 text-yellow-400"
+                        }
+                      >
+                        {contract.status}
+                      </Badge>
+                    </CardHeader>
 
-                  <CardDescription className="text-zinc-400 mt-2">
-                    {contract.contractNumber} - {contract.title}
-                  </CardDescription>
+                    <CardDescription className="text-zinc-400 mt-2">
+                      {contract.contractNumber} - {contract.title}
+                    </CardDescription>
 
-                  <div className="mt-4 space-y-1 text-sm text-zinc-500">
-                    <p>📅 Ngày tạo: {contract.createdAt}</p>
-                    <p>🧾 Loại: {contract.contractType}</p>
-                  </div>
+                    <div className="mt-4 space-y-1 text-sm text-zinc-500">
+                      <p>📅 Ngày tạo: {contract.createdAt}</p>
+                      <p>🧾 Loại: {contract.contractType}</p>
+                    </div>
 
-                  <CardFooter className="mt-4 flex justify-between p-0">
-                    <Button variant="ghost" size="sm">
-                      Xem chi tiết
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Tải PDF
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+                    <CardFooter className="mt-4 flex justify-between p-0">
+                      <Button variant="ghost" size="sm">
+                        Xem chi tiết
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Tải PDF
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))
+              )}
             </div>
           )}
         </div>

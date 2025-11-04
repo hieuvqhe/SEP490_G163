@@ -8,6 +8,7 @@ import { ChevronDown, SearchIcon } from "lucide-react";
 import { useGetFullMovies } from "@/hooks/useMovie";
 import { Movie } from "@/types/movie.type";
 import { MovieCardSkeleton } from "../MovieCardSkeleton";
+import ModernMovieCard from "@/components/custom/ModernMovieCard";
 
 type MovieStatus = "now_showing" | "coming_soon" | "ended";
 
@@ -138,7 +139,7 @@ const FeaturedSection = () => {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mt-8">
             {filteredMovies.map((movie) => (
-              <MovieCard key={movie.movieId || movie.title} movie={movie} />
+              <ModernMovieCard key={movie.movieId || movie.title} movie={movie} />
             ))}
           </div>
 

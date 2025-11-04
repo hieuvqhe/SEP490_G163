@@ -1,878 +1,672 @@
-import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { 
-  AlertCircle, 
-  Save, 
-  Loader, 
-  X, 
-  Plus,
-  Image,
-  Video,
-  User,
-  Trash2,
-  AlertTriangle
-} from 'lucide-react';
-import { 
-  type MovieCreateRequest,
-  type MovieCast,
-  createMovie,
-  checkMovieTitleExists
-} from '../../../../apis/staff.api';
-import mediasApi from '../../../../apis/medias.api';
-import { toast } from 'sonner';
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { X, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import Image from "next/image";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useGetActors } from "@/apis/partner.movies.api";
+import { CustomPagination } from "@/components/custom/CustomPagination";
+import ActorCard from "../../components/movies-coms/ActorCard";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { SelectedActorsPopover } from "../../components/movies-coms/SelectedPopoverActor";
+import { Actor } from "@/apis/manager.actor.api";
+import { AddActorPanel } from "../../components/movies-coms/AddActorPanel";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface AddMovieModalProps {
-  isOpen: boolean;
+  open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
-  formData: MovieCreateRequest;
-  setFormData: React.Dispatch<React.SetStateAction<MovieCreateRequest>>;
-  formErrors: string[];
-  setFormErrors: React.Dispatch<React.SetStateAction<string[]>>;
-  isSubmitting: boolean;
-  setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
-  isUploadingPoster: boolean;
-  setIsUploadingPoster: React.Dispatch<React.SetStateAction<boolean>>;
-  isUploadingTrailer: boolean;
-  setIsUploadingTrailer: React.Dispatch<React.SetStateAction<boolean>>;
-  posterPreview: string | null;
-  setPosterPreview: React.Dispatch<React.SetStateAction<string | null>>;
-  trailerPreview: string | null;
-  setTrailerPreview: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-const AddMovieModal: React.FC<AddMovieModalProps> = ({
-  isOpen,
-  onClose,
-  onSuccess,
-  formData,
-  setFormData,
-  formErrors,
-  setFormErrors,
-  isSubmitting,
-  setIsSubmitting,
-  isUploadingPoster,
-  setIsUploadingPoster,
-  isUploadingTrailer,
-  setIsUploadingTrailer,
-  posterPreview,
-  setPosterPreview,
-  trailerPreview,
-  setTrailerPreview
-}) => {
-  // Title checking states
-  const [titleCheckTimer, setTitleCheckTimer] = useState<number | null>(null);
-  const [titleExists, setTitleExists] = useState(false);
-  const [checkingTitle, setCheckingTitle] = useState(false);
+interface MovieForm {
+  title: string;
+  genre: string;
+  durationMinutes: number | "";
+  director: string;
+  language: string;
+  country: string;
+  production: string;
+  description: string;
+  premiereDate: string;
+  endDate: string;
+  trailerUrl: string;
+}
 
-  // Check if title exists with debouncing
-  const checkTitleExists = async (title: string) => {
-    if (!title.trim()) {
-      setTitleExists(false);
-      return;
-    }
+const AddMovieModal = ({ open, onClose }: AddMovieModalProps) => {
+  const [page, setPage] = useState(1);
+  const [actorSearch, setActorSearch] = useState<string>("");
+  const [showActorPanel, setShowActorPanel] = useState(false);
 
-    try {
-      setCheckingTitle(true);
-      const exists = await checkMovieTitleExists(title);
-      setTitleExists(exists);
-    } catch (error) {
-      console.error('Error checking title:', error);
-      setTitleExists(false);
-    } finally {
-      setCheckingTitle(false);
-    }
+  const handleCloseModal = () => {
+    setActorSearch("");
+    setPage(1);
+    setShowActorPanel(false);
+    onClose();
   };
 
-  // Debounced title checking
+  // Tìm kiếm thì set page = 1
   useEffect(() => {
-    if (titleCheckTimer) {
-      clearTimeout(titleCheckTimer);
-    }
+    setPage(1);
+  }, [actorSearch]);
 
-    const timer = setTimeout(() => {
-      if (formData.title.trim()) {
-        checkTitleExists(formData.title);
-      } else {
-        setTitleExists(false);
-        setCheckingTitle(false);
-      }
-    }, 800); // Wait 800ms after user stops typing
+  const { data: actorRes, isLoading: actorResLoading } = useGetActors({
+    limit: 4,
+    page: page,
+    search: actorSearch,
+    sortBy: "name",
+    sortOrder: "desc",
+  });
 
-    setTitleCheckTimer(timer);
+  const actors = actorRes?.result.actors;
+  const totalPages = actorRes?.result.pagination.totalPages;
 
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [formData.title]);
+  const [breadcrumb, setBreadcrumb] = useState<
+    "movieInfo" | "addActor" | "complete"
+  >("movieInfo");
 
-  // Reset title checking states when modal opens/closes
-  useEffect(() => {
-    if (!isOpen) {
-      setTitleExists(false);
-      setCheckingTitle(false);
-      if (titleCheckTimer) {
-        clearTimeout(titleCheckTimer);
-        setTitleCheckTimer(null);
-      }
-    }
-  }, [isOpen, titleCheckTimer]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedActors, setSelectedActors] = useState<Actor[]>([]);
 
-  // Form validation
-  const validateForm = (): string[] => {
-    const errors: string[] = [];
-    
-    if (!formData.title.trim()) errors.push('Title is required');
-    if (titleExists) errors.push('This movie title already exists in your collection');
-    if (!formData.description.trim()) errors.push('Description is required');
-    if (formData.duration <= 0) errors.push('Duration must be greater than 0');
-    if (formData.genre.length === 0) errors.push('At least one genre is required');
-    if (!formData.language.trim()) errors.push('Language is required');
-    if (!formData.release_date) errors.push('Release date is required');
-    if (!formData.director.trim()) errors.push('Director is required');
-    if (!formData.poster_url.trim()) errors.push('Poster URL is required');
-    
-    return errors;
-  };
-
-  // Handle form submission for creating movie
-  const handleCreateMovie = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const errors = validateForm();
-    if (errors.length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setFormErrors([]);
-      
-      await createMovie(formData);
-      toast.success('Movie created successfully');
-      onClose();
-      onSuccess();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create movie';
-      toast.error(errorMessage);
-      setFormErrors([errorMessage]);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle form field changes
-  const handleFormChange = (field: keyof MovieCreateRequest, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    // Clear related errors
-    if (formErrors.length > 0) {
-      setFormErrors([]);
-    }
-  };
-
-  // Handle genre changes
-  const handleGenreChange = (genre: string, checked: boolean) => {
-    if (checked) {
-      handleFormChange('genre', [...formData.genre, genre]);
-    } else {
-      handleFormChange('genre', formData.genre.filter(g => g !== genre));
-    }
-  };
-
-  // Handle cast changes
-  const handleAddCastMember = () => {
-    const newCastMember: MovieCast = {
-      id: Date.now(), // Temporary ID
-      name: '',
-      character: '',
-      order: formData.cast.length,
-      profile_image: '',
-      gender: 0
-    };
-    handleFormChange('cast', [...formData.cast, newCastMember]);
-  };
-
-  const handleCastChange = (index: number, field: keyof MovieCast, value: any) => {
-    const updatedCast = formData.cast.map((member, i) => 
-      i === index ? { ...member, [field]: value } : member
+  const toggleSelect = (actor: Actor) => {
+    setSelectedIds((prev) =>
+      prev.includes(actor.id)
+        ? prev.filter((id) => id !== actor.id)
+        : [...prev, actor.id]
     );
-    handleFormChange('cast', updatedCast);
-  };
 
-  const handleRemoveCastMember = (index: number) => {
-    const updatedCast = formData.cast.filter((_, i) => i !== index);
-    handleFormChange('cast', updatedCast);
-  };
-
-  // Handle poster upload
-  const handlePosterUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file');
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image size should be less than 10MB');
-      return;
-    }
-
-    try {
-      setIsUploadingPoster(true);
-      
-      // Create preview first
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPosterPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      // Upload to server
-      const response = await mediasApi.uploadImages(file);
-      
-      // Check if response is successful and has the expected structure
-      // API response: { message: "Upload success", result: [{ url: "...", type: 0 }] }
-      if (response?.data?.result?.[0]?.url) {
-        const uploadedUrl = response.data.result[0].url;
-        handleFormChange('poster_url', uploadedUrl);
-        toast.success('Poster uploaded successfully');
+    setSelectedActors((prev) => {
+      const exists = prev.some((a) => a.id === actor.id);
+      if (exists) {
+        return prev.filter((a) => a.id !== actor.id);
       } else {
-        console.error('Unexpected response structure:', response.data);
-        throw new Error('Invalid response from upload service');
+        return [...prev, actor];
       }
-    } catch (error) {
-      console.error('Error uploading poster:', error);
-      toast.error('Failed to upload poster');
-      setPosterPreview(null);
-      // Reset the poster_url if upload fails
-      handleFormChange('poster_url', '');
-    } finally {
-      setIsUploadingPoster(false);
-    }
+    });
   };
 
-  // Handle trailer upload
-  const handleTrailerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const [form, setForm] = useState<MovieForm>({
+    title: "",
+    genre: "",
+    durationMinutes: "",
+    director: "",
+    language: "",
+    country: "",
+    production: "",
+    description: "",
+    premiereDate: "",
+    endDate: "",
+    trailerUrl: "",
+  });
 
-    // Validate file type
-    if (!file.type.startsWith('video/')) {
-      toast.error('Please select a valid video file');
-      return;
-    }
+  const [errors, setErrors] = useState<Record<keyof MovieForm, string>>(
+    {} as Record<keyof MovieForm, string>
+  );
 
-    // Validate file size (max 100MB)
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error('Video size should be less than 100MB');
-      return;
-    }
-
-    try {
-      setIsUploadingTrailer(true);
-      
-      // Create preview first
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setTrailerPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      // Upload to server using HLS
-      const response = await mediasApi.uploadVideoHLS(file);
-      
-      // Check if response is successful and has the expected structure
-      // API response: { message: "Upload success", result: [{ url: "...", type: 2 }] }
-      if (response?.data?.result?.[0]?.url) {
-        const uploadedUrl = response.data.result[0].url;
-        handleFormChange('trailer_url', uploadedUrl);
-        toast.success('Trailer uploaded successfully as HLS');
-      } else {
-        console.error('Unexpected response structure:', response.data);
-        throw new Error('Invalid response from upload service');
-      }
-    } catch (error) {
-      console.error('Error uploading trailer:', error);
-      toast.error('Failed to upload trailer');
-      setTrailerPreview(null);
-      // Reset the trailer_url if upload fails
-      handleFormChange('trailer_url', '');
-    } finally {
-      setIsUploadingTrailer(false);
-    }
+  const handleChange = <K extends keyof MovieForm>(
+    field: K,
+    value: MovieForm[K]
+  ) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "" })); // clear lỗi khi user sửa
   };
 
-  // Handle cast profile image upload
-  const handleCastImageUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const validate = (): boolean => {
+    const newErrors: Record<keyof MovieForm, string> = {} as any;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file');
-      return;
-    }
+    if (!form.title.trim()) newErrors.title = "Vui lòng nhập tiêu đề phim.";
+    if (!form.genre.trim()) newErrors.genre = "Vui lòng nhập thể loại.";
+    if (!form.durationMinutes || form.durationMinutes <= 0)
+      newErrors.durationMinutes = "Thời lượng phải lớn hơn 0.";
+    if (!form.director.trim())
+      newErrors.director = "Vui lòng nhập tên đạo diễn.";
+    if (!form.language.trim()) newErrors.language = "Vui lòng nhập ngôn ngữ.";
+    if (!form.country.trim()) newErrors.country = "Vui lòng nhập quốc gia.";
+    if (!form.production.trim())
+      newErrors.production = "Vui lòng nhập hãng sản xuất.";
+    if (!form.description.trim())
+      newErrors.description = "Vui lòng nhập mô tả phim.";
+    if (!form.premiereDate)
+      newErrors.premiereDate = "Vui lòng chọn ngày khởi chiếu.";
+    if (!form.endDate) newErrors.endDate = "Vui lòng chọn ngày kết thúc.";
+    if (
+      form.premiereDate &&
+      form.endDate &&
+      new Date(form.endDate) < new Date(form.premiereDate)
+    )
+      newErrors.endDate = "Ngày kết thúc phải sau ngày khởi chiếu.";
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
-      return;
-    }
+    if (
+      form.trailerUrl &&
+      !/^https:\/\/(www\.)?youtube\.com\/watch\?v=/.test(form.trailerUrl)
+    )
+      newErrors.trailerUrl = "URL trailer không hợp lệ. Phải là link YouTube.";
 
-    try {
-      // Create preview first
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const updatedCast = formData.cast.map((member, i) => 
-          i === index ? { ...member, profileImagePreview: e.target?.result as string } : member
-        );
-        handleFormChange('cast', updatedCast);
-      };
-      reader.readAsDataURL(file);
-
-      // Upload to server
-      const response = await mediasApi.uploadImages(file);
-      
-      if (response?.data?.result?.[0]?.url) {
-        const uploadedUrl = response.data.result[0].url;
-        const updatedCast = formData.cast.map((member, i) => 
-          i === index ? { ...member, profile_image: uploadedUrl } : member
-        );
-        handleFormChange('cast', updatedCast);
-        toast.success('Cast member image uploaded successfully');
-      } else {
-        throw new Error('Invalid response from upload service');
-      }
-    } catch (error) {
-      console.error('Error uploading cast image:', error);
-      toast.error('Failed to upload cast image');
-      // Remove preview on error
-      const updatedCast = formData.cast.map((member, i) => 
-        i === index ? { ...member, profileImagePreview: undefined } : member
-      );
-      handleFormChange('cast', updatedCast);
-    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Handle removing cast profile image
-  const handleRemoveCastImage = (index: number) => {
-    const updatedCast = formData.cast.map((member, i) => 
-      i === index ? { ...member, profile_image: '', profileImagePreview: undefined } : member
-    );
-    handleFormChange('cast', updatedCast);
+  const handleSubmit = () => {
+    if (!validate()) return;
+    console.log("Form submitted ✅:", form);
+    setBreadcrumb("addActor");
   };
 
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <motion.div
-        className="bg-slate-800 border border-slate-700 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-      >
-        <div className="sticky top-0 bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-white">Add New Movie</h3>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
-            disabled={isSubmitting}
-          >
-            <X size={24} />
-          </button>
-        </div>
-        
-        <form onSubmit={handleCreateMovie} className="p-6 space-y-6">
-          {/* Error Messages */}
-          {formErrors.length > 0 && (
-            <div className="bg-red-500/20 border border-red-500/30 p-4 rounded-lg">
-              <div className="flex items-start">
-                <AlertCircle size={20} className="text-red-400 mr-2 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-red-300 font-medium mb-2">Please fix the following errors:</p>
-                  <ul className="list-disc list-inside text-red-300 text-sm space-y-1">
-                    {formErrors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </div>
+  let content;
+  switch (breadcrumb) {
+    case "movieInfo":
+      content = (
+        <div>
+          <h2 className="text-xl font-semibold mb-6 text-zinc-100">
+            Thêm phim mới
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Cột trái - Preview ảnh */}
+            <div className="space-y-4 flex flex-col items-center">
+              <div className="w-full flex flex-col items-center gap-3">
+                <PosterImage />
               </div>
             </div>
-          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Information */}
+            {/* Cột phải - Form nhập liệu */}
             <div className="space-y-4">
-              <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Title <span className="text-red-400">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => handleFormChange('title', e.target.value)}
-                    className={`w-full bg-slate-700/50 border rounded-lg px-4 py-2 pr-10 text-white placeholder-slate-400 focus:outline-none ${
-                      titleExists 
-                        ? 'border-red-500 focus:border-red-500' 
-                        : 'border-slate-600 focus:border-orange-500'
-                    }`}
-                    placeholder="Enter movie title"
-                    disabled={isSubmitting}
+              {/* Banner */}
+              <div className="w-full aspect-[16/9] bg-zinc-800 rounded-xl overflow-hidden flex items-center justify-center">
+                <BannerPreview />
+              </div>
+
+              {/* Title + Genre */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={form.title}
+                    onChange={(e) => handleChange("title", e.target.value)}
+                    placeholder="Movie title"
+                    className={cn(errors.title && "border-red-500")}
                   />
-                  {checkingTitle && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <Loader size={16} className="text-slate-400 animate-spin" />
-                    </div>
-                  )}
-                  {titleExists && !checkingTitle && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <AlertTriangle size={16} className="text-red-400" />
-                    </div>
+                  {errors.title && (
+                    <p className="text-xs text-red-500 mt-1">{errors.title}</p>
                   )}
                 </div>
-                {titleExists && !checkingTitle && (
-                  <p className="text-red-400 text-sm mt-1 flex items-center">
-                    <AlertTriangle size={14} className="mr-1" />
-                    This movie title already exists in your collection
+                <div>
+                  <Label htmlFor="genre">Genre</Label>
+                  <Input
+                    id="genre"
+                    value={form.genre}
+                    onChange={(e) => handleChange("genre", e.target.value)}
+                    placeholder="e.g. Action, Drama"
+                    className={cn(errors.genre && "border-red-500")}
+                  />
+                  {errors.genre && (
+                    <p className="text-xs text-red-500 mt-1">{errors.genre}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Duration + Director */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="durationMinutes">Duration (minutes)</Label>
+                  <Input
+                    id="durationMinutes"
+                    type="number"
+                    value={form.durationMinutes}
+                    onChange={(e) =>
+                      handleChange("durationMinutes", Number(e.target.value))
+                    }
+                    placeholder="120"
+                    className={cn(errors.durationMinutes && "border-red-500")}
+                  />
+                  {errors.durationMinutes && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.durationMinutes}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="director">Director</Label>
+                  <Input
+                    id="director"
+                    value={form.director}
+                    onChange={(e) => handleChange("director", e.target.value)}
+                    placeholder="Director name"
+                    className={cn(errors.director && "border-red-500")}
+                  />
+                  {errors.director && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.director}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Language + Country */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="language">Language</Label>
+                  <Input
+                    id="language"
+                    value={form.language}
+                    onChange={(e) => handleChange("language", e.target.value)}
+                    placeholder="English"
+                    className={cn(errors.language && "border-red-500")}
+                  />
+                  {errors.language && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.language}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    value={form.country}
+                    onChange={(e) => handleChange("country", e.target.value)}
+                    placeholder="USA"
+                    className={cn(errors.country && "border-red-500")}
+                  />
+                  {errors.country && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.country}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Production */}
+              <div>
+                <Label htmlFor="production">Production</Label>
+                <Input
+                  id="production"
+                  value={form.production}
+                  onChange={(e) => handleChange("production", e.target.value)}
+                  placeholder="Warner Bros"
+                  className={cn(errors.production && "border-red-500")}
+                />
+                {errors.production && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.production}
                   </p>
                 )}
               </div>
 
+              {/* Description */}
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Director <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.director}
-                  onChange={(e) => handleFormChange('director', e.target.value)}
-                  className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:border-orange-500 focus:outline-none"
-                  placeholder="Enter director name"
-                  disabled={isSubmitting}
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={form.description}
+                  onChange={(e) => handleChange("description", e.target.value)}
+                  placeholder="Short description about the movie..."
+                  className={cn(
+                    "min-h-[100px]",
+                    errors.description && "border-red-500"
+                  )}
                 />
+                {errors.description && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.description}
+                  </p>
+                )}
               </div>
 
+              {/* Premiere + End Date */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Duration (minutes) <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.duration || ''}
-                    onChange={(e) => handleFormChange('duration', parseInt(e.target.value) || 0)}
-                    className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:border-orange-500 focus:outline-none"
-                    placeholder="120"
-                    min="1"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Language <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.language}
-                    onChange={(e) => handleFormChange('language', e.target.value)}
-                    className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:border-orange-500 focus:outline-none"
-                    placeholder="English"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Release Date <span className="text-red-400">*</span>
-                  </label>
-                  <input
+                  <Label htmlFor="premiereDate">Premiere Date</Label>
+                  <Input
+                    id="premiereDate"
                     type="date"
-                    value={formData.release_date}
-                    onChange={(e) => handleFormChange('release_date', e.target.value)}
-                    className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
-                    disabled={isSubmitting}
+                    value={form.premiereDate}
+                    onChange={(e) =>
+                      handleChange("premiereDate", e.target.value)
+                    }
+                    className={cn(errors.premiereDate && "border-red-500")}
                   />
+                  {errors.premiereDate && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.premiereDate}
+                    </p>
+                  )}
                 </div>
-
                 <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Status <span className="text-red-400">*</span>
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => handleFormChange('status', e.target.value as any)}
-                    className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
-                    disabled={isSubmitting}
-                  >
-                    <option value="coming_soon">Coming Soon</option>
-                    <option value="now_showing">Now Showing</option>
-                    <option value="ended">Ended</option>
-                  </select>
+                  <Label htmlFor="endDate">End Date</Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={form.endDate}
+                    onChange={(e) => handleChange("endDate", e.target.value)}
+                    className={cn(errors.endDate && "border-red-500")}
+                  />
+                  {errors.endDate && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.endDate}
+                    </p>
+                  )}
                 </div>
               </div>
 
+              {/* Trailer URL */}
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Genres <span className="text-red-400">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Thriller', 'Adventure'].map((genre) => (
-                    <label key={genre} className="flex items-center space-x-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={formData.genre.includes(genre)}
-                        onChange={(e) => handleGenreChange(genre, e.target.checked)}
-                        className="text-orange-500 focus:ring-orange-500 focus:ring-2"
-                        disabled={isSubmitting}
-                      />
-                      <span className="text-slate-300">{genre}</span>
-                    </label>
-                  ))}
-                </div>
+                <Label htmlFor="trailerUrl">Trailer URL (YouTube)</Label>
+                <Input
+                  id="trailerUrl"
+                  value={form.trailerUrl}
+                  onChange={(e) => handleChange("trailerUrl", e.target.value)}
+                  placeholder="https://youtube.com/watch?v=..."
+                  className={cn(errors.trailerUrl && "border-red-500")}
+                />
+                {errors.trailerUrl && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.trailerUrl}
+                  </p>
+                )}
               </div>
+
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={handleSubmit}
+              >
+                Hoàn tất
+              </Button>
             </div>
+          </div>
+        </div>
+      );
+      break;
 
-            {/* URLs and Description */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Poster Image <span className="text-red-400">*</span>
-                </label>
-                <div className="space-y-2">
-                  <div
-                    className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-                      isUploadingPoster 
-                        ? 'border-orange-500 bg-orange-500/10' 
-                        : 'border-slate-600 hover:border-orange-500 hover:bg-orange-500/5'
-                    }`}
-                    onClick={() => document.getElementById('poster-upload-add')?.click()}
-                  >
-                    <input
-                      id="poster-upload-add"
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePosterUpload}
-                      className="hidden"
-                      disabled={isSubmitting || isUploadingPoster}
-                    />
-                    <div className="flex flex-col items-center space-y-2">
-                      {isUploadingPoster ? (
-                        <>
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                          <p className="text-orange-400 text-sm">Uploading...</p>
-                        </>
-                      ) : (
-                        <>
-                          <Image size={32} className="text-slate-400" />
-                          <p className="text-slate-400 text-sm">Click to upload poster image</p>
-                          <p className="text-slate-500 text-xs">JPG, PNG up to 10MB</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  {posterPreview && (
-                    <div className="relative">
-                      <img
-                        src={posterPreview}
-                        alt="Poster preview"
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPosterPreview(null);
-                          handleFormChange('poster_url', '');
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 rounded-full p-1 transition-colors"
-                      >
-                        <X size={16} className="text-white" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+    case "addActor":
+      content = (
+        <div className="flex flex-col w-full space-y-4">
+          <div className="flex w-full items-center justify-between">
+            <h2 className="text-xl font-semibold text-zinc-100">
+              Thêm diễn viên
+            </h2>
+            <SelectedActorsPopover
+              selectedActors={selectedActors}
+              onRemove={(id) => {
+                setSelectedIds((prev) => prev.filter((x) => x !== id));
+                setSelectedActors((prev) => prev.filter((a) => a.id !== id));
+              }}
+            />
+          </div>
+
+          {/* Thanh tìm kiếm */}
+          <InputGroup>
+            <InputGroupInput
+              placeholder="Search..."
+              onChange={(e) => setActorSearch(e.target.value)}
+            />
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupAddon align="inline-end">
+              {actors?.length} results
+            </InputGroupAddon>
+          </InputGroup>
+
+          {/* Actor Grid */}
+          {actors?.length === 0 || !actors ? (
+            <div className="w-full flex items-center justify-center h-[50vh]">
+              <p>
+                Không có diễn viên bạn cần?{" "}
+                <span
+                  onClick={() => setShowActorPanel(true)}
+                  className="text-blue-500 hover:underline transition-discrete duration-150 cursor-pointer"
+                >
+                  Thêm ngay
+                </span>
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col h-[53vh] justify-around items-center">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 overflow-y-auto px-1">
+                {actors?.map((actor) => (
+                  <ActorCard
+                    key={actor.id}
+                    actor={actor}
+                    isSelected={selectedIds.includes(actor.id)}
+                    onToggle={() => toggleSelect(actor)}
+                  />
+                ))}
               </div>
 
-              <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Trailer Video (Optional)
-                </label>
-                <div className="space-y-2">
-                  <div
-                    className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-                      isUploadingTrailer 
-                        ? 'border-orange-500 bg-orange-500/10' 
-                        : 'border-slate-600 hover:border-orange-500 hover:bg-orange-500/5'
-                    }`}
-                    onClick={() => document.getElementById('trailer-upload-add')?.click()}
-                  >
-                    <input
-                      id="trailer-upload-add"
-                      type="file"
-                      accept="video/*"
-                      onChange={handleTrailerUpload}
-                      className="hidden"
-                      disabled={isSubmitting || isUploadingTrailer}
-                    />
-                    <div className="flex flex-col items-center space-y-2">
-                      {isUploadingTrailer ? (
-                        <>
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                          <p className="text-orange-400 text-sm">Uploading...</p>
-                        </>
-                      ) : (
-                        <>
-                          <Video size={32} className="text-slate-400" />
-                          <p className="text-slate-400 text-sm">Click to upload trailer video</p>
-                          <p className="text-slate-500 text-xs">MP4, MOV up to 100MB</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  {trailerPreview && (
-                    <div className="relative">
-                      <video
-                        src={trailerPreview}
-                        className="w-full h-32 object-cover rounded-lg"
-                        controls
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setTrailerPreview(null);
-                          handleFormChange('trailer_url', '');
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 rounded-full p-1 transition-colors"
-                      >
-                        <X size={16} className="text-white" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Description <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => handleFormChange('description', e.target.value)}
-                  rows={8}
-                  className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:border-orange-500 focus:outline-none resize-none"
-                  placeholder="Enter movie description..."
-                  disabled={isSubmitting}
+              {/* Pagination */}
+              <div className="pt-6 flex justify-center">
+                <CustomPagination
+                  totalPages={totalPages ?? 1}
+                  currentPage={page}
+                  onPageChange={setPage}
                 />
               </div>
             </div>
-          </div>
+          )}
+        </div>
+      );
+      break;
 
-          {/* Cast Section */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <label className="block text-slate-300 text-sm font-medium">
-                Cast Members
-              </label>
+    case "complete":
+      content = <div>Hello complete</div>;
+      break;
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/70 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleCloseModal}
+        >
+          <motion.div
+            className="relative flex bg-zinc-900 h-[80vh] border border-zinc-800 rounded-2xl shadow-2xl w-[50%] max-w-5xl overflow-hidden text-zinc-100"
+            initial={{ scale: 0.9, opacity: 0, y: 30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 30 }}
+            transition={{ type: "spring", damping: 20, stiffness: 250 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* --- Vùng chính: Thêm phim --- */}
+            <div
+              className={`relative flex-1 p-6 transition-all duration-300 overflow-y-scroll bg-zinc-950 border border-zinc-800 rounded-2xl max-w-6xl mx-auto ${
+                showActorPanel ? "max-w-[65%]" : "max-w-full"
+              }`}
+            >
+              {/* Nút đóng */}
               <button
-                type="button"
-                onClick={handleAddCastMember}
-                className="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-3 py-1 rounded-lg text-sm transition-colors"
-                disabled={isSubmitting}
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-200 transition"
               >
-                <Plus size={16} className="inline mr-1" />
-                Add Cast
+                <X className="h-5 w-5" />
               </button>
-            </div>
-            
-            <div className="space-y-4">
-              {formData.cast.map((member, index) => (
-                <div key={index} className="bg-slate-700/30 p-4 rounded-lg">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-slate-300 font-medium">Cast Member {index + 1}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveCastMember(index)}
-                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2 rounded-lg transition-colors"
-                      disabled={isSubmitting}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Profile Image */}
-                    <div className="md:col-span-1">
-                      <label className="block text-slate-300 text-sm font-medium mb-2">
-                        Profile Image
-                      </label>
-                      <div className="space-y-2">
-                        <div
-                          className="border-2 border-dashed border-slate-600 hover:border-orange-500 rounded-lg p-4 text-center cursor-pointer transition-colors bg-slate-600/20 hover:bg-orange-500/5"
-                          onClick={() => document.getElementById(`cast-image-${index}`)?.click()}
-                        >
-                          <input
-                            id={`cast-image-${index}`}
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleCastImageUpload(index, e)}
-                            className="hidden"
-                            disabled={isSubmitting}
-                          />
-                          <div className="flex flex-col items-center space-y-2">
-                            <User size={24} className="text-slate-400" />
-                            <p className="text-slate-400 text-xs">Click to upload</p>
-                            <p className="text-slate-500 text-xs">JPG, PNG up to 5MB</p>
-                          </div>
-                        </div>
-                        
-                        {((member as any).profileImagePreview || member.profile_image) && (
-                          <div className="relative">
-                            <img
-                              src={(member as any).profileImagePreview || member.profile_image}
-                              alt="Profile preview"
-                              className="w-full h-24 object-cover rounded-lg"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveCastImage(index)}
-                              className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 rounded-full p-1 transition-colors"
-                              disabled={isSubmitting}
-                            >
-                              <X size={12} className="text-white" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Cast Information */}
-                    <div className="md:col-span-2 space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-slate-300 text-sm font-medium mb-1">
-                            Actor Name <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={member.name}
-                            onChange={(e) => handleCastChange(index, 'name', e.target.value)}
-                            placeholder="Enter actor name"
-                            className="w-full bg-slate-600/50 border border-slate-500 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-orange-500 focus:outline-none"
-                            disabled={isSubmitting}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-slate-300 text-sm font-medium mb-1">
-                            Character <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={member.character}
-                            onChange={(e) => handleCastChange(index, 'character', e.target.value)}
-                            placeholder="Enter character name"
-                            className="w-full bg-slate-600/50 border border-slate-500 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-orange-500 focus:outline-none"
-                            disabled={isSubmitting}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-slate-300 text-sm font-medium mb-1">
-                            Order
-                          </label>
-                          <input
-                            type="number"
-                            value={member.order}
-                            onChange={(e) => handleCastChange(index, 'order', parseInt(e.target.value) || 0)}
-                            placeholder="0"
-                            min="0"
-                            className="w-full bg-slate-600/50 border border-slate-500 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-orange-500 focus:outline-none"
-                            disabled={isSubmitting}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-slate-300 text-sm font-medium mb-1">
-                            Gender
-                          </label>
-                          <select
-                            value={member.gender}
-                            onChange={(e) => handleCastChange(index, 'gender', parseInt(e.target.value))}
-                            className="w-full bg-slate-600/50 border border-slate-500 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
-                            disabled={isSubmitting}
-                          >
-                            <option value={0}>Male</option>
-                            <option value={1}>Female</option>
-                            <option value={2}>Other</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Form Actions */}
-          <div className="flex gap-4 pt-4 border-t border-slate-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-slate-600 hover:bg-slate-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className={`flex-1 px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center ${
-                isSubmitting || titleExists || checkingTitle
-                  ? 'bg-slate-600 cursor-not-allowed' 
-                  : 'bg-orange-500 hover:bg-orange-600'
-              } text-white`}
-              disabled={isSubmitting || titleExists || checkingTitle}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader size={18} className="animate-spin mr-2" />
-                  Creating...
-                </>
-              ) : checkingTitle ? (
-                <>
-                  <Loader size={18} className="animate-spin mr-2" />
-                  Checking title...
-                </>
-              ) : titleExists ? (
-                <>
-                  <AlertTriangle size={18} className="mr-2" />
-                  Title already exists
-                </>
-              ) : (
-                <>
-                  <Save size={18} className="mr-2" />
-                  Create Movie
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-sm text-zinc-400 mb-6">
+                <span
+                  onClick={() => setBreadcrumb("movieInfo")}
+                  className={
+                    breadcrumb === "movieInfo"
+                      ? `font-semibold text-primary`
+                      : `cursor-pointer hover:underline`
+                  }
+                >
+                  Movie Info
+                </span>
+                <span>›</span>
+                <span
+                  onClick={() => setBreadcrumb("addActor")}
+                  className={
+                    breadcrumb === "addActor"
+                      ? `font-semibold text-primary`
+                      : `cursor-pointer hover:underline`
+                  }
+                >
+                  Add Actors
+                </span>
+                <span>›</span>
+                <span
+                  onClick={() => setBreadcrumb("complete")}
+                  className={
+                    breadcrumb === "complete"
+                      ? `font-semibold text-primary`
+                      : `cursor-pointer hover:underline`
+                  }
+                >
+                  Complete
+                </span>
+              </div>
+
+              {/* Thêm phim */}
+              {content}
+            </div>
+
+            {/* --- Panel thêm diễn viên (Expand bên phải) --- */}
+            <AddActorPanel
+              onClose={() => setShowActorPanel(false)}
+              open={showActorPanel}
+              onAdded={() => console.log("reload")}
+            />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
 export default AddMovieModal;
+
+const PosterImage = () => {
+  const [posterUrl, setPosterUrl] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setPosterUrl(objectUrl);
+    }
+  };
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            onClick={handleClick}
+            className="w-full aspect-[3/4] bg-zinc-800 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer relative group hover:ring-2 hover:ring-primary/60 transition"
+          >
+            {posterUrl ? (
+              <Image
+                src={posterUrl}
+                alt="Poster Preview"
+                width={400}
+                height={600}
+                className="object-cover w-full h-full group-hover:opacity-90 transition"
+              />
+            ) : (
+              <span className="text-zinc-500 text-sm group-hover:text-zinc-300 transition">
+                Poster preview
+              </span>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/webp,image/png,image/jpeg"
+              onChange={handlePosterChange}
+              className="hidden"
+            />
+          </div>
+        </TooltipTrigger>
+
+        <TooltipContent
+          side="top"
+          className="bg-zinc-800 text-zinc-100 text-xs rounded-md px-2 py-1"
+        >
+          Click để thêm ảnh
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+const BannerPreview = () => {
+  const [bannerUrl, setBannerUrl] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setBannerUrl(objectUrl);
+    }
+  };
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            onClick={handleClick}
+            className="w-full aspect-[16/9] bg-zinc-800 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer relative group hover:ring-2 hover:ring-primary/60 transition"
+          >
+            {bannerUrl ? (
+              <Image
+                src={bannerUrl}
+                alt="Banner Preview"
+                width={800}
+                height={450}
+                className="object-cover w-full h-full group-hover:opacity-90 transition"
+              />
+            ) : (
+              <span className="text-zinc-500 text-sm group-hover:text-zinc-300 transition">
+                Banner preview
+              </span>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpg,image/jpeg,image/png,image/webp"
+              onChange={handleBannerChange}
+              className="hidden"
+            />
+          </div>
+        </TooltipTrigger>
+
+        <TooltipContent
+          side="top"
+          className="bg-zinc-800 text-zinc-100 text-xs rounded-md px-2 py-1"
+        >
+          Click để thêm ảnh
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
