@@ -1,2 +1,2 @@
-export { default } from "./SeatTypeManagement";
+// export { default } from "./SeatTypeManagement";
 export * from "./types";

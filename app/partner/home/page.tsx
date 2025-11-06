@@ -22,16 +22,12 @@ import Page from "./contents/home/dashboard/page";
 import SeatLayout from "./contents/seat/SeatLayout";
 import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 import ManageMovies from "./contents/movies/ManageMovies";
+import CinemaInfo from "./contents/cinema/CinemaInfo/CinemaInfo";
+import ScreenManagement from "./contents/cinema/ScreenManagement/ScreenManagement";
+import ShowtimeManagement from "./contents/cinema/ShowtimeManagement/ShowtimeManagement";
+import SeatTypeManagement from "./contents/cinema/SeatTypeManagement/SeatTypeManagement";
 import ContractList from "./contents/contract/ContractList";
 // import ContractUpload from "./contents/contract/ContractUpload";
-import CinemaInfo from "./contents/cinema/CinemaInfo";
-import ScreenManagement from "./contents/cinema/ScreenManagement";
-import ShowtimeManagement from "./contents/cinema/ShowtimeManagement";
-import SeatTypeManagement from "./contents/cinema/SeatTypeManagement";
-
-const ContractUpload = dynamic(() => import("./contents/contract/ContractUpload"), {
-  ssr: false,
-});
 
 
 const PartnerHomepage = () => {
@@ -73,7 +69,7 @@ const PartnerHomepage = () => {
       //   return <Bookings />;
 
       case "contracts-upload":
-        return <ContractUpload />;
+        // return <ContractUpload />;
 
       //   case "screen":
       //     return <Screen />;
