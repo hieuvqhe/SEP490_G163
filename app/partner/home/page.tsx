@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   SidebarInset,
@@ -27,7 +26,7 @@ import ScreenManagement from "./contents/Cinema/ScreenManagement/ScreenManagemen
 import ShowtimeManagement from "./contents/Cinema/ShowtimeManagement/ShowtimeManagement";
 import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement/SeatTypeManagement";
 import ContractList from "./contents/Contract/ContractList";
-// import ContractUpload from "./contents/contract/ContractUpload";
+
 
 
 const PartnerHomepage = () => {
