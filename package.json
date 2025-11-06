@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build": "cross-env NEXT_USE_TURBOPACK=0 next build"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -64,6 +64,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
     "@types/react-slick": "^0.23.13",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
