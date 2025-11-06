@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Search } from "lucide-react";
+import { X, Search, FolderCheckIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,16 @@ import { Actor } from "@/apis/manager.actor.api";
 import { AddActorPanel } from "../../components/movies-coms/AddActorPanel";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ArrowUpRightIcon } from "lucide-react";
+
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 interface AddMovieModalProps {
   open: boolean;
@@ -463,7 +473,28 @@ const AddMovieModal = ({ open, onClose }: AddMovieModalProps) => {
       break;
 
     case "complete":
-      content = <div>Hello complete</div>;
+      content = (
+        <div className="w-full pt-10 justify-center items-center">
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <FolderCheckIcon />
+              </EmptyMedia>
+              <EmptyTitle>Hoàn thiện</EmptyTitle>
+              <EmptyDescription>
+                Bạn đã hoàn thiện thông tin phim. <br />
+                Chọn option bên dưới để tiến hành đăng ký phim
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <div className="flex gap-2">
+                <Button variant="outline">Tạo bản nháp</Button>
+                <Button>Tạo Phim</Button>
+              </div>
+            </EmptyContent>
+          </Empty>
+        </div>
+      );
       break;
   }
 

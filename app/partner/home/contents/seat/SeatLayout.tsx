@@ -94,7 +94,9 @@ const SeatLayout = () => {
   const [seats, setSeats] = useState<SeatData[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [isPreview, setIsPreview] = useState<boolean>(false);
-  const [selectedSeatTypeId, setSelectedSeatTypeId] = useState<number | null>(null);
+  const [selectedSeatTypeId, setSelectedSeatTypeId] = useState<number | null>(
+    null
+  );
   const [seatTypeActionValue, setSeatTypeActionValue] = useState<string>(
     SEAT_TYPE_ACTION_DEFAULT
   );
@@ -134,7 +136,9 @@ const SeatLayout = () => {
 
   const selectedSeatType = useMemo(() => {
     if (!selectedSeatTypeId) return null;
-    return seatTypeOptions.find((type) => type.id === selectedSeatTypeId) ?? null;
+    return (
+      seatTypeOptions.find((type) => type.id === selectedSeatTypeId) ?? null
+    );
   }, [selectedSeatTypeId, seatTypeOptions]);
 
   useEffect(() => {
@@ -165,7 +169,10 @@ const SeatLayout = () => {
       column: seat.column,
       seatTypeId: seat.seatTypeId,
       status: mapApiSeatStatusToLocal(seat.status),
-      colorCode: seat.seatTypeColor || apiSeatTypesById.get(seat.seatTypeId)?.color || "#64748b",
+      colorCode:
+        seat.seatTypeColor ||
+        apiSeatTypesById.get(seat.seatTypeId)?.color ||
+        "#64748b",
       seatName: seat.seatName,
     }));
 
@@ -369,14 +376,12 @@ const SeatLayout = () => {
   }, [seats]);
 
   const sanitizedSeatData = (() => {
-    const sortedSeats = seats
-      .slice()
-      .sort((a, b) => {
-        const rowCompare = a.row.localeCompare(b.row, "vi");
+    const sortedSeats = seats.slice().sort((a, b) => {
+      const rowCompare = a.row.localeCompare(b.row, "vi");
 
-        if (rowCompare !== 0) return rowCompare;
-        return a.column - b.column;
-      });
+      if (rowCompare !== 0) return rowCompare;
+      return a.column - b.column;
+    });
 
     const seatCounters = new Map<string, number>();
 
@@ -535,8 +540,10 @@ const SeatLayout = () => {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between
-      rounded-xl border border-slate-800/60 bg-zinc-900/60 p-6 shadow-lg">
+      <div
+        className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between
+      rounded-xl border border-slate-800/60 bg-zinc-900/60 p-6 shadow-lg"
+      >
         <div>
           <h2 className="text-2xl font-semibold text-white">
             Thiết kế sơ đồ ghế
@@ -565,8 +572,8 @@ const SeatLayout = () => {
       </div>
 
       <div className="flex flex-col gap-10 xl:flex-row">
-        <div className="flex-1 space-y-8">
-          <div className="rounded-xl border border-slate-800/60 bg-zinc-900/60 p-6 shadow-lg">
+        <div className="flex-1 space-y-8 w-full">
+          <div className="rounded-xl border border-slate-800/60 w-4xl bg-zinc-900/60 p-6 shadow-lg">
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               <form onSubmit={handleGenSeat} className="flex-1 space-y-4">
                 <div className="space-y-2">
@@ -583,10 +590,17 @@ const SeatLayout = () => {
                   <div className="space-y-2">
                     <Label htmlFor="seatType">Loại ghế mặc định</Label>
                     <Select
-                      value={selectedSeatTypeId ? String(selectedSeatTypeId) : undefined}
+                      value={
+                        selectedSeatTypeId
+                          ? String(selectedSeatTypeId)
+                          : undefined
+                      }
                       onValueChange={(value) => {
                         const numericValue = Number(value);
-                        const type = seatTypeOptions.find((item) => item.id === numericValue) ?? null;
+                        const type =
+                          seatTypeOptions.find(
+                            (item) => item.id === numericValue
+                          ) ?? null;
                         setSelectedSeatTypeId(type ? type.id : null);
                       }}
                     >
@@ -671,7 +685,7 @@ const SeatLayout = () => {
             </div>
           </div>
 
-          <div className="rounded-xl flex flex-col items-center border border-slate-800/60 bg-zinc-900/60 p-6 shadow-lg">
+          <div className="rounded-xl flex flex-col w-4xl h-fit items-center border overflow-hidden border-slate-800/60 bg-zinc-900/60 p-6 shadow-lg">
             <div className="mb-6 flex flex-col items-center gap-2 text-center text-slate-300">
               <span className="w-40 border-b border-dashed border-slate-500" />
               <p className="text-xs uppercase tracking-widest text-slate-500">
@@ -696,9 +710,9 @@ const SeatLayout = () => {
                     wrapperClass="w-full"
                     contentClass="w-full flex justify-center"
                   >
-                    <div className="flex w-full max-w-5xl flex-col items-center gap-4">
+                    <div className="flex box w-full max-w-5xl flex-col items-center justify-center gap-4">
                       <div
-                        className="grid gap-3 pl-12 text-sm font-semibold text-slate-400"
+                        className="grid gap-3 ml-12 text-sm font-semibold text-slate-400"
                         style={{
                           gridTemplateColumns: `repeat(${cols}, 2.5rem)`,
                         }}
@@ -735,6 +749,7 @@ const SeatLayout = () => {
                             key={rowLabel}
                             className="flex w-full items-center gap-3"
                           >
+                            {/* <div className="w-10" /> */}
                             <div
                               onClick={() => toggleRowSelect(rowLabel)}
                               className={`w-10 cursor-pointer text-center text-sm font-semibold ${
@@ -743,7 +758,7 @@ const SeatLayout = () => {
                                   : "text-slate-400"
                               }`}
                             >
-                              {rowLabel}
+                              <div className="w-3">{rowLabel}</div>
                             </div>
                             <div
                               className="grid gap-3"
@@ -799,7 +814,7 @@ const SeatLayout = () => {
           </div>
         </div>
 
-        <div className="flex w-full max-w-xs flex-col gap-4">
+        <div className="flex w-full max-w-xl flex-col gap-4">
           <div className="rounded-xl border border-zinc-700 bg-zinc-900/80 shadow-xl">
             <div className="flex items-center justify-between border-b border-zinc-700 px-5 py-3">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-200">
@@ -890,9 +905,15 @@ const SeatLayout = () => {
                         return;
                       }
 
-                      const type = seatTypeOptions.find((item) => item.id === Number(value));
+                      const type = seatTypeOptions.find(
+                        (item) => item.id === Number(value)
+                      );
                       if (!type) {
-                        showToast("Không tìm thấy loại ghế đã chọn.", undefined, "error");
+                        showToast(
+                          "Không tìm thấy loại ghế đã chọn.",
+                          undefined,
+                          "error"
+                        );
                         setSeatTypeActionValue(SEAT_TYPE_ACTION_DEFAULT);
                         return;
                       }
@@ -909,7 +930,9 @@ const SeatLayout = () => {
                     <SelectContent className="bg-zinc-800 text-zinc-100">
                       <SelectGroup>
                         <SelectLabel>Các kiểu ghế</SelectLabel>
-                        <SelectItem value={SEAT_TYPE_ACTION_DEFAULT}>---</SelectItem>
+                        <SelectItem value={SEAT_TYPE_ACTION_DEFAULT}>
+                          ---
+                        </SelectItem>
                         {seatTypeOptions.map((seatType) => (
                           <SelectItem
                             key={seatType.id}
