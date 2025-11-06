@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "build": "cross-env NEXT_USE_TURBOPACK=0 next build"
+    "build": "next build --turbopack"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
