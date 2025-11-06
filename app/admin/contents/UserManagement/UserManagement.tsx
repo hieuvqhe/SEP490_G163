@@ -1,16 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useToast } from '@/components/ToastProvider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import {
   useGetUsers,
-  useGetUserById,
+  // useGetUserById,
   useUpdateUser,
   useDeleteUser,
   useBanUser,
   useUnbanUser,
-  useUpdateUserRole
+  // useUpdateUserRole
 } from '@/apis/admin.api';
 import type {
   AdminUser,
@@ -57,13 +57,13 @@ export const UserManagement = () => {
 
   // TanStack Query hooks
   const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useGetUsers(queryParams, accessToken || undefined);
-  const { data: userDetailData } = useGetUserById(selectedUser?.id || 0, accessToken || undefined);
+  // const { data: userDetailData } = useGetUserById(selectedUser?.id || 0, accessToken || undefined);
 
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
   const banUserMutation = useBanUser();
   const unbanUserMutation = useUnbanUser();
-  const updateUserRoleMutation = useUpdateUserRole();
+  // const updateUserRoleMutation = useUpdateUserRole();
 
   // Extract data
   const users = usersData?.result?.users || [];
@@ -98,7 +98,7 @@ export const UserManagement = () => {
       setUserToDelete(null);
       refetchUsers();
     } catch (error) {
-      showToast('Failed to delete user', undefined, 'error');
+      showToast('Failed to delete user' + "" + error, undefined);
     }
   };
 
@@ -120,7 +120,7 @@ export const UserManagement = () => {
       setUserToBan(null);
       refetchUsers();
     } catch (error) {
-      showToast('Failed to ban user', undefined, 'error');
+      showToast('Failed to ban user' + "" + error, undefined, 'error');
     }
   };
 
@@ -142,7 +142,7 @@ export const UserManagement = () => {
       setUserToUnban(null);
       refetchUsers();
     } catch (error) {
-      showToast('Failed to unban user', undefined, 'error');
+      showToast('Failed to unban user' + "" + error, undefined, 'error');
     }
   };
 
@@ -158,7 +158,7 @@ export const UserManagement = () => {
       setSelectedUser(null);
       refetchUsers();
     } catch (error) {
-      showToast('Failed to update user', undefined, 'error');
+      showToast('Failed to update user' + "" + error, undefined, 'error');
     }
   };
 
@@ -179,23 +179,28 @@ export const UserManagement = () => {
       }
       refetchUsers();
     } catch (error) {
-      showToast('Failed to update user status', undefined, 'error');
+      showToast('Failed to update user status' + "" + error, undefined, 'error');
     }
   };
 
-  const handleUpdateUserRole = async (userId: number, role: string) => {
-    try {
-      await updateUserRoleMutation.mutateAsync({
-        userId,
-        data: { role },
-        accessToken: accessToken || ''
-      });
-      showToast('User role updated successfully', undefined, 'success');
-      refetchUsers();
-    } catch (error) {
-      showToast('Failed to update user role', undefined, 'error');
-    }
-  };
+  // const handleUpdateUserRole = async (userId: number, role: string) => {
+  //   try {
+  //     await updateUserRoleMutation.mutateAsync({
+  //       userId,
+  //       data: { role },
+  //       accessToken: accessToken || ''
+  //     });
+  //     showToast('User role updated successfully', undefined, 'success');
+  //     refetchUsers();
+  //   } catch (error) {
+  //     showToast('Failed to update user role', undefined, 'error');
+  //   }
+  // };
+  
+  // const handleRoleFilter = (role: string) => {
+  //   setRoleFilter(role);
+  //   setCurrentPage(1);
+  // };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -206,10 +211,7 @@ export const UserManagement = () => {
     setCurrentPage(1);
   };
 
-  const handleRoleFilter = (role: string) => {
-    setRoleFilter(role);
-    setCurrentPage(1);
-  };
+
 
   const handleViewUserWrapper = (userId: string) => {
     const user = users.find(u => u.id.toString() === userId);

@@ -1,10 +1,6 @@
 "use client";
 
 import React from "react";
-import CinemaInfo from "./contents/Cinema/CinemaInfo";
-import ScreenManagement from "./contents/Cinema/ScreenManagement";
-import ShowtimeManagement from "./contents/Cinema/ShowtimeManagement";
-import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement";
 import { motion } from "framer-motion";
 import {
   SidebarInset,
@@ -25,8 +21,13 @@ import Page from "./contents/home/dashboard/page";
 import SeatLayout from "./contents/seat/SeatLayout";
 import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 import ManageMovies from "./contents/movies/ManageMovies";
-import ContractUpload from "./contents/Contract/ContractUpload";
-import ContractList from "./contents/Contract/ContractList";
+import ContractList from "./contents/contract/ContractList";
+import ContractUpload from "./contents/contract/ContractUpload";
+import CinemaInfo from "./contents/cinema/CinemaInfo";
+import ScreenManagement from "./contents/cinema/ScreenManagement";
+import ShowtimeManagement from "./contents/cinema/ShowtimeManagement";
+import SeatTypeManagement from "./contents/cinema/SeatTypeManagement";
+
 
 const PartnerHomepage = () => {
   const activeTab = usePartnerHomeStore((state) => state.activeTab);
@@ -67,7 +68,7 @@ const PartnerHomepage = () => {
       //   return <Bookings />;
 
       case "contracts-upload":
-        return <ContractUpload />;
+        // return <ContractUpload />;
 
       //   case "screen":
       //     return <Screen />;
