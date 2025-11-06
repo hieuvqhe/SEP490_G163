@@ -1,10 +1,10 @@
 import { Shield, LogOut, Bell, Settings, Search, Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { User } from "@/types/user.type";
+import { UserInfo } from "@/services/authService";
 
 interface AdminHeaderProps {
-  user: User | null;
+  user: UserInfo | null;
   onLogout: () => void;
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;

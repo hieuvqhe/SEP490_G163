@@ -36,6 +36,8 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Seat } from "./Seat";
+import { PopularSeatLayoutSamples } from "./PopularSeatLayoutSamples";
+import type { PopularSeatLayoutSample } from "./PopularSeatLayoutSamples";
 import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 import { useToast } from "@/components/ToastProvider";
 
@@ -538,6 +540,116 @@ const SeatLayout = () => {
     );
   };
 
+  const normalizeText = (value?: string) =>
+    value?.trim().toLowerCase().normalize("NFC") ?? "";
+
+  const findSeatTypeByKeywords = (keywords: string[]): SeatTypeOption | null => {
+    if (!keywords.length) return null;
+
+    const normalizedKeywords = keywords.map((keyword) =>
+      keyword.trim().toLowerCase().normalize("NFC")
+    );
+
+    return (
+      seatTypeOptions.find((type) => {
+        const normalizedName = normalizeText(type.name);
+        const normalizedCode = normalizeText(type.code);
+        return normalizedKeywords.some(
+          (keyword) =>
+            normalizedName.includes(keyword) || normalizedCode.includes(keyword)
+        );
+      }) ?? null
+    );
+  };
+
+  const getRowLabel = (index: number) => {
+    let label = "";
+    let currentIndex = index;
+
+    while (currentIndex >= 0) {
+      label = String.fromCharCode((currentIndex % 26) + 65) + label;
+      currentIndex = Math.floor(currentIndex / 26) - 1;
+    }
+
+    return label;
+  };
+
+  const handleApplySeatLayoutSample = (sample: PopularSeatLayoutSample) => {
+    if (!seatTypeOptions.length) {
+      showToast(
+        "Chưa có dữ liệu loại ghế để áp dụng sơ đồ mẫu.",
+        undefined,
+        "error"
+      );
+      return;
+    }
+
+    const fallbackSeatType = templateSeatType ?? seatTypeOptions[0] ?? null;
+    const standardSeatType =
+      findSeatTypeByKeywords(["ghế thường", "thường", "standard", "regular"]) ??
+      fallbackSeatType;
+    const vipSeatType =
+      findSeatTypeByKeywords(["vip"]) ?? standardSeatType ?? fallbackSeatType;
+    const coupleSeatType =
+      findSeatTypeByKeywords(["ghế đôi", "đôi", "couple"]) ??
+      standardSeatType ??
+      fallbackSeatType;
+
+    const resolveSeat = (cell: string) => {
+      switch (cell) {
+        case "S":
+          return { seatType: standardSeatType, status: "Available" as const };
+        case "M":
+          return { seatType: standardSeatType, status: "Maintenance" as const };
+        case "V":
+          return { seatType: vipSeatType, status: "Available" as const };
+        case "C":
+          return { seatType: coupleSeatType, status: "Available" as const };
+        case "K":
+          return { seatType: coupleSeatType, status: "Maintenance" as const };
+        case "_":
+        default:
+          return null;
+      }
+    };
+
+    const generatedSeats: SeatData[] = [];
+
+    for (let rowIndex = 0; rowIndex < sample.rows; rowIndex += 1) {
+      const rowPattern = sample.layout[rowIndex] ?? "";
+      const rowLabel = getRowLabel(rowIndex);
+
+      for (let colIndex = 0; colIndex < sample.cols; colIndex += 1) {
+        const rawCell = rowPattern[colIndex] ?? "_";
+        const cell = rawCell.toUpperCase();
+        const result = resolveSeat(cell);
+
+        if (!result) {
+          continue;
+        }
+
+        const { seatType, status } = result;
+
+        generatedSeats.push({
+          row: rowLabel,
+          column: colIndex + 1,
+          seatTypeId: seatType?.id ?? 0,
+          status,
+          colorCode: seatType?.color ?? "#64748b",
+        });
+      }
+    }
+
+    setRows(sample.rows);
+    setCols(sample.cols);
+    setSeats(generatedSeats);
+    setSelectedSeats([]);
+    setSeatTypeActionValue(SEAT_TYPE_ACTION_DEFAULT);
+    setSelectedSeatTypeId(standardSeatType?.id ?? null);
+    setIsPreview(false);
+    showToast(`Đã áp dụng ${sample.name}.`, undefined, "success");
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div
@@ -570,6 +682,8 @@ const SeatLayout = () => {
           Quay lại quản lý phòng chiếu
         </Button>
       </div>
+
+      <PopularSeatLayoutSamples onApplySample={handleApplySeatLayoutSample} />
 
       <div className="flex flex-col gap-10 xl:flex-row">
         <div className="flex-1 space-y-8 w-full">
