@@ -249,6 +249,31 @@ const ShowtimeManagement = () => {
     setFormValues({ ...defaultShowtimeFormValues });
   };
 
+  const handleBulkCreateShowtimes = async (items: ShowtimeFormValues[]) => {
+    if (!ensureContext()) {
+      throw new Error("Vui lòng chọn đủ phim, rạp và phòng chiếu trước khi tạo suất chiếu.");
+    }
+
+    const movieId = selectedMovie!.movieId;
+    const cinemaId = selectedCinema!.cinemaId;
+    const screenId = selectedScreen!.screenId;
+
+    const payloadContext = { movieId, cinemaId, screenId };
+
+    try {
+      for (const showtimeValues of items) {
+        const payload = mapFormValuesToCreatePayload(showtimeValues, payloadContext);
+        await createMutation.mutateAsync(payload);
+      }
+      showToast(`Đã tạo ${items.length} suất chiếu thành công`, undefined, "success");
+      resetModals();
+      refetchShowtimes();
+    } catch (error) {
+      showToast(getShowtimeErrorMessage(error), undefined, "error");
+      throw error;
+    }
+  };
+
   const handleFormSubmit = (values: ShowtimeFormValues) => {
     if (!ensureContext()) return;
     const movieId = selectedMovie!.movieId;
@@ -404,6 +429,7 @@ const ShowtimeManagement = () => {
         values={formValues}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
+        onBulkCreate={handleBulkCreateShowtimes}
         submitting={createMutation.isPending || updateMutation.isPending}
         movie={context.movie}
         cinema={context.cinema}

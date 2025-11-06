@@ -15,6 +15,7 @@ interface ShowtimeFormModalProps {
   values: ShowtimeFormValues;
   onClose: () => void;
   onSubmit: (values: ShowtimeFormValues) => void;
+  onBulkCreate?: (showtimes: ShowtimeFormValues[]) => Promise<void> | void;
   submitting?: boolean;
   movie?: Movie | null;
   cinema?: PartnerCinema | null;
@@ -29,6 +30,7 @@ const ShowtimeFormModal = ({
   values: initialValues,
   onClose,
   onSubmit,
+  onBulkCreate,
   submitting,
   movie,
   cinema,
@@ -39,6 +41,13 @@ const ShowtimeFormModal = ({
   const [values, setValues] = useState<ShowtimeFormValues>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof ShowtimeFormValues, string>>>({});
   const [hasTimeConflict, setHasTimeConflict] = useState(false);
+  const [bulkStartTime, setBulkStartTime] = useState("");
+  const [bulkEndTime, setBulkEndTime] = useState("");
+  const [bulkCleanupMinutes, setBulkCleanupMinutes] = useState("10");
+  const [bulkError, setBulkError] = useState<string | null>(null);
+  const [generatedBulkShowtimes, setGeneratedBulkShowtimes] = useState<
+    { startTime: string; endTime: string }[]
+  >([]);
 
   const durationMinutes = movie?.durationMinutes ?? null;
   const cleanupBufferMinutes = 15;
@@ -84,6 +93,30 @@ const ShowtimeFormModal = ({
     return formatDateToInputValue(endDate);
   };
 
+  const formatDateDMY = (date: Date): string => {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatBulkSlotLabel = (startValue: string, endValue: string): string => {
+    const startDate = parseInputDate(startValue);
+    const endDate = parseInputDate(endValue);
+    if (!startDate || !endDate) {
+      return `${startValue} → ${endValue}`;
+    }
+    const timeFormatter = new Intl.DateTimeFormat("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const sameDay = startDate.toDateString() === endDate.toDateString();
+    if (sameDay) {
+      return `${formatDateDMY(startDate)} • ${timeFormatter.format(startDate)} - ${timeFormatter.format(endDate)}`;
+    }
+    return `${formatDateDMY(startDate)} ${timeFormatter.format(startDate)} → ${formatDateDMY(endDate)} ${timeFormatter.format(endDate)}`;
+  };
+
   const isOverlappingRange = (start: Date, end: Date) => {
     return existingRanges.some((range) => {
       if (editingShowtimeId && range.id === editingShowtimeId) {
@@ -98,6 +131,11 @@ const ShowtimeFormModal = ({
       setValues(initialValues);
       setErrors({});
       setHasTimeConflict(false);
+      setBulkStartTime("");
+      setBulkEndTime("");
+      setBulkCleanupMinutes("10");
+      setBulkError(null);
+      setGeneratedBulkShowtimes([]);
     }
   }, [open, initialValues]);
 
@@ -187,6 +225,137 @@ const ShowtimeFormModal = ({
     setHasTimeConflict(false);
   };
 
+  const validateBulkCommonFields = () => {
+    const nextErrors: Partial<Record<keyof ShowtimeFormValues, string>> = {};
+
+    if (!values.basePrice.trim()) nextErrors.basePrice = "Vui lòng nhập giá cơ bản";
+    if (!values.availableSeats.trim()) nextErrors.availableSeats = "Vui lòng nhập số ghế khả dụng";
+    if (!values.formatType.trim()) nextErrors.formatType = "Vui lòng nhập định dạng";
+
+    setErrors((prev) => ({ ...prev, ...nextErrors }));
+
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleBulkGenerate = () => {
+    setBulkError(null);
+
+    if (!durationMinutes) {
+      setBulkError("Không thể tạo hàng loạt vì chưa có thời lượng phim.");
+      return;
+    }
+
+    const startDate = parseInputDate(bulkStartTime ?? "");
+    const endDate = parseInputDate(bulkEndTime ?? "");
+    const cleanup = Number.parseInt(bulkCleanupMinutes, 10);
+
+    if (!startDate || !endDate) {
+      setBulkError("Vui lòng nhập đầy đủ thời gian bắt đầu và kết thúc.");
+      return;
+    }
+
+    if (endDate <= startDate) {
+      setBulkError("Thời gian kết thúc phải sau thời gian bắt đầu.");
+      return;
+    }
+
+    if (!Number.isFinite(cleanup) || cleanup < 0) {
+      setBulkError("Thời gian nghỉ phải là số phút không âm.");
+      return;
+    }
+
+    const generated: { startTime: string; endTime: string }[] = [];
+    const generatedRanges: { start: Date; end: Date }[] = [];
+
+    let currentStart = new Date(startDate);
+    let safetyCounter = 0;
+    const safetyLimit = 500;
+
+    while (currentStart < endDate && safetyCounter < safetyLimit) {
+      const slotStart = new Date(currentStart);
+      const slotEnd = new Date(currentStart);
+      slotEnd.setMinutes(slotEnd.getMinutes() + durationMinutes);
+
+      if (slotEnd > endDate) {
+        break;
+      }
+
+      const hasConflictWithExisting = isOverlappingRange(slotStart, slotEnd);
+      const hasConflictWithGenerated = generatedRanges.some((range) => slotStart < range.end && slotEnd > range.start);
+
+      if (hasConflictWithExisting) {
+        setBulkError("Khoảng thời gian sinh ra bị trùng với suất chiếu đã có. Vui lòng điều chỉnh.");
+        setGeneratedBulkShowtimes([]);
+        return;
+      }
+
+      if (hasConflictWithGenerated) {
+        setBulkError("Khoảng thời gian sinh ra bị trùng nhau. Vui lòng kiểm tra dữ liệu.");
+        setGeneratedBulkShowtimes([]);
+        return;
+      }
+
+      generated.push({
+        startTime: formatDateToInputValue(slotStart),
+        endTime: formatDateToInputValue(slotEnd),
+      });
+      generatedRanges.push({ start: slotStart, end: slotEnd });
+
+      currentStart = new Date(slotEnd);
+      currentStart.setMinutes(currentStart.getMinutes() + cleanup);
+      safetyCounter += 1;
+    }
+
+    if (safetyCounter >= safetyLimit) {
+      setBulkError("Không thể sinh lịch. Vui lòng kiểm tra lại thông tin đầu vào.");
+      setGeneratedBulkShowtimes([]);
+      return;
+    }
+
+    if (!generated.length) {
+      setBulkError("Không tạo được suất chiếu nào trong khoảng thời gian đã chọn.");
+      setGeneratedBulkShowtimes([]);
+      return;
+    }
+
+    setGeneratedBulkShowtimes(generated);
+  };
+
+  const handleBulkApply = async () => {
+    if (!onBulkCreate) {
+      setBulkError("Chức năng tạo hàng loạt chưa khả dụng.");
+      return;
+    }
+
+    if (!generatedBulkShowtimes.length) {
+      setBulkError("Vui lòng sinh danh sách suất chiếu trước khi tạo.");
+      return;
+    }
+
+    if (!validateBulkCommonFields()) {
+      setBulkError("Vui lòng hoàn tất thông tin cơ bản trước khi tạo hàng loạt.");
+      return;
+    }
+
+    setBulkError(null);
+
+    const payloads = generatedBulkShowtimes.map((item) => ({
+      ...values,
+      startTime: item.startTime,
+      endTime: item.endTime,
+    }));
+
+    try {
+      await onBulkCreate(payloads);
+    } catch (error) {
+      if (error instanceof Error) {
+        setBulkError(error.message);
+      } else {
+        setBulkError("Không thể tạo hàng loạt suất chiếu. Vui lòng thử lại.");
+      }
+    }
+  };
+
   const validate = () => {
     const nextErrors: Partial<Record<keyof ShowtimeFormValues, string>> = {};
 
@@ -250,6 +419,8 @@ const ShowtimeFormModal = ({
               type="datetime-local"
               value={values.startTime}
               onChange={(event) => handleStartTimeChange(event.target.value)}
+              lang="vi"
+              placeholder="dd/mm/yyyy hh:mm"
               className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
             />
             {errors.startTime && <p className="text-xs text-rose-400">{errors.startTime}</p>}
@@ -262,6 +433,8 @@ const ShowtimeFormModal = ({
               type="datetime-local"
               value={values.endTime}
               onChange={(event) => handleEndTimeChange(event.target.value)}
+              lang="vi"
+              placeholder="dd/mm/yyyy hh:mm"
               className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
             />
             {errors.endTime && <p className="text-xs text-rose-400">{errors.endTime}</p>}
@@ -326,6 +499,103 @@ const ShowtimeFormModal = ({
               ))}
           </select>
         </div>
+
+        {mode === "create" && onBulkCreate ? (
+          <div className="space-y-3 rounded-lg border border-[#27272a] bg-[#1b1b1f] p-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[#f5f5f5]">Tạo hàng loạt suất chiếu</p>
+              <p className="text-xs text-[#9e9ea2]">
+                Nhập khoảng thời gian hoạt động, thời gian nghỉ giữa các suất và hệ thống sẽ sinh lịch chiếu liên tục.
+              </p>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
+                  Bắt đầu từ <span className="text-rose-400">*</span>
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={bulkStartTime}
+                  onChange={(event) => setBulkStartTime(event.target.value)}
+                  className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
+                  Kết thúc lúc <span className="text-rose-400">*</span>
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={bulkEndTime}
+                  onChange={(event) => setBulkEndTime(event.target.value)}
+                  className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
+                  Nghỉ (phút)
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={bulkCleanupMinutes}
+                  onChange={(event) => setBulkCleanupMinutes(event.target.value)}
+                  className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#9e9ea2]">
+              <div>
+                {durationMinutes ? (
+                  <span>Thời lượng phim: {durationMinutes} phút</span>
+                ) : (
+                  <span className="text-rose-400">Không có dữ liệu thời lượng phim, vui lòng kiểm tra trước khi tạo.</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBulkGenerate}
+                  disabled={!durationMinutes || submitting}
+                  className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] hover:bg-[#232326]"
+                >
+                  Sinh suất chiếu
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleBulkApply}
+                  disabled={submitting || !generatedBulkShowtimes.length}
+                  className="bg-[#ff7a45] text-[#151518] hover:bg-[#ff8d60] shadow-lg shadow-[#ff7a45]/40"
+                >
+                  Tạo {generatedBulkShowtimes.length} suất chiếu
+                </Button>
+              </div>
+            </div>
+
+            {bulkError ? <p className="text-xs text-rose-400">{bulkError}</p> : null}
+
+            {generatedBulkShowtimes.length ? (
+              <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border border-dashed border-[#3a3a3d] p-3">
+                <p className="text-xs uppercase tracking-wide text-[#9e9ea2]">
+                  Danh sách suất chiếu ({generatedBulkShowtimes.length})
+                </p>
+                <div className="space-y-1 text-sm text-[#f5f5f5]">
+                  {generatedBulkShowtimes.map((item, index) => (
+                    <div key={`${item.startTime}-${index}`} className="flex items-center justify-between gap-3">
+                      <span>{formatBulkSlotLabel(item.startTime, item.endTime)}</span>
+                      <span className="text-xs text-[#9e9ea2]">
+                        +{Number.parseInt(bulkCleanupMinutes, 10) || 0} phút nghỉ
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="flex justify-end gap-3">
           <Button
