@@ -43,6 +43,12 @@ const nextConfig = {
         port: "",
         pathname: "/t/p/**", // Cho phép tất cả ảnh poster, backdrop của TMDb
       },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
+        port: "",
+        pathname: "/**", // Cho phép tất cả đường dẫn từ Wikimedia
+      },
     ],
   },
   eslint: {

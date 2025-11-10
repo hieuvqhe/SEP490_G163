@@ -158,7 +158,7 @@ export default function ContractList() {
                         Xem chi tiết
                       </Button>
                       <Button variant="outline" size="sm">
-                        Tải PDF
+                        Tải PDF nè
                       </Button>
                     </CardFooter>
                   </Card>

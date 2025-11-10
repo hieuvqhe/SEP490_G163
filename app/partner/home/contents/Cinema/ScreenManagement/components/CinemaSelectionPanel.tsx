@@ -133,8 +133,9 @@ const CinemaSelectionPanel = ({
                   key={cinema.cinemaId}
                   type="button"
                   onClick={() => onSelect(cinema)}
+                  // onClick={() => console.log("hello")}
                   className={cn(
-                    "min-w-[260px] shrink-0 rounded-lg border px-4 py-3 text-left transition-all",
+                    "min-w-[100px] shrink-0 rounded-lg border px-4 py-3 text-left transition-all",
                     "border-[#27272a] bg-[#151518] hover:border-[#ff7a45]/60 hover:bg-[#1c1c1f] shadow-lg shadow-black/20",
                     isSelected && "border-[#ff7a45]/70 bg-[#ff7a45]/10 shadow-lg shadow-[#ff7a45]/30"
                   )}

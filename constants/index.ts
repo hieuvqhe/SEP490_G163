@@ -9,11 +9,5 @@ export const movieCategoryQuickAccess = [
   },
   {
     title: "Sắp Chiếu",
-  },
-  {
-    title: "Danh Mục",
-  },
-  {
-    title: "Ngày",
-  },
+  }
 ];

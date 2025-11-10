@@ -16,7 +16,12 @@ import EmailVerificationModal from "@/components/EmailVerificationModal";
 import UserAvatar from "@/components/UserAvatar";
 import { useAuthStore } from "@/store/authStore";
 import { useGetUserInfo } from "@/hooks/useAuth";
-import { redirect } from "next/navigation";
+import { Pacifico } from "next/font/google";
+
+const pacifico = Pacifico({
+  subsets: ["latin"],
+  weight: "400",
+});
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -144,13 +149,11 @@ const Header = () => {
         {/* Left Section: Logo + Search */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.png"
-              alt="TicketXpress Logo"
-              width={55}
-              height={55}
-              className="transition-transform duration-300 hover:scale-105"
-            />
+            <h1
+              className={`${pacifico.className} text-xl font-bold text-white drop-shadow-lg`}
+            >
+              TicketXpress
+            </h1>
           </Link>
 
           <InputGroup
@@ -183,12 +186,14 @@ const Header = () => {
                 </Link>
               ))}
 
-            <Link
-              href="/partner"
-              className="px-5 py-2 rounded-full font-semibold text-sm bg-gradient-to-r from-[#F84565] to-[#FF7A45] text-white shadow-lg shadow-[#F84565]/40 transition-transform duration-300 hover:scale-105"
-            >
-              Đăng ký làm đối tác
-            </Link>
+            {!user && (
+              <Link
+                href="/partner"
+                className="px-5 py-2 rounded-full font-semibold text-sm bg-gradient-to-r from-[#F84565] to-[#FF7A45] text-white shadow-lg shadow-[#F84565]/40 transition-transform duration-300 hover:scale-105"
+              >
+                Đăng ký làm đối tác
+              </Link>
+            )}
 
             {/* Loading or User or Auth Buttons */}
             {isLoading ? (

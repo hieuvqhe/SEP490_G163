@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "next dev",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build": "next build --turbopack"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -36,6 +36,7 @@
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.19",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.22",
     "gsap": "^3.13.0",

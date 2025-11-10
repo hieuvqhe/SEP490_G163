@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import BlurCircle from "@/components/layout/BlurCircle";
-import MovieCard from "../MovieCard";
 import { movieCategoryQuickAccess } from "@/constants";
 import { ChevronDown, SearchIcon } from "lucide-react";
 import { useGetFullMovies } from "@/hooks/useMovie";
 import { Movie } from "@/types/movie.type";
-import { MovieCardSkeleton } from "../MovieCardSkeleton";
-import ModernMovieCard from "@/components/custom/ModernMovieCard";
+import MovieCard from "../MovieCard";
+import MovieCardSkeleton from "../MovieCardSkeleton";
+import { Button } from "@/components/ui/button";
 
 type MovieStatus = "now_showing" | "coming_soon" | "ended";
 
@@ -29,7 +29,10 @@ const FeaturedSection = () => {
   const totalPages = movieResponse?.result.totalPages ?? 1;
   const isMaxMovie = page >= totalPages;
 
-  const movies = useMemo(() => movieResponse?.result.movies ?? [], [movieResponse?.result.movies]);
+  const movies = useMemo(
+    () => movieResponse?.result.movies ?? [],
+    [movieResponse?.result.movies]
+  );
   const [allMovies, setAllMovies] = useState<Movie[]>([]);
 
   // Filter movies based on search query
@@ -50,7 +53,7 @@ const FeaturedSection = () => {
         setAllMovies(movies);
       } else {
         // Subsequent pages - append to existing movies
-        setAllMovies(prev => [...prev, ...movies]);
+        setAllMovies((prev) => [...prev, ...movies]);
       }
     }
   }, [movies, page]);
@@ -82,9 +85,14 @@ const FeaturedSection = () => {
 
   return (
     <section className="px-6 md:px-16 lg:px-24 xl:px-44 overflow-hidden">
+      <h1 className="font-bold text-3xl mb-10 mt-20">
+        Phim hay đang chờ đón
+      </h1>
+
       {/* Header */}
-      <header className="relative flex items-center pt-20 pb-10">
+      <header className="relative flex items-center pb-5">
         <BlurCircle top="50px" left="-80px" />
+        <BlurCircle right="0px" top="400px"/>
 
         <div className="relative flex items-center justify-between w-full border-b-white border-b-2 pb-3">
           {/* Category Navigation */}
@@ -137,26 +145,28 @@ const FeaturedSection = () => {
         </div>
       ) : filteredMovies.length > 0 ? (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mt-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8 mt-8">
             {filteredMovies.map((movie) => (
-              <ModernMovieCard key={movie.movieId || movie.title} movie={movie} />
+              <MovieCard key={movie.movieId || movie.title} movie={movie} />
             ))}
           </div>
 
           {/* Load More Button */}
           {!searchQuery && (
-            <div className="flex justify-center mt-12 md:mt-20">
-              <button
+            <div className="flex items-center w-full my-12 md:my-20">
+              <div className="flex-grow border-t border-zinc-200" />
+              <Button
                 disabled={isMaxMovie || isLoading}
                 onClick={handleLoadMore}
-                className="px-8 md:px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition-all duration-300 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                variant={"ghost"}
+                className="ml-4"
               >
                 {isLoading
                   ? "Loading..."
                   : isMaxMovie
                   ? "No more movies"
                   : "Show more"}
-              </button>
+              </Button>
             </div>
           )}
         </>

@@ -98,7 +98,7 @@ const MovieSelectionPanel = ({
                 type="button"
                 onClick={() => onSelect(movie)}
                 className={cn(
-                  "flex items-center gap-4 rounded-lg border px-4 py-3 text-left transition",
+                  "flex items-center w-full gap-4 rounded-lg border px-4 py-3 text-left transition",
                   "border-[#27272a] bg-[#151518] hover:border-[#ff7a45]/60 hover:bg-[#1c1c1f] shadow-lg shadow-black/20",
                   isSelected && "border-[#ff7a45]/70 bg-[#ff7a45]/10 shadow-lg shadow-[#ff7a45]/30"
                 )}

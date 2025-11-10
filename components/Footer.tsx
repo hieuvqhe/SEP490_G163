@@ -1,18 +1,21 @@
-import Image from "next/image";
+import { Pacifico } from "next/font/google";
 import Link from "next/link";
+
+const pacifico = Pacifico({
+  subsets: ["latin"],
+  weight: "400",
+});
 
 const Footer = () => {
   return (
     <footer className="px-6 pt-8 md:px-16 lg:px-36 w-full text-gray-300">
       <div className="flex flex-col md:flex-row justify-between w-full gap-10 border-b border-gray-500 pb-10">
         <div className="md:max-w-96">
-          <Image
-            className="w-14 h-auto"
-            src="https://movie-store-wdp301.s3.ap-southeast-1.amazonaws.com/Images/2e128e74a80867df70af3c302.jpg"
-            alt="logo"
-            width={30}
-            height={30}
-          />
+          <h1
+            className={`${pacifico.className} text-xl font-bold text-white drop-shadow-lg`}
+          >
+            TicketXpress
+          </h1>
           <p className="mt-6 text-sm">
             Lorem Ipsum has been the industries standard dummy text ever since
             the 1500s, when an unknown printer took a galley of type and
