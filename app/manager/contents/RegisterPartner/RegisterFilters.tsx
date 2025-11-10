@@ -1,6 +1,5 @@
 import React from 'react';
 import { Search, RefreshCw, Filter } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface RegisterFiltersProps {
   totalPartners: number;
@@ -26,12 +25,10 @@ export const RegisterFilters = ({
   onRefresh
 }: RegisterFiltersProps) => {
   return (
-    <motion.div 
+    <div 
       className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white backdrop-blur-lg shadow-lg"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
     >
+
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           {/* Search and Stats */}
           <div className="flex flex-1 flex-col gap-4 sm:flex-row">
@@ -48,15 +45,13 @@ export const RegisterFilters = ({
               </div>
             </form>
             
-            <motion.button
+            <button
               onClick={onRefresh}
               className="font-body flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white transition hover:bg-white/10"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
               <RefreshCw size={16} />
               Làm mới
-            </motion.button>
+            </button>
           </div>
 
           {/* Sort Controls */}
@@ -91,29 +86,24 @@ export const RegisterFilters = ({
         </div>
 
         {/* Stats */}
-        <motion.div 
+        <div 
           className="mt-6 border-t border-white/10 pt-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
         >
+
           <div className="flex flex-col gap-2 text-sm text-gray-300 sm:flex-row sm:items-center sm:justify-between">
             <div className="font-body">
               Tổng cộng: <span className="text-white font-medium">{totalPartners}</span> đối tác chờ duyệt
             </div>
             
             {searchTerm && (
-              <motion.div 
+              <div 
                 className="font-body text-sm text-blue-300"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
               >
                 Kết quả tìm kiếm cho: "{searchTerm}"
-              </motion.div>
+              </div>
             )}
           </div>
-        </motion.div>
-    </motion.div>
+        </div>
+    </div>
   );
 };

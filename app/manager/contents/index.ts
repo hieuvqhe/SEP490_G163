@@ -9,3 +9,4 @@ export {
 export { default as ContractSigning } from "./ContractPartner/ContractSigning";
 export { default as ContractManagement } from "./ContractPartner/ContractManagement";
 export { default as ManageMovie } from "./ManageMovie/ManageMovie";
+export { default as VoucherManagement } from "./VoucherManagement/VoucherManagement";
