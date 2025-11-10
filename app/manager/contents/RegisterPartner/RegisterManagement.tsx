@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ToastProvider';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 
 import {
@@ -153,37 +152,9 @@ export const RegisterManagement = () => {
     handleRejectPartner(partnerId);
   };
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.3,
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4
-      }
-    }
-  };
-
   return (
-    <motion.div 
-      className="space-y-6"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <motion.div variants={itemVariants}>
+    <div className="space-y-6">
+      <div>
         <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 text-white backdrop-blur-lg shadow-lg md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-semibold">Quản lý đăng ký đối tác</h2>
@@ -196,9 +167,9 @@ export const RegisterManagement = () => {
             <span className="text-gray-300">đối tác đang chờ duyệt</span>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div variants={itemVariants}>
+      <div>
         <RegisterFilters
           totalPartners={totalPartners}
           searchTerm={searchTerm}
@@ -210,9 +181,9 @@ export const RegisterManagement = () => {
           onSearch={handleSearch}
           onRefresh={refetchPartners}
         />
-      </motion.div>
+      </div>
 
-      <motion.div variants={itemVariants}>
+      <div>
         {Array.isArray(partners) && partners.length > 0 ? (
           <RegisterTable
             partners={partners}
@@ -232,46 +203,39 @@ export const RegisterManagement = () => {
             <p className="mt-2 text-sm">Hiện chưa có partner nào gửi yêu cầu đăng ký. Vui lòng thử lại sau hoặc nhấn "Làm mới".</p>
           </div>
         )}
-      </motion.div>
+      </div>
 
-      {/* Modals with AnimatePresence */}
-      <AnimatePresence mode="wait">
-        {showPartnerModal && selectedPartner && (
-          <PartnerDetailModal
-            partner={selectedPartner}
-            onClose={() => {
-              setShowPartnerModal(false);
-              setSelectedPartner(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {showPartnerModal && selectedPartner && (
+        <PartnerDetailModal
+          partner={selectedPartner}
+          onClose={() => {
+            setShowPartnerModal(false);
+            setSelectedPartner(null);
+          }}
+        />
+      )}
 
-      <AnimatePresence mode="wait">
-        {showApproveModal && partnerToApprove && (
-          <ApproveConfirmModal
-            partner={partnerToApprove}
-            onClose={() => {
-              setShowApproveModal(false);
-              setPartnerToApprove(null);
-            }}
-            onConfirm={handleConfirmApprove}
-          />
-        )}
-      </AnimatePresence>
+      {showApproveModal && partnerToApprove && (
+        <ApproveConfirmModal
+          partner={partnerToApprove}
+          onClose={() => {
+            setShowApproveModal(false);
+            setPartnerToApprove(null);
+          }}
+          onConfirm={handleConfirmApprove}
+        />
+      )}
 
-      <AnimatePresence mode="wait">
-        {showRejectModal && partnerToReject && (
-          <RejectConfirmModal
-            partner={partnerToReject}
-            onClose={() => {
-              setShowRejectModal(false);
-              setPartnerToReject(null);
-            }}
-            onConfirm={handleConfirmReject}
-          />
-        )}
-      </AnimatePresence>
-    </motion.div>
+      {showRejectModal && partnerToReject && (
+        <RejectConfirmModal
+          partner={partnerToReject}
+          onClose={() => {
+            setShowRejectModal(false);
+            setPartnerToReject(null);
+          }}
+          onConfirm={handleConfirmReject}
+        />
+      )}
+    </div>
   );
 };

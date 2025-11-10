@@ -5,6 +5,39 @@ import { createContext, useContext, useState, ReactNode, useCallback } from 'rea
 
 type ToastType = 'success' | 'error' | 'info';
 
+type ToastMessageInput =
+  | string
+  | {
+      message?: string | null;
+      msg?: string | null;
+      errors?: Record<string, { msg?: string | null }>;
+    };
+
+const resolveToastMessage = (input: ToastMessageInput): string => {
+  if (typeof input === 'string') {
+    return input;
+  }
+
+  if (!input || typeof input !== 'object') {
+    return 'Thông báo';
+  }
+
+  const directMessage = input.message ?? input.msg;
+  if (directMessage && typeof directMessage === 'string') {
+    return directMessage;
+  }
+
+  const firstErrorKey = input.errors ? Object.keys(input.errors)[0] : undefined;
+  if (firstErrorKey) {
+    const errorEntry = input.errors?.[firstErrorKey];
+    if (errorEntry?.msg) {
+      return errorEntry.msg;
+    }
+  }
+
+  return 'Thông báo';
+};
+
 interface ToastData {
   id: string;
   title: string;
@@ -13,7 +46,7 @@ interface ToastData {
 }
 
 interface ToastContextType {
-  showToast: (title: string, description?: string, type?: ToastType) => void;
+  showToast: (title: ToastMessageInput, description?: string, type?: ToastType) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -33,9 +66,10 @@ interface ToastProviderProps {
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
-  const showToast = (title: string, description?: string, type: ToastType = 'info') => {
+  const showToast = (title: ToastMessageInput, description?: string, type: ToastType = 'info') => {
     const id = Math.random().toString(36).substr(2, 9);
-    const newToast: ToastData = { id, title, description, type };
+    const resolvedTitle = resolveToastMessage(title);
+    const newToast: ToastData = { id, title: resolvedTitle, description, type };
     
     setToasts(prev => [...prev, newToast]);
     

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { XCircle } from "lucide-react";
 import Modal from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { CinemaFormValues } from "../types";
+import { useUploadToCloudinary } from "@/apis/cloudinary.api";
+import { useToast } from "@/components/ToastProvider";
 
 interface CinemaFormModalProps {
   open: boolean;
@@ -113,8 +115,11 @@ const CinemaFormModal = ({
   onSubmit,
   onClose,
 }: CinemaFormModalProps) => {
+  const { showToast } = useToast();
+  const uploadMutation = useUploadToCloudinary();
   const [values, setValues] = useState<CinemaFormValues>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof CinemaFormValues, string>>>({});
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const baseInputClasses =
     "bg-[#27272a] text-[#f5f5f5] border border-[#3a3a3d] placeholder:text-[#9e9ea2] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30";
@@ -139,6 +144,37 @@ const CinemaFormModal = ({
 
   const handleChange = (key: keyof CinemaFormValues, value: string | boolean) => {
     setValues((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleLogoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const result = await uploadMutation.mutateAsync(file);
+      if (result?.secure_url) {
+        setValues((prev) => ({ ...prev, logoUrl: result.secure_url }));
+        showToast("Tải logo thành công", undefined, "success");
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("Tải logo thất bại", "Vui lòng thử lại sau", "error");
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleTriggerUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemoveLogo = () => {
+    setValues((prev) => ({ ...prev, logoUrl: "" }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const validate = () => {
@@ -220,6 +256,56 @@ const CinemaFormModal = ({
               />
               {field.helper && (
                 <p className="text-xs text-[#9e9ea2]">{field.helper}</p>
+              )}
+
+              {field.key === "logoUrl" && (
+                <div className="mt-2 space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={`${secondaryButtonClasses} flex items-center gap-2 border-dashed border-[#3a3a3d] bg-transparent hover:bg-[#27272a]`}
+                      onClick={handleTriggerUpload}
+                      disabled={uploadMutation.isPending || submitting}
+                    >
+                      {uploadMutation.isPending ? "Đang tải..." : "Tải ảnh từ máy"}
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                    />
+                    {values.logoUrl && (
+                      <span className="text-xs text-[#9e9ea2]">
+                        Ảnh đã chọn sẽ được hiển thị dưới đây.
+                      </span>
+                    )}
+                  </div>
+
+                  {values.logoUrl && (
+                    <div className="flex items-center gap-4">
+                      <div className="h-20 w-20 overflow-hidden rounded-lg border border-[#27272a] bg-[#151518]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={values.logoUrl}
+                          alt="Logo preview"
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={`${secondaryButtonClasses} text-rose-300 hover:text-rose-200`}
+                        onClick={handleRemoveLogo}
+                        disabled={uploadMutation.isPending || submitting}
+                      >
+                        Xoá logo
+                      </Button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ))}

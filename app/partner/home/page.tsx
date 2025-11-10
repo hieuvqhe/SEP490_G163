@@ -25,6 +25,7 @@ import CinemaInfo from "./contents/Cinema/CinemaInfo/CinemaInfo";
 import ScreenManagement from "./contents/Cinema/ScreenManagement/ScreenManagement";
 import ShowtimeManagement from "./contents/Cinema/ShowtimeManagement/ShowtimeManagement";
 import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement/SeatTypeManagement";
+import ComboManagement from "./contents/Cinema/ComboManagement";
 import ContractList from "./contents/Contract/ContractList";
 
 
@@ -61,6 +62,9 @@ const PartnerHomepage = () => {
 
       case "contract-list":
         return <ContractList />;
+      
+      case "combo":
+        return <ComboManagement />;
       // case "showtimes":
       //   return <Showtimes />;
 

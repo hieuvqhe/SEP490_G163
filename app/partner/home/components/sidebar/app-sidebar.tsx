@@ -84,7 +84,7 @@ export function AppSidebar({ setActiveTab: legacySetActiveTab, ...rest }: AppSid
             url: "movies",
           },
           {
-            title: "Combo & Giá Vé",
+            title: "Combo",
             url: "combo",
           },
         ],

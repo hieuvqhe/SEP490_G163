@@ -17,6 +17,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import MovieCreationIcon from '@mui/icons-material/MovieCreation';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import { useRouter } from 'next/navigation';
 
 const drawerWidth = 240;
@@ -92,21 +93,22 @@ export default function PersistentDrawerLeft({ children, open = false, onClose }
             { text: 'Quản Lý Đăng Ký', icon: <MailIcon />, path: '/manager/register' },
             { text: 'Ký Kết Hợp Đồng', icon: <DescriptionIcon />, path: '/manager/contract-signing' },
             { text: 'Quản Lý Hợp Đồng', icon: <AssignmentTurnedInIcon />, path: '/manager/contract-management' },
-            { text: 'Quản Lý Phim', icon: <MovieCreationIcon />, path: '/manager/movie-management' }
-          ].map((item, index) => (
+            { text: 'Quản Lý Phim', icon: <MovieCreationIcon />, path: '/manager/movie-management' },
+            { text: 'Quản Lý Voucher', icon: <CardGiftcardIcon />, path: '/manager/voucher-management' }
+          ].map((item) => (
             <ListItem key={item.text} disablePadding>
-                <ListItemButton 
-                  sx={{ color: '#F25912' }}
-                  onClick={() => {
-                    router.push(item.path);
-                    onClose?.();
-                  }}
-                >
-                  <ListItemIcon sx={{ color: '#F25912' }}>
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={item.text} />
-                </ListItemButton>
+              <ListItemButton
+                sx={{ color: '#F25912' }}
+                onClick={() => {
+                  router.push(item.path);
+                  onClose?.();
+                }}
+              >
+                <ListItemIcon sx={{ color: '#F25912' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
             </ListItem>
           ))}
         </List>
