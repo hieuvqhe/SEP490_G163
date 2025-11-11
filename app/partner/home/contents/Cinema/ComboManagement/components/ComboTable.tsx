@@ -78,7 +78,10 @@ const ComboTable = ({
   const currentPage = pagination?.currentPage ?? 1;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#27272a] bg-[#151518] shadow-lg shadow-black/40">
+    <div
+      className="overflow-hidden rounded-xl border border-[#27272a] bg-[#151518] shadow-lg shadow-black/40"
+      id="combo-tour-table"
+    >
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[#27272a]">
           <thead className="bg-[#27272a]">
@@ -92,6 +95,7 @@ const ComboTable = ({
                     type="button"
                     onClick={() => onSortChange(column.key)}
                     className="flex items-center gap-2 text-[#9e9ea2] transition hover:text-[#ff7a45]"
+                    id={column.key === "price" ? "combo-tour-table-sort" : undefined}
                   >
                     {column.label}
                     {renderSortIcon(column.key)}
@@ -121,14 +125,21 @@ const ComboTable = ({
               </tr>
             ) : combos.length === 0 ? (
               <tr>
-                <td colSpan={TOTAL_COLUMNS} className="px-4 py-10 text-center text-sm text-[#9e9ea2]">
+                <td
+                  colSpan={TOTAL_COLUMNS}
+                  className="px-4 py-10 text-center text-sm text-[#9e9ea2]"
+                  id="combo-tour-empty"
+                >
                   Không có combo nào phù hợp với bộ lọc hiện tại.
                 </td>
               </tr>
             ) : (
-              combos.map((combo) => (
+              combos.map((combo, index) => (
                 <Fragment key={combo.serviceId}>
-                  <tr className="bg-[#151518] transition-colors hover:bg-[#1c1c1f]">
+                  <tr
+                    className="bg-[#151518] transition-colors hover:bg-[#1c1c1f]"
+                    id={index === 0 ? "combo-tour-row" : undefined}
+                  >
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-[#f5f5f5]">{combo.name}</span>
@@ -150,7 +161,7 @@ const ComboTable = ({
                     </td>
                     <td className="px-4 py-4">{renderStatusBadge(combo)}</td>
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" id={index === 0 ? "combo-tour-row-actions" : undefined}>
                         <Button
                           variant="outline"
                           size="icon-sm"
@@ -188,12 +199,14 @@ const ComboTable = ({
         </table>
       </div>
 
-      <ComboPaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        loading={loading}
-        onPageChange={onPageChange}
-      />
+      <div id="combo-tour-pagination">
+        <ComboPaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          loading={loading}
+          onPageChange={onPageChange}
+        />
+      </div>
     </div>
   );
 };

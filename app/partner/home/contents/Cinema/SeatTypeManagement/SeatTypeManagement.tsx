@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import {
   PartnerSeatType,
   PartnerSeatTypeApiError,
@@ -316,10 +318,184 @@ const SeatTypeManagement = () => {
 
   const isRefreshing = isFetching && !isLoading;
 
+  const handleStartGuide = useCallback(() => {
+    type GuideStep = {
+      element: string;
+      popover: {
+        title: string;
+        description: string;
+        side: "bottom" | "right";
+        align: "start";
+      };
+    };
+
+    const steps: GuideStep[] = [
+      {
+        element: "#seat-type-tour-page",
+        popover: {
+          title: "Quản lý loại ghế",
+          description:
+            "Trang này giúp theo dõi toàn bộ loại ghế, quản lý phụ thu và tạo nhanh các mẫu bắt buộc cho sơ đồ rạp.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-tour-header",
+        popover: {
+          title: "Tổng quan & hướng dẫn",
+          description: "Nhấn nút bên phải bất cứ lúc nào để mở lại tour hướng dẫn chi tiết.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    if (shouldShowRequiredSeatTypeAlert) {
+      steps.push({
+        element: "#seat-type-tour-required-alert",
+        popover: {
+          title: "Loại ghế bắt buộc",
+          description:
+            "Hệ thống cần đủ các loại ghế mẫu để tạo sơ đồ. Tạo nhanh các mẫu còn thiếu ngay tại khu vực này.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      });
+    }
+
+    steps.push(
+      {
+        element: "#seat-type-tour-toolbar",
+        popover: {
+          title: "Bộ lọc & thao tác",
+          description: "Tìm kiếm theo tên, mã, phụ thu và trạng thái để thu hẹp danh sách loại ghế.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-tour-toolbar-actions",
+        popover: {
+          title: "Các nút nhanh",
+          description: "Đặt lại bộ lọc, làm mới dữ liệu hoặc bắt đầu tạo loại ghế mới.",
+          side: "right" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-tour-create-btn",
+        popover: {
+          title: "Tạo loại ghế",
+          description: "Mở biểu mẫu để khai báo phụ thu, màu sắc và mô tả cho loại ghế mới.",
+          side: "right" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-tour-table",
+        popover: {
+          title: "Danh sách loại ghế",
+          description: "Theo dõi mã, phụ thu, trạng thái và thời gian cập nhật của từng loại ghế.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-tour-table-sort",
+        popover: {
+          title: "Sắp xếp dữ liệu",
+          description: "Nhấp tiêu đề cột để sắp xếp theo tên, mã, phụ thu hoặc thời gian cập nhật.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      }
+    );
+
+    const hasData = displaySeatTypes.length > 0;
+    const showEmptyState = !hasData && !isLoading && !queryError;
+
+    if (hasData) {
+      steps.push(
+        {
+          element: "#seat-type-tour-row",
+          popover: {
+            title: "Chi tiết loại ghế",
+            description: "Mỗi hàng cung cấp thông tin tổng quát để bạn đánh giá nhanh từng loại ghế.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#seat-type-tour-row-actions",
+          popover: {
+            title: "Hành động",
+            description: "Xem chi tiết, chỉnh sửa hoặc vô hiệu hoá loại ghế ngay tại đây.",
+            side: "right" as const,
+            align: "start" as const,
+          },
+        }
+      );
+    }
+
+    if (showEmptyState) {
+      steps.push({
+        element: "#seat-type-tour-empty",
+        popover: {
+          title: "Chưa có dữ liệu",
+          description: "Tạo loại ghế mới hoặc áp dụng bộ lọc khác để hiển thị danh sách.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      });
+    }
+
+    steps.push({
+      element: "#seat-type-tour-pagination",
+      popover: {
+        title: "Điều hướng danh sách",
+        description: "Chuyển trang để xem thêm loại ghế và theo dõi trạng thái tải dữ liệu.",
+        side: "bottom" as const,
+        align: "start" as const,
+      },
+    });
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [displaySeatTypes.length, isLoading, queryError, shouldShowRequiredSeatTypeAlert]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="seat-type-tour-page">
+      <div className="flex flex-col gap-3 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40 sm:flex-row sm:items-center sm:justify-between" id="seat-type-tour-header">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-[#f5f5f5]">Quản lý loại ghế</h2>
+          <p className="text-sm text-[#9e9ea2]">
+            Quản lý phụ thu, màu sắc và mô tả để tổ chức sơ đồ ghế chính xác cho từng phòng chiếu.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleStartGuide}
+          className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]"
+          id="seat-type-tour-start-btn"
+        >
+          Bắt đầu hướng dẫn
+        </Button>
+      </div>
+
       {shouldShowRequiredSeatTypeAlert && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-amber-100">
+        <div
+          className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-amber-100"
+          id="seat-type-tour-required-alert"
+        >
           <AlertTriangle className="mt-0.5 size-5 text-amber-400" />
           <div className="space-y-3">
             <p className="font-semibold">Cần tạo loại ghế bắt buộc</p>
@@ -352,6 +528,7 @@ const SeatTypeManagement = () => {
                     size="sm"
                     className="bg-amber-400 text-[#151518] shadow hover:bg-amber-300"
                     onClick={() => handleCreateRequiredSeatType(item)}
+                    id={`seat-type-tour-required-create-${item.code}`}
                   >
                     Tạo nhanh loại ghế này
                   </Button>
@@ -369,6 +546,7 @@ const SeatTypeManagement = () => {
         onRefresh={() => refetch()}
         isRefreshing={isRefreshing}
         onCreate={handleCreateClick}
+        onStartGuide={handleStartGuide}
       />
 
       <SeatTypeTable

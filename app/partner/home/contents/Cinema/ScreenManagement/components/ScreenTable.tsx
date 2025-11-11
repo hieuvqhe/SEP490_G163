@@ -96,11 +96,14 @@ const ScreenTable = ({
   const currentPage = pagination?.currentPage ?? 1;
 
   return (
-    <div className="rounded-xl border border-[#27272a] bg-[#151518] shadow-lg shadow-black/40">
+    <div
+      className="rounded-xl border border-[#27272a] bg-[#151518] shadow-lg shadow-black/40"
+      id="screen-tour-table"
+    >
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[#27272a]">
           <thead className="bg-[#27272a] text-xs font-semibold uppercase tracking-wider text-[#9e9ea2]">
-            <tr>
+            <tr id="screen-tour-table-sort">
               <th className="px-4 py-3 text-left">
                 <button
                   type="button"
@@ -171,8 +174,12 @@ const ScreenTable = ({
                 </td>
               </tr>
             ) : (
-              screens.map((screen) => (
-                <tr key={screen.screenId} className="bg-[#151518] transition-colors hover:bg-[#1c1c1f]">
+              screens.map((screen, index) => (
+                <tr
+                  key={screen.screenId}
+                  className="bg-[#151518] transition-colors hover:bg-[#1c1c1f]"
+                  id={index === 0 ? "screen-tour-row" : undefined}
+                >
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex size-10 items-center justify-center rounded-lg bg-[#27272a] text-[#ff7a45]">
@@ -195,7 +202,10 @@ const ScreenTable = ({
                     {new Date(screen.updatedDate).toLocaleString("vi-VN")}
                   </td>
                   <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
+                    <div
+                      className="flex items-center gap-2"
+                      id={index === 0 ? "screen-tour-row-actions" : undefined}
+                    >
                       {onViewSeatLayout && (
                         <Button
                           variant="outline"
@@ -259,12 +269,14 @@ const ScreenTable = ({
         </table>
       </div>
 
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        loading={loading}
-        onPageChange={onPageChange}
-      />
+      <div id="screen-tour-pagination">
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          loading={loading}
+          onPageChange={onPageChange}
+        />
+      </div>
     </div>
   );
 };

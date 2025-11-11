@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Modal from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SeatTypeFormValues } from "../types";
 import { useAuthStore } from "@/store/authStore";
+import { Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 interface SeatTypeFormModalProps {
   open: boolean;
@@ -160,6 +163,78 @@ const SeatTypeFormModal = ({
     onSubmit(values);
   };
 
+  const handleStartGuide = useCallback(() => {
+    const isCreate = mode === "create";
+    const steps = [
+      {
+        element: "#seat-type-form-tour-header",
+        popover: {
+          title: isCreate ? "Tạo loại ghế mới" : "Cập nhật loại ghế",
+          description: isCreate
+            ? "Điền thông tin phụ thu, màu sắc và mô tả để bổ sung loại ghế cho hệ thống."
+            : "Điều chỉnh thông tin loại ghế hiện có, kiểm tra kỹ trước khi lưu thay đổi.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-form-tour-code",
+        popover: {
+          title: "Mã loại ghế",
+          description: "Mã được tạo tự động từ tên loại ghế và ID đối tác, chỉ dùng để nhận diện nội bộ.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-form-tour-fields",
+        popover: {
+          title: "Thông tin bắt buộc",
+          description: "Hoàn thiện tên loại ghế, phụ thu và mã màu HEX chính xác để đồng bộ sơ đồ ghế.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-form-tour-colors",
+        popover: {
+          title: "Chọn màu đại diện",
+          description: "Có thể chọn nhanh trong bảng màu hoặc tự nhập mã HEX để hiển thị trên sơ đồ.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-form-tour-description",
+        popover: {
+          title: "Mô tả chi tiết",
+          description: "Ghi chú mục đích, lưu ý sử dụng để đội ngũ vận hành hiểu rõ từng loại ghế.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-type-form-tour-actions",
+        popover: {
+          title: "Hoàn tất",
+          description: "Nhấn Lưu để xác nhận hoặc Huỷ để đóng biểu mẫu mà không thay đổi dữ liệu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [mode]);
+
   const title = mode === "create" ? "Tạo loại ghế mới" : "Cập nhật loại ghế";
 
   const baseInputClasses =
@@ -176,8 +251,32 @@ const SeatTypeFormModal = ({
       size="md"
       contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child] button:text-[#f5f5f5]/70 [&>div:first-child] button:hover:text-white [&>div:first-child] button:hover:bg-[#27272a]"
     >
-      <div className="space-y-6">
-        <div className="flex flex-col gap-2">
+      <div className="space-y-6" id="seat-type-form-tour-container">
+        <div
+          className="flex flex-col gap-3 rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3 md:flex-row md:items-center md:justify-between"
+          id="seat-type-form-tour-header"
+        >
+          <div className="space-y-1 text-sm">
+            <p className="text-base font-semibold text-[#f5f5f5]">
+              {mode === "create" ? "Khai báo loại ghế mới" : "Chỉnh sửa loại ghế"}
+            </p>
+            <p className="text-xs text-[#9e9ea2]">
+              Đảm bảo phụ thu và màu sắc phù hợp với quy định hiển thị trên sơ đồ ghế điện ảnh.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleStartGuide}
+            className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] hover:bg-[#27272a]"
+            id="seat-type-form-tour-guide-btn"
+          >
+            <Info className="size-4" />
+            Hướng dẫn biểu mẫu
+          </Button>
+        </div>
+
+        <div className="flex flex-col gap-2" id="seat-type-form-tour-code">
           <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">Mã loại ghế</label>
           <Input
             value={values.code}
@@ -192,9 +291,9 @@ const SeatTypeFormModal = ({
           {errors.code && <span className="text-xs text-rose-400">{errors.code}</span>}
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-4" id="seat-type-form-tour-fields">
           {FIELD_CONFIG.map((field) => (
-            <div key={field.key} className="flex flex-col gap-2">
+            <div key={field.key} className="flex flex-col gap-2" id={`seat-type-form-tour-field-${field.key}`}>
               <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">{field.label}</label>
               <Input
                 type={field.type ?? "text"}
@@ -210,7 +309,7 @@ const SeatTypeFormModal = ({
           ))}
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3" id="seat-type-form-tour-colors">
           <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">Màu sắc</label>
           <div className="grid grid-cols-6 gap-2">
             {COLOR_PRESETS.map((preset) => {
@@ -248,7 +347,7 @@ const SeatTypeFormModal = ({
           <p className="text-xs text-[#9e9ea2]">Chọn nhanh từ bảng màu hoặc tự tuỳ chỉnh bằng mã HEX.</p>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2" id="seat-type-form-tour-description">
           <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">Mô tả</label>
           <Textarea
             value={values.description}
@@ -261,7 +360,7 @@ const SeatTypeFormModal = ({
           </p>
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3" id="seat-type-form-tour-actions">
           <Button
             variant="outline"
             onClick={onClose}

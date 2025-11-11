@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getMoviesByStatus } from "@/apis/movie.api";
 import type { Movie } from "@/types/movie.type";
@@ -47,6 +47,10 @@ import {
 import { getScreenErrorMessage } from "../ScreenManagement/utils";
 import { useToast } from "@/components/ToastProvider";
 import { CinemaSelectionPanel } from "../ScreenManagement/components";
+import { Button } from "@/components/ui/button";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+import { Info } from "lucide-react";
 
 const ShowtimeManagement = () => {
   const { showToast } = useToast();
@@ -71,6 +75,108 @@ const ShowtimeManagement = () => {
   const [deleteTarget, setDeleteTarget] = useState<PartnerShowtime | null>(null);
 
   const invalidateScreens = useInvalidatePartnerScreens();
+
+  const handleStartGuide = useCallback(() => {
+    const steps = [] as {
+      element: string;
+      popover: {
+        title: string;
+        description: string;
+        side: "bottom" | "right";
+        align: "start";
+      };
+    }[];
+
+    steps.push(
+      {
+        element: "#showtime-tour-page",
+        popover: {
+          title: "Quản lý suất chiếu",
+          description:
+            "Chọn phim, rạp và phòng chiếu để xem – chỉnh sửa các suất chiếu đang diễn ra.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+      {
+        element: "#showtime-tour-movie-panel",
+        popover: {
+          title: "Chọn phim",
+          description:
+            "Lọc danh sách phim đang chiếu, tìm theo tên và chọn phim cần tạo lịch chiếu.",
+          side: "right",
+          align: "start",
+        },
+      },
+      {
+        element: "#showtime-tour-cinema-panel",
+        popover: {
+          title: "Chọn rạp",
+          description:
+            "Tra cứu rạp thuộc quyền quản lý, xem trạng thái và chọn rạp phù hợp.",
+          side: "right",
+          align: "start",
+        },
+      }
+    );
+
+    steps.push(
+      {
+        element: "#showtime-tour-screen-panel",
+        popover: {
+          title: "Chọn phòng chiếu",
+          description:
+            "Sau khi chọn rạp, chọn phòng chiếu cụ thể để xem danh sách suất chiếu tương ứng.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+      {
+        element: "#showtime-tour-toolbar",
+        popover: {
+          title: "Bộ lọc & thao tác",
+          description:
+            "Lọc theo ngày, trạng thái, sắp xếp và tạo suất chiếu mới cho phòng đã chọn.",
+          side: "bottom",
+          align: "start",
+        },
+      }
+    );
+
+    if (!selectedMovie || !selectedCinema || !selectedScreen) {
+      steps.push({
+        element: "#showtime-tour-empty",
+        popover: {
+          title: "Chưa đủ điều kiện",
+          description:
+            "Hệ thống cần bạn chọn đủ phim, rạp và phòng chiếu trước khi hiển thị lịch.",
+          side: "bottom",
+          align: "start",
+        },
+      });
+    } else {
+      steps.push({
+        element: "#showtime-tour-table",
+        popover: {
+          title: "Danh sách suất chiếu",
+          description:
+            "Theo dõi thời gian chiếu, giá vé, số ghế và truy cập nhanh vào hành động chỉnh sửa/xoá.",
+          side: "bottom",
+          align: "start",
+        },
+      });
+    }
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, []);
 
   const {
     data: moviesData,
@@ -341,23 +447,35 @@ const ShowtimeManagement = () => {
   const isRefreshingShowtimes = showtimesFetching && !showtimesLoading;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="showtime-tour-page">
       <div className="grid gap-6 lg:grid-cols-[340px,1fr]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
+          <div className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40" id="showtime-tour-movie-panel">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[#f5f5f5]">Phim đang chiếu</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] hover:bg-[#27272a]"
+                onClick={handleStartGuide}
+                id="showtime-tour-start-btn"
+              >
+                <Info className="mr-1 size-4" /> Hướng dẫn
+              </Button>
+            </div>
             <MovieSelectionPanel
+              searchTerm={movieSearchTerm}
+              onSearchChange={setMovieSearchTerm}
               movies={movies}
               loading={moviesLoading || moviesFetching}
               errorMessage={movieErrorMessage}
-              searchTerm={movieSearchTerm}
-              onSearchChange={setMovieSearchTerm}
               selectedMovieId={selectedMovie?.movieId ?? null}
               onSelect={handleSelectMovie}
               onRefresh={() => refetchMovies()}
             />
           </div>
 
-          <div className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
+          <div className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40" id="showtime-tour-cinema-panel">
             <CinemaSelectionPanel
               cinemas={cinemas}
               loading={cinemasLoading || cinemasFetching}
@@ -372,7 +490,7 @@ const ShowtimeManagement = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
+          <div className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40" id="showtime-tour-screen-panel">
             <ScreenSelectionPanel
               screens={screens}
               loading={screensLoading || screensFetching}
@@ -389,35 +507,39 @@ const ShowtimeManagement = () => {
           </div>
 
           <div className="space-y-4">
-            <ShowtimeToolbar
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              onRefresh={() => refetchShowtimes()}
-              isRefreshing={isRefreshingShowtimes}
-              onCreate={handleCreateShowtime}
-              movieName={selectedMovie?.title}
-              cinemaName={selectedCinema?.cinemaName}
-              screenName={selectedScreen?.screenName}
-            />
+            <div id="showtime-tour-toolbar">
+              <ShowtimeToolbar
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                onRefresh={() => refetchShowtimes()}
+                isRefreshing={isRefreshingShowtimes}
+                onCreate={handleCreateShowtime}
+                movieName={selectedMovie?.title}
+                cinemaName={selectedCinema?.cinemaName}
+                screenName={selectedScreen?.screenName}
+              />
+            </div>
 
             {!canQueryShowtimes ? (
-              <div className="rounded-xl border border-dashed border-[#27272a] bg-[#151518] p-10 text-center text-[#9e9ea2]">
+              <div className="rounded-xl border border-dashed border-[#27272a] bg-[#151518] p-10 text-center text-[#9e9ea2]" id="showtime-tour-empty">
                 <p className="text-lg font-semibold text-[#f5f5f5]">Hãy chọn đủ phim, rạp và phòng chiếu</p>
                 <p className="mt-1 text-sm">
                   Sau khi chọn đầy đủ, hệ thống sẽ hiển thị danh sách suất chiếu và cho phép bạn thao tác.
                 </p>
               </div>
             ) : (
-              <ShowtimeTable
-                showtimes={showtimes}
-                loading={showtimesLoading && !showtimesFetching}
-                errorMessage={showtimeErrorMessage}
-                pagination={showtimePagination}
-                paginationState={pagination}
-                onPageChange={handlePageChange}
-                onEdit={handleEditShowtime}
-                onDelete={handleDeleteShowtime}
-              />
+              <div id="showtime-tour-table">
+                <ShowtimeTable
+                  showtimes={showtimes}
+                  loading={showtimesLoading && !showtimesFetching}
+                  errorMessage={showtimeErrorMessage}
+                  pagination={showtimePagination}
+                  paginationState={pagination}
+                  onPageChange={handlePageChange}
+                  onEdit={handleEditShowtime}
+                  onDelete={handleDeleteShowtime}
+                />
+              </div>
             )}
           </div>
         </div>

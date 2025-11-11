@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent } from "react";
-import { Filter, Plus, RefreshCw, Search, SlidersHorizontal, Tag } from "lucide-react";
+import { Filter, Info, Plus, RefreshCw, Search, SlidersHorizontal, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ type SeatTypeToolbarProps = {
   onRefresh: () => void;
   onCreate: () => void;
   isRefreshing: boolean;
+  onStartGuide?: () => void;
 };
 
 const SeatTypeToolbar = ({
@@ -23,6 +24,7 @@ const SeatTypeToolbar = ({
   onRefresh,
   onCreate,
   isRefreshing,
+  onStartGuide,
 }: SeatTypeToolbarProps) => {
   const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -36,7 +38,10 @@ const SeatTypeToolbar = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
+    <div
+      className="flex flex-col gap-4 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40"
+      id="seat-type-tour-toolbar"
+    >
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2 text-[#f5f5f5]/80">
           <Filter className="size-5 text-[#ff7a45]" />
@@ -46,7 +51,19 @@ const SeatTypeToolbar = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" id="seat-type-tour-toolbar-actions">
+          {onStartGuide && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onStartGuide}
+              className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]"
+              id="seat-type-tour-guide-btn"
+            >
+              <Info className="size-4" />
+              Hướng dẫn
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -65,6 +82,7 @@ const SeatTypeToolbar = ({
               "border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]",
               isRefreshing && "opacity-70"
             )}
+            id="seat-type-tour-refresh-btn"
           >
             <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
             Làm mới
@@ -73,6 +91,7 @@ const SeatTypeToolbar = ({
             size="sm"
             onClick={onCreate}
             className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
+            id="seat-type-tour-create-btn"
           >
             <Plus className="size-4" />
             Tạo loại ghế
@@ -80,8 +99,8 @@ const SeatTypeToolbar = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
-        <div className="relative md:col-span-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-5" id="seat-type-tour-filters">
+        <div className="relative md:col-span-2" id="seat-type-tour-search">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9e9ea2]" />
           <Input
             placeholder="Tìm kiếm theo tên"
@@ -92,7 +111,7 @@ const SeatTypeToolbar = ({
           />
         </div>
 
-        <div className="relative">
+        <div className="relative" id="seat-type-tour-code">
           <Tag className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9e9ea2]" />
           <Input
             placeholder="Mã loại ghế"
@@ -109,6 +128,7 @@ const SeatTypeToolbar = ({
           name="minSurcharge"
           value={filters.minSurcharge}
           onChange={handleInputChange}
+          id="seat-type-tour-min"
         />
         <Input
           placeholder="Phụ thu tối đa"
@@ -116,12 +136,14 @@ const SeatTypeToolbar = ({
           name="maxSurcharge"
           value={filters.maxSurcharge}
           onChange={handleInputChange}
+          id="seat-type-tour-max"
         />
         <select
           name="status"
           value={filters.status}
           onChange={handleInputChange}
           className="h-9 rounded-md border border-[#3a3a3d] bg-[#27272a] px-3 text-sm text-[#f5f5f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7a45]"
+          id="seat-type-tour-status"
         >
           <option value="all" className="bg-[#151518] text-[#f5f5f5]">Tất cả trạng thái</option>
           <option value="active" className="bg-[#151518] text-[#f5f5f5]">Đang hoạt động</option>

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import {
   PartnerCombo,
   PartnerComboApiError,
@@ -12,6 +14,7 @@ import {
   useUpdatePartnerCombo,
 } from "@/apis/partner.combo.api";
 import { useToast } from "@/components/ToastProvider";
+import { Button } from "@/components/ui/button";
 import {
   ComboDeleteDialog,
   ComboDetailModal,
@@ -32,6 +35,7 @@ import {
   mapSortFieldToApi,
   mapStatusFilterToBoolean,
 } from "./utils";
+import { Info } from "lucide-react";
 
 const ComboManagement = () => {
   const { showToast } = useToast();
@@ -210,30 +214,185 @@ const ComboManagement = () => {
 
   const isRefreshing = isFetching && !isLoading;
 
-  return (
-    <div className="space-y-6">
-      <ComboToolbar
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onReset={handleResetFilters}
-        onRefresh={() => refetch()}
-        onCreate={handleCreateClick}
-        isRefreshing={isRefreshing}
-      />
+  const handleStartGuide = useCallback(() => {
+    const hasCombos = combos.length > 0;
+    const steps = [
+      {
+        element: "#combo-tour-page",
+        popover: {
+          title: "Quản lý combo bắp nước",
+          description:
+            "Tab này cho phép bạn tạo, chỉnh sửa và theo dõi các combo phục vụ kênh bán vé, bao gồm giá, mô tả và trạng thái kinh doanh.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#combo-tour-summary",
+        popover: {
+          title: "Tổng quan & hướng dẫn",
+          description:
+            "Bảng tóm tắt giúp bạn nắm nhanh mục đích của trang. Nhấn \"Hướng dẫn\" bất cứ lúc nào để chạy lại tour từng bước.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#combo-tour-toolbar",
+        popover: {
+          title: "Bộ lọc & thao tác",
+          description:
+            "Tại đây bạn tìm kiếm theo tên/mã, lọc theo trạng thái, đặt lại bộ lọc, làm mới dữ liệu hoặc mở biểu mẫu tạo combo mới.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#combo-tour-filters",
+        popover: {
+          title: "Tìm kiếm nhanh",
+          description:
+            "Nhập từ khoá hoặc chọn trạng thái để thu hẹp danh sách combo. Mọi thay đổi sẽ áp dụng tức thì.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#combo-tour-toolbar-actions",
+        popover: {
+          title: "Các nút thao tác",
+          description:
+            "Đặt lại bộ lọc về mặc định, làm mới dữ liệu mới nhất hoặc bấm \"Tạo combo mới\" để mở biểu mẫu khởi tạo.",
+          side: "left" as const,
+          align: "center" as const,
+        },
+      },
+      {
+        element: "#combo-tour-table",
+        popover: {
+          title: "Danh sách combo",
+          description:
+            "Theo dõi toàn bộ combo đang quản lý cùng mã, mô tả, giá bán, thời gian cập nhật và trạng thái kinh doanh.",
+          side: "top" as const,
+          align: "start" as const,
+        },
+      },
+    ];
 
-      <ComboTable
-        combos={combos}
-        loading={isLoading}
-        errorMessage={queryError?.message}
-        pagination={paginationInfo}
-        sortBy={filters.sortBy}
-        sortOrder={filters.sortOrder}
-        onSortChange={handleSortChange}
-        onPageChange={handlePageChange}
-        onView={handleViewClick}
-        onEdit={handleEditClick}
-        onDelete={handleDeleteClick}
-      />
+    if (hasCombos) {
+      steps.push(
+        {
+          element: "#combo-tour-table-sort",
+          popover: {
+            title: "Sắp xếp linh hoạt",
+            description: "Nhấn tiêu đề cột có biểu tượng mũi tên để sắp xếp theo giá, ngày tạo hoặc cập nhật.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#combo-tour-row",
+          popover: {
+            title: "Chi tiết từng combo",
+            description: "Mỗi hàng hiển thị tên, mã, mô tả rút gọn, giá và trạng thái giúp bạn đánh giá nhanh.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#combo-tour-row-actions",
+          popover: {
+            title: "Thao tác nhanh",
+            description: "Xem chi tiết, chỉnh sửa hoặc xoá combo ngay tại đây. Các nút có biểu tượng trực quan.",
+            side: "left" as const,
+            align: "center" as const,
+          },
+        }
+      );
+    } else {
+      steps.push({
+        element: "#combo-tour-empty",
+        popover: {
+          title: "Chưa có combo phù hợp",
+          description: "Khi bộ lọc không trả về kết quả, bạn sẽ thấy thông báo gợi ý điều chỉnh hoặc tạo combo mới.",
+          side: "top" as const,
+          align: "start" as const,
+        },
+      });
+    }
+
+    steps.push({
+      element: "#combo-tour-pagination",
+      popover: {
+        title: "Điều hướng trang",
+        description: "Sử dụng nút Trước/Sau để duyệt qua các trang combo và quan sát trạng thái tải dữ liệu.",
+        side: "top" as const,
+        align: "start" as const,
+      },
+    });
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [combos.length]);
+
+  return (
+    <div className="space-y-6" id="combo-tour-page">
+      <div className="flex flex-col gap-3 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40 sm:flex-row sm:items-center sm:justify-between" id="combo-tour-summary">
+        <div className="flex items-start gap-3 text-[#f5f5f5]">
+          <div className="rounded-full bg-[#ff7a45]/15 p-2 text-[#ff7a45]">
+            <Info className="size-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Quản lý combo bắp nước</h2>
+            <p className="text-sm text-[#9e9ea2]">
+              Theo dõi danh mục combo, cập nhật giá và trạng thái bán nhằm đồng bộ trên hệ thống đối tác.
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleStartGuide}
+          className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]"
+          id="combo-tour-start-btn"
+        >
+          Hướng dẫn
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        <div id="combo-tour-toolbar">
+          <ComboToolbar
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onReset={handleResetFilters}
+            onRefresh={() => refetch()}
+            onCreate={handleCreateClick}
+            isRefreshing={isRefreshing}
+          />
+        </div>
+
+        <ComboTable
+          combos={combos}
+          loading={isLoading}
+          errorMessage={queryError?.message}
+          pagination={paginationInfo}
+          sortBy={filters.sortBy}
+          sortOrder={filters.sortOrder}
+          onSortChange={handleSortChange}
+          onPageChange={handlePageChange}
+          onView={handleViewClick}
+          onEdit={handleEditClick}
+          onDelete={handleDeleteClick}
+        />
+      </div>
 
       <ComboFormModal
         open={isFormOpen}

@@ -1,5 +1,9 @@
+import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
+import { Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 interface ScreenDeleteDialogProps {
   open: boolean;
@@ -15,37 +19,83 @@ const ScreenDeleteDialog = ({
   screenName,
   onConfirm,
   submitting,
-}: ScreenDeleteDialogProps) => (
-  <Modal
-    isOpen={open}
-    onClose={onClose}
-    title="Vô hiệu hoá phòng chiếu"
-    size="sm"
-    contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child>button]:text-[#f5f5f5]/70 [&>div:first-child>button:hover]:text-white [&>div:first-child>button:hover]:bg-[#27272a]"
-  >
-    <div className="space-y-4">
-      <p className="text-sm text-[#f5f5f5]/85">
-        Bạn có chắc chắn muốn vô hiệu hoá phòng <span className="font-semibold text-[#ff7a45]">{screenName}</span>? Hành động này có thể được hoàn tác bằng cách kích hoạt lại phòng.
-      </p>
-      <div className="flex justify-end gap-3">
-        <Button
-          variant="outline"
-          onClick={onClose}
-          disabled={submitting}
-          className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] hover:bg-[#1c1c1f]"
-        >
-          Huỷ
-        </Button>
-        <Button
-          onClick={onConfirm}
-          disabled={submitting}
-          className="border border-rose-500/40 bg-rose-500/20 text-rose-200 hover:bg-rose-500/30"
-        >
-          {submitting ? "Đang xử lý..." : "Vô hiệu hoá"}
-        </Button>
+}: ScreenDeleteDialogProps) => {
+  const handleStartGuide = useCallback(() => {
+    const steps = [
+      {
+        element: "#screen-delete-tour-message",
+        popover: {
+          title: "Xác nhận vô hiệu hoá",
+          description: "Kiểm tra lại tên phòng và cân nhắc trước khi vô hiệu hoá phòng này.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#screen-delete-tour-actions",
+        popover: {
+          title: "Lựa chọn hành động",
+          description: "Huỷ để giữ nguyên trạng, hoặc chọn Vô hiệu hoá để tạm ngưng phòng chiếu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, []);
+
+  return (
+    <Modal
+      isOpen={open}
+      onClose={onClose}
+      title="Vô hiệu hoá phòng chiếu"
+      size="sm"
+      contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child>button]:text-[#f5f5f5]/70 [&>div:first-child>button:hover]:text-white [&>div:first-child>button:hover]:bg-[#27272a]"
+    >
+      <div className="space-y-4" id="screen-delete-tour-container">
+        <div className="flex items-start justify-between gap-3" id="screen-delete-tour-message">
+          <p className="text-sm text-[#f5f5f5]/85">
+            Bạn có chắc chắn muốn vô hiệu hoá phòng <span className="font-semibold text-[#ff7a45]">{screenName}</span>? Hành động này có thể được hoàn tác bằng cách kích hoạt lại phòng.
+          </p>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={handleStartGuide}
+            className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] hover:bg-[#27272a]"
+            id="screen-delete-tour-guide-btn"
+          >
+            <Info className="size-4" />
+          </Button>
+        </div>
+        <div className="flex justify-end gap-3" id="screen-delete-tour-actions">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={submitting}
+            className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] hover:bg-[#1c1c1f]"
+          >
+            Huỷ
+          </Button>
+          <Button
+            onClick={onConfirm}
+            disabled={submitting}
+            className="border border-rose-500/40 bg-rose-500/20 text-rose-200 hover:bg-rose-500/30"
+          >
+            {submitting ? "Đang xử lý..." : "Vô hiệu hoá"}
+          </Button>
+        </div>
       </div>
-    </div>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 export default ScreenDeleteDialog;

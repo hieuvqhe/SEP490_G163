@@ -37,7 +37,7 @@ const ComboToolbar = ({
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between" id="combo-tour-toolbar-actions">
         <div className="flex items-center gap-2 text-[#f5f5f5]/80">
           <Filter className="size-5 text-[#ff7a45]" />
           <div>
@@ -83,7 +83,7 @@ const ComboToolbar = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3" id="combo-tour-filters">
         <div className="relative md:col-span-2">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9e9ea2]" />
           <Input

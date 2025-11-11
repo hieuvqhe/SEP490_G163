@@ -88,11 +88,17 @@ const CinemaTable = ({
   const currentPage = pagination?.currentPage ?? 1;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#27272a] bg-[#151518] shadow-lg shadow-black/40">
+    <div
+      className="overflow-hidden rounded-xl border border-[#27272a] bg-[#151518] shadow-lg shadow-black/40"
+      id="cinema-tour-table"
+    >
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[#27272a]">
           <thead className="bg-[#27272a]">
-            <tr className="text-left text-xs font-semibold uppercase tracking-wider text-[#9e9ea2]">
+            <tr
+              className="text-left text-xs font-semibold uppercase tracking-wider text-[#9e9ea2]"
+              id="cinema-tour-table-sort"
+            >
               {columns.map((column) => (
                 <th key={column.key as string} className="px-4 py-3">
                   {column.key === "cinemaId" ? (
@@ -137,9 +143,12 @@ const CinemaTable = ({
                 </td>
               </tr>
             ) : (
-              cinemas.map((cinema) => (
+              cinemas.map((cinema, index) => (
                 <Fragment key={cinema.cinemaId}>
-                  <tr className="bg-[#151518] transition-colors hover:bg-[#1c1c1f]">
+                  <tr
+                    className="bg-[#151518] transition-colors hover:bg-[#1c1c1f]"
+                    id={index === 0 ? "cinema-tour-row" : undefined}
+                  >
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-[#f5f5f5]">{cinema.cinemaName}</span>
@@ -155,7 +164,10 @@ const CinemaTable = ({
                       {new Date(cinema.updatedAt).toLocaleString("vi-VN")}
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
+                      <div
+                        className="flex items-center gap-2"
+                        id={index === 0 ? "cinema-tour-row-actions" : undefined}
+                      >
                         <Button
                           variant="outline"
                           size="icon-sm"
