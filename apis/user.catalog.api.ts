@@ -53,6 +53,12 @@ export interface ShowtimeOverviewParams {
   SortOrder?: string;
 }
 
+interface Brand {
+  code: string;
+  name: string;
+  logoUrl: string;
+}
+
 interface GetShowtimeOverviewRes {
   message: string;
   result: {
@@ -60,13 +66,7 @@ interface GetShowtimeOverviewRes {
     title: string;
     posterUrl: string;
     date: Date;
-    brands: [
-      {
-        code: string;
-        name: string;
-        logoUrl: string;
-      }
-    ];
+    brands: Brand[];
     cinemas: {
       items: [
         {
@@ -87,8 +87,8 @@ interface GetShowtimeOverviewRes {
               showtimes: [
                 {
                   showtimeId: number;
-                  startTime: Date;
-                  endTime: Date;
+                  startTime: string;
+                  endTime: string;
                   formatType: string;
                   basePrice: number;
                   availableSeats: number;
@@ -110,17 +110,50 @@ interface GetShowtimeOverviewRes {
   };
 }
 
+interface SeatType {
+  seatTypeId: number;
+  code: string;
+  name: string;
+  surcharge: number;
+  color: string;
+}
+
+export interface Seat {
+  seatId: number;
+  rowCode: string;
+  seatNumber: number;
+  seatTypeId: number;
+  status: string;
+  lockedUntil: string | null;
+}
+
 interface GetShowtimeSeatRes {
-  showtimeId: number;
-  screenId: number;
-  seats: [
-    {
-      seatId: number;
-      row: string;
-      number: number;
-      status: "AVAILABLE" | "SOLD" | "LOCKED";
-    }
-  ];
+  message: string;
+  result: {
+    showtimeId: number;
+    movie: {
+      movieId: number;
+      title: string;
+      posterUrl: string;
+    };
+    cinema: {
+      cinemaId: number;
+      cinemaName: string;
+      city: string;
+      district: string;
+    };
+    screen: {
+      screenId: number;
+      screenName: string;
+      screenType: string;
+      soundSystem: string;
+    };
+    totalRows: number;
+    totalColumns: number;
+    seatTypes: SeatType[];
+    seats: Seat[];
+    serverTime: string;
+  };
 }
 
 class ShowtimeManagement {
@@ -164,9 +197,11 @@ class ShowtimeManagement {
     }
   };
 
-  getShowtimeSeat = async (showtimeId: string): Promise<GetShowtimeSeatRes> => {
+  getShowtimeSeat = async (showtimeId: number): Promise<GetShowtimeSeatRes> => {
     try {
-      const response = await api.get(`/cinema/showtimes/${showtimeId}/seats`);
+      const response = await api.get(
+        `/api/cinema/showtimes/${showtimeId}/seats`
+      );
       return response.data;
     } catch (error) {
       throw handleShowtimeOverviewError(error);
@@ -180,6 +215,14 @@ export const useGetShowtimesOverview = (params?: ShowtimeOverviewParams) => {
   return useQuery<GetShowtimeOverviewRes>({
     queryKey: ["showtimeOverview", params],
     queryFn: () => showtimeManagementServices.getShowtimesOverview(params),
+    placeholderData: keepPreviousData,
+  });
+};
+
+export const useGetShowtimeSeat = (showtimeId: number) => {
+  return useQuery<GetShowtimeSeatRes>({
+    queryKey: ["showtimeOverview", showtimeId],
+    queryFn: () => showtimeManagementServices.getShowtimeSeat(showtimeId),
     placeholderData: keepPreviousData,
   });
 };

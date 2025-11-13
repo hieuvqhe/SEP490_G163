@@ -1,11 +1,22 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp01Icon, MapPinIcon } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import SeatLayout from "./SeatLayout";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 
-interface Showtime {
+export interface Showtime {
   showtimeId: number;
   startTime: string;
   endTime: string;
@@ -25,7 +36,7 @@ interface Screen {
   showtimes: Showtime[];
 }
 
-interface Cinema {
+interface ShowtimeOverviews {
   cinemaId: number;
   cinemaName: string;
   address: string;
@@ -36,212 +47,131 @@ interface Cinema {
   screens: Screen[];
 }
 
-// Data mẫu
-const SAMPLE_CINEMAS: Cinema[] = [
-  {
-    cinemaId: 1,
-    cinemaName: "CGV Vincom Bà Triệu",
-    address: "191 Bà Triệu",
-    city: "Hà Nội",
-    district: "Hai Bà Trưng",
-    brandCode: "CGV",
-    logoUrl:
-      "",
-    screens: [
-      {
-        screenId: 1,
-        screenName: "Phòng 1",
-        screenType: "2D",
-        soundSystem: "Dolby 7.1",
-        capacity: 150,
-        showtimes: [
-          {
-            showtimeId: 1,
-            startTime: "2024-11-10",
-            endTime: "2024-11-10",
-            formatType: "2D",
-            basePrice: 80000,
-            availableSeats: 45,
-            isSoldOut: false,
-            label: "Phụ đề",
-          },
-          {
-            showtimeId: 2,
-            startTime: "2024-11-10",
-            endTime: "2024-11-10",
-            formatType: "2D",
-            basePrice: 90000,
-            availableSeats: 30,
-            isSoldOut: false,
-            label: "Phụ đề",
-          },
-          {
-            showtimeId: 3,
-            startTime: "2024-11-10",
-            endTime: "2024-11-10",
-            formatType: "2D",
-            basePrice: 100000,
-            availableSeats: 0,
-            isSoldOut: true,
-            label: "Phụ đề",
-          },
-        ],
-      },
-      {
-        screenId: 2,
-        screenName: "Phòng 2",
-        screenType: "IMAX",
-        soundSystem: "IMAX Sound",
-        capacity: 200,
-        showtimes: [
-          {
-            showtimeId: 4,
-            startTime: "2024-11-10",
-            endTime:"2024-11-10",
-            formatType: "IMAX",
-            basePrice: 150000,
-            availableSeats: 80,
-            isSoldOut: false,
-            label: "Phụ đề",
-          },
-          {
-            showtimeId: 5,
-            startTime: "2024-11-10",
-            endTime: "2024-11-10",
-            formatType: "IMAX",
-            basePrice: 170000,
-            availableSeats: 25,
-            isSoldOut: false,
-            label: "Phụ đề",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    cinemaId: 2,
-    cinemaName: "Lotte Cinema Tây Hồ",
-    address: "Tầng 6, TTTM Lotte",
-    city: "Hà Nội",
-    district: "Tây Hồ",
-    brandCode: "LOTTE",
-    logoUrl:
-      "",
-    screens: [
-      {
-        screenId: 3,
-        screenName: "Phòng 3",
-        screenType: "3D",
-        soundSystem: "Dolby Atmos",
-        capacity: 180,
-        showtimes: [
-          {
-            showtimeId: 6,
-            startTime: "2024-11-10",
-            endTime: "2024-11-10",
-            formatType: "3D",
-            basePrice: 120000,
-            availableSeats: 60,
-            isSoldOut: false,
-            label: "Lồng tiếng",
-          },
-          {
-            showtimeId: 7,
-            startTime: "2024-11-10",
-            endTime: "2024-11-10",
-            formatType: "3D",
-            basePrice: 130000,
-            availableSeats: 40,
-            isSoldOut: false,
-            label: "Phụ đề",
-          },
-          {
-            showtimeId: 8,
-            startTime: "2024-11-10",
-            endTime: "2024-11-10",
-            formatType: "3D",
-            basePrice: 140000,
-            availableSeats: 15,
-            isSoldOut: false,
-            label: "Phụ đề",
-          },
-        ],
-      },
-    ],
-  },
-];
+interface ShowtimeDetailReq {
+  brandCode: string;
+  showtimeOverview: ShowtimeOverviews[];
+}
 
-const ShowtimeDetail = () => {
+const ShowtimeDetail = ({ brandCode, showtimeOverview }: ShowtimeDetailReq) => {
+  const showTimeByBrandCode = showtimeOverview.filter(
+    (item) => item.brandCode === brandCode
+  );
+
   return (
-    <div className="w-full space-y-6 p-5">
-      {SAMPLE_CINEMAS.map((cinema) => (
-        <div
-          key={cinema.cinemaId}
-          className="rounded-2xl border border-border p-4 shadow-sm hover:shadow-md transition-all duration-200"
-        >
-          {/* Header */}
-          <div className="flex items-start gap-4">
-            <Image
-              src={cinema.logoUrl}
-              alt={cinema.cinemaName}
-              width={60}
-              height={60}
-              className="rounded-lg border bg-white object-contain"
-            />
-            <div className="flex-1 space-y-1">
-              <h2 className="text-lg font-semibold">{cinema.cinemaName}</h2>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <MapPinIcon size={14} />
-                {cinema.address}, {cinema.district}, {cinema.city}
-              </p>
-            </div>
-            <div className="text-muted-foreground">
-              <ArrowUp01Icon className="cursor-pointer hover:text-primary transition-colors" />
-            </div>
-          </div>
-
-          {/* Screens */}
-          <div className="mt-4 space-y-4">
-            {cinema.screens.map((screen) => (
-              <div
-                key={screen.screenId}
-                className="border-t border-border pt-3"
-              >
-                <div className="flex flex-wrap items-center justify-between mb-2">
-                  <p className="font-medium text-sm">
-                    {screen.screenName} • {screen.screenType} •{" "}
-                    {screen.soundSystem}
-                  </p>
-                  <span className="text-xs text-muted-foreground">
-                    {screen.capacity} ghế
-                  </span>
-                </div>
-
-                {/* Showtimes */}
-                <div className="flex flex-wrap gap-2">
-                  {screen.showtimes.map((showtime) => {
-                    const start = "2025-11-2";
-                    const end = "2025-11-2";
-
-                    return (
-                      <Button
-                        key={showtime.showtimeId}
-                        variant={showtime.isSoldOut ? "secondary" : "outline"}
-                        disabled={showtime.isSoldOut}
-                        className="rounded-xl text-sm"
-                      >
-                        {start} - {end}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="w-full space-y-6">
+      {showTimeByBrandCode.map((showtime) => (
+        <ShowtimeDetailCard key={showtime.cinemaId} cinema={showtime} />
       ))}
     </div>
   );
+};
+
+interface ShowtimeDetailCardProps {
+  cinema: ShowtimeOverviews;
+}
+
+const ShowtimeDetailCard = ({ cinema }: ShowtimeDetailCardProps) => {
+  const { user } = useAuthStore();
+  const [alertDialog, setAlertDialog] = useState<boolean>(false);
+
+  const handleGetSeatLayout = () => {
+    // Check đã đăng nhập chưa
+    if (!user) {
+      setAlertDialog(true);
+    }
+  };
+  return (
+    <div className="w-full bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col gap-5 hover:bg-white/10 transition-all duration-200">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <div className="relative w-14 h-14 rounded-md overflow-hidden bg-white/10 flex-shrink-0">
+          <Image
+            src={""}
+            alt={cinema.cinemaName}
+            fill
+            className="object-contain p-2"
+          />
+        </div>
+        <div>
+          <h2 className="font-semibold text-lg text-white">
+            {cinema.cinemaName}
+          </h2>
+          <p className="text-sm text-gray-400">
+            {cinema.address}, {cinema.district}, {cinema.city}
+          </p>
+        </div>
+      </div>
+
+      {/* Screens and Showtimes */}
+      <div className="space-y-4">
+        {cinema.screens.map((screen) => (
+          <div key={screen.screenId} className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-medium text-base">
+                {screen.screenName}
+              </h3>
+              <p className="text-sm text-gray-400">{screen.soundSystem}</p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {screen.showtimes.map((st) => (
+                <Dialog key={st.showtimeId}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      disabled={st.isSoldOut}
+                      className={`text-sm rounded-lg px-4 py-2 ${
+                        st.isSoldOut
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-primary hover:text-white"
+                      }`}
+                      onClick={handleGetSeatLayout}
+                    >
+                      {formatTime(st.startTime)} ~ {formatTime(st.endTime)}
+                    </Button>
+                  </DialogTrigger>
+
+                  {alertDialog ? (
+                    <DialogContent className="bg-zinc-800 sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Yêu cầu đăng nhập</DialogTitle>
+                        <DialogDescription>
+                          Bạn cần đăng nhập để tiếp tục sử dụng tính năng này.
+                          Điều này giúp chúng tôi mang đến trải nghiệm tốt nhất
+                          cho bạn.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button className="hover:bg-[#f84565]/60 transition-colors duration-150">
+                            Tiếp tục
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  ) : (
+                    <SeatLayout showtime={st} />
+                  )}
+                </Dialog>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const formatTime = (timeString: string): string => {
+  if (!timeString) return "--:--";
+
+  try {
+    // Cắt thẳng từ chuỗi ISO thay vì dùng new Date() để tránh lệch timezone
+    const timePart = timeString.split("T")[1]?.substring(0, 5);
+    return timePart || "--:--";
+  } catch {
+    return "--:--";
+  }
 };
 
 export default ShowtimeDetail;

@@ -1,14 +1,16 @@
 "use client";
 
 import { Movie } from "@/types/movie.type";
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Image from "next/image";
-import { CiPlay1 } from "react-icons/ci";
+import { CiFolderOff, CiPlay1 } from "react-icons/ci";
 import DateSelector from "./DateSelector";
 import TheaterSelector from "./TheaterSelector";
 import ShowtimeDetail from "./ShowtimeDetail";
 import { X } from "lucide-react";
 import { useGetShowtimesOverview } from "@/apis/user.catalog.api";
+import dayjs from "dayjs";
+import { Spinner } from "@/components/ui/spinner";
 
 interface MovieProp {
   movie: Movie;
@@ -16,8 +18,9 @@ interface MovieProp {
 
 const MovieDetail = ({ movie }: MovieProp) => {
   const [trailerModal, setTrailerModal] = useState<boolean>(false);
-  const [brandCodeSelect, setBrandCodeSelect] = useState<string>("all");
-  const [dateSelectorValue, setDateSelectorValue] = useState<string>("");
+  const [dateSelectorValue, setDateSelectorValue] = useState<string>(
+    dayjs().format("YYYY-MM-DD")
+  );
 
   const { data: showtimeOverviewRes, isLoading: showtimeOverviewLoading } =
     useGetShowtimesOverview({
@@ -26,6 +29,13 @@ const MovieDetail = ({ movie }: MovieProp) => {
     });
 
   const showtimeOverviews = showtimeOverviewRes?.result;
+  const [brandCodeSelect, setBrandCodeSelect] = useState<string>(
+    showtimeOverviews?.brands[0]?.code ?? "CGV"
+  );
+
+  useEffect(() => {
+    console.log("brandCodeSelect: " + brandCodeSelect);
+  }, [brandCodeSelect]);
 
   return (
     <div className="relative min-h-screen w-full bg-black">
@@ -142,13 +152,60 @@ const MovieDetail = ({ movie }: MovieProp) => {
             <div className="bg-white/5 w-full backdrop-blur-sm rounded-lg p-6 border border-white/10 flex flex-col items-baseline gap-10">
               {/* Add showtimes or other content here */}
               <DateSelector setDate={setDateSelectorValue} />
-              <div>
-                <TheaterSelector
-                  brands={showtimeOverviews?.brands}
-                  onSelect={setBrandCodeSelect}
-                />
-              </div>
-              <ShowtimeDetail />
+              {showtimeOverviewLoading ? (
+                <div className="flex w-full items-center justify-center">
+                  <Spinner className="size-8" />
+                </div>
+              ) : !showtimeOverviews?.brands ||
+                showtimeOverviews?.brands.length === 0 ? (
+                <div className="w-full flex flex-col gap-4 h-[30vh] items-center justify-center">
+                  <CiFolderOff size={100} />
+                  <div className="flex flex-col gap-3 items-center justify-center">
+                    <h1 className="font-bold text-2xl text-zinc-200">
+                      Không có suất chiếu nào !
+                    </h1>
+                    <p className="text-md text-zinc-400">
+                      Bạn thử đổi ngày khác xem nhé
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full flex flex-col gap-10">
+                  <TheaterSelector
+                    brands={showtimeOverviews?.brands}
+                    onSelect={setBrandCodeSelect}
+                  />
+                  <ShowtimeDetail
+                    brandCode={brandCodeSelect}
+                    showtimeOverview={showtimeOverviews.cinemas.items}
+                  />
+                </div>
+              )}
+              {/* // {!showtimeOverviews?.brands ||
+              // showtimeOverviews?.brands.length === 0 ? (
+              //   <div className="w-full flex flex-col gap-4 h-[30vh] items-center justify-center">
+              //     <CiFolderOff size={100} />
+              //     <div className="flex flex-col gap-3 items-center justify-center">
+              //       <h1 className="font-bold text-2xl text-zinc-200">
+              //         Không có suất chiếu nào !
+              //       </h1>
+              //       <p className="text-md text-zinc-400">
+              //         Bạn thử đổi ngày khác xem nhé
+              //       </p>
+              //     </div>
+              //   </div>
+              // ) : (
+              //   <div className="w-full flex flex-col gap-10">
+              //     <TheaterSelector
+              //       brands={showtimeOverviews?.brands}
+              //       onSelect={setBrandCodeSelect}
+              //     />
+              //     <ShowtimeDetail
+              //       brandCode={brandCodeSelect}
+              //       showtimeOverview={showtimeOverviews.cinemas.items}
+              //     />
+              //   </div>
+              // )} */}
             </div>
           </div>
         </div>

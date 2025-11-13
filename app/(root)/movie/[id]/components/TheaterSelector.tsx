@@ -16,10 +16,12 @@ interface TheaterSelectorProps {
 }
 
 const TheaterSelector = ({ brands, onSelect }: TheaterSelectorProps) => {
-  const [selectedCode, setSelectedCode] = useState<string>("all");
+  const [selectedCode, setSelectedCode] = useState<string>(
+    brands?.[0]?.code ?? "CGV"
+  );
 
   return (
-    <div className="px-3">
+    <div className="">
       <div className="flex flex-wrap items-center gap-4">
         {brands?.map((brand) => (
           <div
