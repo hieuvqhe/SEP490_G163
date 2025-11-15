@@ -6,9 +6,10 @@ import { DialogContent } from "@/components/ui/dialog";
 
 interface SeatLayoutReq {
   showtime: Showtime;
+  sessionId: string;
 }
 
-const SeatLayout = ({ showtime }: SeatLayoutReq) => {
+const SeatLayout = ({ showtime, sessionId }: SeatLayoutReq) => {
   const { data: showtimeSeatRes, isLoading } = useGetShowtimeSeat(
     showtime.showtimeId
   );
@@ -31,6 +32,7 @@ const SeatLayout = ({ showtime }: SeatLayoutReq) => {
           cinemaName={showtimeData?.cinema.cinemaName}
           movieTitle={showtimeData?.movie.title}
           basePrice={showtime.basePrice}
+          sessionId={sessionId}
           onPurchase={(selectedSeats) => {
             console.log("Purchasing seats:", selectedSeats);
           }}

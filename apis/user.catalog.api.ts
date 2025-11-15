@@ -2,7 +2,7 @@ import { BASE_URL } from "@/constants";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const createPublicRequest = () => {
+export const createPublicRequest = () => {
   return axios.create({
     baseURL: BASE_URL,
     headers: {
@@ -12,7 +12,7 @@ const createPublicRequest = () => {
 };
 
 // Handle movie API errors
-const handleShowtimeOverviewError = (error: unknown): Error => {
+export const handleShowtimeOverviewError = (error: unknown): Error => {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;
     const message = error.response?.data?.message;
@@ -30,7 +30,7 @@ const handleShowtimeOverviewError = (error: unknown): Error => {
   throw new Error("Network error. Please check your connection.");
 };
 
-const api = createPublicRequest();
+const userApi = createPublicRequest();
 
 // ===============================
 // ShowtimeOverview APIS
@@ -189,7 +189,7 @@ class ShowtimeManagement {
       // https://expressticketcinemasystemapi-fjescsgjg9djeuf5.southeastasia-01.azurewebsites.net/cinema/movies/18/showtimes/overview?movieId=18&Date=2025-11-10
       // https://expressticketcinemasystemapi-fjescsgjg9djeuf5.southeastasia-01.azurewebsites.net/api/cinema/movies/18/showtimes/overview?Date=2025-11-13
 
-      const response = await api.get<GetShowtimeOverviewRes>(url);
+      const response = await userApi.get<GetShowtimeOverviewRes>(url);
 
       return response.data;
     } catch (error) {
@@ -199,7 +199,7 @@ class ShowtimeManagement {
 
   getShowtimeSeat = async (showtimeId: number): Promise<GetShowtimeSeatRes> => {
     try {
-      const response = await api.get(
+      const response = await userApi.get(
         `/api/cinema/showtimes/${showtimeId}/seats`
       );
       return response.data;
@@ -226,3 +226,4 @@ export const useGetShowtimeSeat = (showtimeId: number) => {
     placeholderData: keepPreviousData,
   });
 };
+

@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Modal from "@/components/ui/modal";
+import { Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import { screenTypeOptions } from "../constants";
 import type { ScreenFormValues } from "../types";
 
@@ -31,6 +34,91 @@ const ScreenFormModal = ({
       setErrors({});
     }
   }, [open, initialValues]);
+
+  const handleStartGuide = useCallback(() => {
+    const isCreate = mode === "create";
+    const steps = [
+      {
+        element: "#screen-form-tour-header",
+        popover: {
+          title: isCreate ? "Thêm phòng chiếu" : "Chỉnh sửa phòng",
+          description: isCreate
+            ? "Điền các thông tin bắt buộc để tạo phòng chiếu mới cho rạp đã chọn."
+            : "Cập nhật thông tin phòng hiện có và kiểm tra lại trước khi lưu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#screen-form-tour-required",
+        popover: {
+          title: "Thông tin nhận diện",
+          description: "Tên phòng và mã nội bộ giúp định danh phòng chiếu trên hệ thống.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#screen-form-tour-type",
+        popover: {
+          title: "Loại & âm thanh",
+          description: "Chọn loại phòng và mô tả hệ thống âm thanh để hỗ trợ hiển thị cho khách hàng.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#screen-form-tour-capacity",
+        popover: {
+          title: "Sức chứa & bố trí ghế",
+          description: "Nhập tổng số ghế, số hàng và số ghế mỗi hàng để hệ thống tạo sơ đồ phù hợp.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#screen-form-tour-description",
+        popover: {
+          title: "Mô tả tiện ích",
+          description: "Ghi chú công nghệ, trang thiết bị hoặc thông tin nổi bật của phòng chiếu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    if (!isCreate) {
+      steps.push({
+        element: "#screen-form-tour-status",
+        popover: {
+          title: "Trạng thái hoạt động",
+          description: "Kích hoạt hoặc vô hiệu hoá phòng khi cần điều chỉnh lịch chiếu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      });
+    }
+
+    steps.push({
+      element: "#screen-form-tour-actions",
+      popover: {
+        title: "Hoàn tất thao tác",
+        description: "Nhấn Lưu để xác nhận hoặc Đóng để thoát mà không thay đổi dữ liệu.",
+        side: "bottom" as const,
+        align: "start" as const,
+      },
+    });
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [mode]);
 
   const handleChange = (
     field: keyof ScreenFormValues,
@@ -65,9 +153,33 @@ const ScreenFormModal = ({
       size="lg"
       contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child>button]:text-[#f5f5f5]/70 [&>div:first-child>button:hover]:text-white [&>div:first-child>button:hover]:bg-[#27272a]"
     >
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
+      <div className="space-y-4" id="screen-form-tour-container">
+        <div
+          className="flex flex-col gap-3 rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3 text-sm text-[#f5f5f5] md:flex-row md:items-center md:justify-between"
+          id="screen-form-tour-header"
+        >
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-[#f5f5f5]">
+              {mode === "create" ? "Tạo phòng chiếu mới" : "Điều chỉnh thông tin phòng"}
+            </p>
+            <p className="text-xs text-[#9e9ea2]">
+              Chuẩn bị sẵn sức chứa và bố trí ghế để hoàn tất biểu mẫu nhanh chóng.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleStartGuide}
+            className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] hover:bg-[#27272a]"
+            id="screen-form-tour-guide-btn"
+          >
+            <Info className="size-4" />
+            Hướng dẫn biểu mẫu
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2" id="screen-form-tour-required">
+          <div className="space-y-2" id="screen-form-tour-name">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Tên phòng <span className="text-rose-400">*</span>
             </label>
@@ -80,7 +192,7 @@ const ScreenFormModal = ({
               <p className="text-xs text-rose-400">{errors.screenName}</p>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2" id="screen-form-tour-code">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Mã phòng <span className="text-rose-400">*</span>
             </label>
@@ -93,7 +205,7 @@ const ScreenFormModal = ({
               <p className="text-xs text-rose-400">{errors.code}</p>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2" id="screen-form-tour-type">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Loại phòng
             </label>
@@ -123,8 +235,8 @@ const ScreenFormModal = ({
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-2">
+        <div className="grid gap-4 md:grid-cols-3" id="screen-form-tour-capacity">
+          <div className="space-y-2" id="screen-form-tour-capacity-total">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Sức chứa <span className="text-rose-400">*</span>
             </label>
@@ -139,7 +251,7 @@ const ScreenFormModal = ({
               <p className="text-xs text-rose-400">{errors.capacity}</p>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2" id="screen-form-tour-seat-rows">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Số hàng ghế <span className="text-rose-400">*</span>
             </label>
@@ -154,7 +266,7 @@ const ScreenFormModal = ({
               <p className="text-xs text-rose-400">{errors.seatRows}</p>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2" id="screen-form-tour-seat-columns">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Ghế mỗi hàng <span className="text-rose-400">*</span>
             </label>
@@ -171,7 +283,7 @@ const ScreenFormModal = ({
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" id="screen-form-tour-description">
           <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
             Mô tả chi tiết
           </label>
@@ -184,7 +296,10 @@ const ScreenFormModal = ({
         </div>
 
         {mode === "edit" && (
-          <label className="flex items-center gap-3 rounded-md border border-[#3a3a3d] bg-[#27272a] px-4 py-3 text-sm text-[#f5f5f5]">
+          <label
+            className="flex items-center gap-3 rounded-md border border-[#3a3a3d] bg-[#27272a] px-4 py-3 text-sm text-[#f5f5f5]"
+            id="screen-form-tour-status"
+          >
             <input
               type="checkbox"
               checked={values.isActive}
@@ -195,7 +310,7 @@ const ScreenFormModal = ({
           </label>
         )}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3" id="screen-form-tour-actions">
           <Button
             variant="outline"
             onClick={onClose}

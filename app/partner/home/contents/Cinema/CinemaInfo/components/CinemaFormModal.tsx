@@ -1,11 +1,12 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { XCircle } from "lucide-react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import Modal from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { CinemaFormValues } from "../types";
 import { useUploadToCloudinary } from "@/apis/cloudinary.api";
@@ -177,6 +178,101 @@ const CinemaFormModal = ({
     }
   };
 
+  const handleStartGuide = useCallback(() => {
+    const isCreate = mode === "create";
+    const steps = [
+      {
+        element: "#cinema-form-tour-header",
+        popover: {
+          title: isCreate ? "Tạo rạp mới" : "Chỉnh sửa rạp",
+          description: isCreate
+            ? "Điền đầy đủ thông tin để thêm một rạp mới vào hệ thống đối tác. Các trường có dấu * là bắt buộc."
+            : "Cập nhật thông tin rạp hiện có. Kiểm tra kỹ các trường quan trọng trước khi lưu thay đổi.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-form-tour-required",
+        popover: {
+          title: "Thông tin nhận diện",
+          description: "Cung cấp tên rạp, mã nội bộ, địa chỉ và khu vực hoạt động để hệ thống quản lý chính xác.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-form-tour-latitude",
+        popover: {
+          title: "Toạ độ trên bản đồ",
+          description: "Nhập vĩ độ và kinh độ theo Google Maps để hiển thị vị trí rạp chính xác trên bản đồ.",
+          side: "right" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-form-tour-phone",
+        popover: {
+          title: "Thông tin liên hệ",
+          description: "Bổ sung số điện thoại và email để khách hàng và hệ thống gửi thông báo khi cần.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-form-tour-logo",
+        popover: {
+          title: "Logo rạp",
+          description: "Tải lên logo thương hiệu để hiển thị nhất quán trên các kênh bán vé của TicketXpress.",
+          side: "right" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    if (!isCreate) {
+      steps.push({
+        element: "#cinema-form-tour-summary",
+        popover: {
+          title: "Số liệu phòng chiếu",
+          description: "Theo dõi tổng số phòng chiếu và số phòng đang hoạt động được đồng bộ tự động bởi hệ thống.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      });
+    }
+
+    steps.push({
+      element: "#cinema-form-tour-status",
+      popover: {
+        title: "Chính sách trạng thái",
+        description: "Trạng thái rạp được kích hoạt tự động khi tạo mới và sẽ chuyển sang ngừng hoạt động khi bạn xoá rạp.",
+        side: "left" as const,
+        align: "start" as const,
+      },
+    });
+
+    steps.push({
+      element: "#cinema-form-tour-actions",
+      popover: {
+        title: "Hoàn tất thao tác",
+        description: "Sau khi kiểm tra, nhấn Lưu để xác nhận hoặc Huỷ để đóng biểu mẫu mà không thay đổi dữ liệu.",
+        side: "left" as const,
+        align: "start" as const,
+      },
+    });
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [mode]);
+
   const validate = () => {
     const nextErrors: Partial<Record<keyof CinemaFormValues, string>> = {};
 
@@ -213,10 +309,38 @@ const CinemaFormModal = ({
       size="lg"
       contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child>button]:text-[#f5f5f5]/70 [&>div:first-child>button:hover]:text-white [&>div:first-child>button:hover]:bg-[#27272a]"
     >
-      <div className="space-y-6">
-        <div className="grid gap-4">
+      <div className="space-y-6" id="cinema-form-tour-container">
+        <div
+          className="flex flex-col gap-3 rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3 text-sm text-[#f5f5f5] md:flex-row md:items-center md:justify-between"
+          id="cinema-form-tour-header"
+        >
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-[#f5f5f5]">
+              {mode === "create" ? "Thêm rạp đối tác mới" : "Điều chỉnh thông tin rạp"}
+            </p>
+            <p className="text-xs text-[#9e9ea2]">
+              Vui lòng chuẩn bị sẵn dữ liệu liên hệ và toạ độ Google Maps để thao tác nhanh chóng.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleStartGuide}
+            className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] hover:bg-[#27272a]"
+            id="cinema-form-tour-guide-btn"
+          >
+            <Info className="size-4" />
+            Hướng dẫn biểu mẫu
+          </Button>
+        </div>
+
+        <div className="grid gap-4" id="cinema-form-tour-required">
           {baseFieldConfig.map((field) => (
-            <div key={field.key} className="flex flex-col gap-2">
+            <div
+              key={field.key}
+              className="flex flex-col gap-2"
+              id={`cinema-form-tour-${field.key}`}
+            >
               <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
                 {field.label}
               </label>
@@ -239,9 +363,13 @@ const CinemaFormModal = ({
           ))}
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-4" id="cinema-form-tour-optional">
           {optionalFieldConfig.map((field) => (
-            <div key={field.key} className="flex flex-col gap-2">
+            <div
+              key={field.key}
+              className="flex flex-col gap-2"
+              id={field.key === "logoUrl" ? "cinema-form-tour-logo" : undefined}
+            >
               <label className="text-xs uppercase tracking-wide text-[#ccd0d7]">
                 {field.label}
               </label>
@@ -312,7 +440,10 @@ const CinemaFormModal = ({
         </div>
 
         {mode === "edit" ? (
-          <div className="rounded-lg border border-[#27272a] bg-[#1c1c1f] p-4 text-sm text-[#f5f5f5]">
+          <div
+            className="rounded-lg border border-[#27272a] bg-[#1c1c1f] p-4 text-sm text-[#f5f5f5]"
+            id="cinema-form-tour-summary"
+          >
             <h4 className="text-base font-medium text-[#f5f5f5]">Thông tin phòng chiếu</h4>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               <div className="rounded-md border border-[#27272a] bg-[#151518] p-3">
@@ -338,11 +469,14 @@ const CinemaFormModal = ({
           </div>
         )}
 
-        <div className="rounded-lg border border-dashed border-[#27272a] bg-[#1c1c1f] px-4 py-3 text-xs text-[#9e9ea2]">
+        <div
+          className="rounded-lg border border-dashed border-[#27272a] bg-[#1c1c1f] px-4 py-3 text-xs text-[#9e9ea2]"
+          id="cinema-form-tour-status"
+        >
           Trạng thái hoạt động của rạp sẽ được hệ thống quản lý tự động. Khi tạo mới, rạp sẽ ở trạng thái hoạt động và sẽ được chuyển sang ngừng hoạt động khi bạn xoá rạp.
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3" id="cinema-form-tour-actions">
           <Button
             variant="outline"
             onClick={onClose}

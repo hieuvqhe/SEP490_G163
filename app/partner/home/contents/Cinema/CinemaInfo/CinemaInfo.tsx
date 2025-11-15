@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import {
   PartnerCinema,
   PartnerCinemaApiError,
@@ -166,6 +168,125 @@ const CinemaInfo = () => {
   const paginationInfo: PartnerCinemasPagination | undefined = data?.result.pagination;
   const queryError = error as PartnerCinemaApiError | undefined;
 
+  const handleStartGuide = useCallback(() => {
+    const steps = [
+      {
+        element: "#cinema-tour-page",
+        popover: {
+          title: "Quản lý hệ thống rạp",
+          description:
+            "Trang này cho phép bạn theo dõi toàn bộ danh sách rạp thuộc đối tác, tìm kiếm nhanh và thực hiện các thao tác quản trị quan trọng.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-tour-toolbar",
+        popover: {
+          title: "Bộ lọc & thao tác nhanh",
+          description: "Điều chỉnh tìm kiếm, làm mới dữ liệu và truy cập các hành động quản lý tại khu vực này.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-tour-filters",
+        popover: {
+          title: "Bộ lọc nâng cao",
+          description: "Lọc theo tên rạp, khu vực và trạng thái hoạt động để thu hẹp danh sách.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-tour-toolbar-actions",
+        popover: {
+          title: "Hành động nhanh",
+          description: "Bắt đầu tour hướng dẫn, đặt lại bộ lọc hoặc làm mới dữ liệu chỉ với một cú nhấp chuột.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-tour-create-btn",
+        popover: {
+          title: "Tạo rạp mới",
+          description: "Nhấn để mở biểu mẫu thêm rạp chiếu mới và bổ sung thông tin chi tiết.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-tour-refresh-btn",
+        popover: {
+          title: "Đồng bộ dữ liệu",
+          description: "Tải lại danh sách rạp để cập nhật những thay đổi mới nhất.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-tour-table",
+        popover: {
+          title: "Danh sách rạp",
+          description: "Theo dõi thông tin chung, trạng thái hoạt động và số phòng chiếu của từng rạp.",
+          side: "top" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-tour-table-sort",
+        popover: {
+          title: "Sắp xếp linh hoạt",
+          description: "Nhấn tiêu đề cột để sắp xếp danh sách theo tên rạp, mã rạp hoặc các tiêu chí khác.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#cinema-tour-row",
+        popover: {
+          title: "Chi tiết từng rạp",
+          description: "Mỗi hàng thể hiện thông tin đầy đủ của một rạp bao gồm trạng thái, số phòng chiếu và thời gian cập nhật.",
+          side: "top" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    if (cinemas.length > 0) {
+      steps.push({
+        element: "#cinema-tour-row-actions",
+        popover: {
+          title: "Thao tác trên từng rạp",
+          description: "Sử dụng các nút xem chi tiết, chỉnh sửa hoặc xoá để quản lý từng rạp cụ thể.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      });
+    }
+
+    steps.push({
+      element: "#cinema-tour-pagination",
+      popover: {
+        title: "Điều hướng trang",
+        description: "Di chuyển giữa các trang kết quả và theo dõi trạng thái tải dữ liệu tại đây.",
+        side: "top" as const,
+        align: "start" as const,
+      },
+    });
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [cinemas]);
+
   const handleFiltersChange = (partial: Partial<CinemaFilters>) => {
     setFilters((prev) => ({ ...prev, ...partial }));
     setPagination((prev) => ({ ...prev, page: 1 }));
@@ -291,7 +412,7 @@ const CinemaInfo = () => {
   const isRefreshing = isFetching && !isLoading;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="cinema-tour-page">
       <CinemaToolbar
         filters={filters}
         onFiltersChange={handleFiltersChange}
@@ -299,6 +420,7 @@ const CinemaInfo = () => {
         onRefresh={() => refetch()}
         isRefreshing={isRefreshing}
         onCreate={handleCreateClick}
+        onStartGuide={handleStartGuide}
       />
 
       <CinemaTable

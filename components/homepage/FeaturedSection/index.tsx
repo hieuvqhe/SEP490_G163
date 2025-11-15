@@ -24,6 +24,7 @@ const FeaturedSection = () => {
     sort_by: "created_at",
     page: page,
     status: status,
+    search: searchQuery,
   });
 
   const totalPages = movieResponse?.result.totalPages ?? 1;
@@ -85,14 +86,12 @@ const FeaturedSection = () => {
 
   return (
     <section className="px-6 md:px-16 lg:px-24 xl:px-44 overflow-hidden">
-      <h1 className="font-bold text-3xl mb-10 mt-20">
-        Phim hay đang chờ đón
-      </h1>
+      <h1 className="font-bold text-3xl mb-10 mt-20">Phim hay đang chờ đón</h1>
 
       {/* Header */}
       <header className="relative flex items-center pb-5">
         <BlurCircle top="50px" left="-80px" />
-        <BlurCircle right="0px" top="400px"/>
+        <BlurCircle right="0px" top="400px" />
 
         <div className="relative flex items-center justify-between w-full border-b-white border-b-2 pb-3">
           {/* Category Navigation */}

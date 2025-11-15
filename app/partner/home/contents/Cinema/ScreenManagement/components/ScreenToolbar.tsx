@@ -2,7 +2,7 @@ import type { ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Filter, Plus, RefreshCw, Search } from "lucide-react";
+import { Filter, Info, Plus, RefreshCw, Search } from "lucide-react";
 import { defaultScreenFilters, screenTypeOptions } from "../constants";
 import type { ScreenFilters } from "../types";
 
@@ -13,6 +13,7 @@ interface ScreenToolbarProps {
   isRefreshing: boolean;
   onCreate: () => void;
   cinemaName?: string;
+  onStartGuide?: () => void;
 }
 
 const ScreenToolbar = ({
@@ -22,6 +23,7 @@ const ScreenToolbar = ({
   isRefreshing,
   onCreate,
   cinemaName,
+  onStartGuide,
 }: ScreenToolbarProps) => {
   const handleInputChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -35,7 +37,10 @@ const ScreenToolbar = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
+    <div
+      className="flex flex-col gap-4 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40"
+      id="screen-tour-toolbar"
+    >
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2 text-[#f5f5f5]/80">
           <Filter className="size-5 text-[#ff7a45]" />
@@ -48,7 +53,19 @@ const ScreenToolbar = ({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" id="screen-tour-toolbar-actions">
+          {onStartGuide && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onStartGuide}
+              className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]"
+              id="screen-tour-guide-btn"
+            >
+              <Info className="size-4" />
+              Hướng dẫn
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -66,6 +83,7 @@ const ScreenToolbar = ({
               "border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]",
               isRefreshing && "opacity-70"
             )}
+            id="screen-tour-refresh-btn"
           >
             <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
             Làm mới
@@ -74,6 +92,7 @@ const ScreenToolbar = ({
             size="sm"
             onClick={onCreate}
             className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
+            id="screen-tour-create-btn"
           >
             <Plus className="size-4" />
             Thêm phòng
@@ -81,8 +100,8 @@ const ScreenToolbar = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <div className="relative">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-4" id="screen-tour-filters">
+        <div className="relative" id="screen-tour-search">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9e9ea2]" />
           <Input
             placeholder="Tìm kiếm theo tên phòng hoặc mã phòng"
@@ -97,6 +116,7 @@ const ScreenToolbar = ({
           value={filters.screenType}
           onChange={handleInputChange}
           className="h-9 rounded-md border border-[#3a3a3d] bg-[#27272a] px-3 text-sm text-[#f5f5f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7a45]"
+          id="screen-tour-filter-type"
         >
           {screenTypeOptions.map((option) => (
             <option key={option.value} value={option.value} className="bg-[#151518] text-[#f5f5f5]">

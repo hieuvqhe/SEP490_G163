@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import { useGetPartnerCinemas, useInvalidatePartnerCinemas } from "@/apis/partner.cinema.api";
 import type { PartnerCinema } from "@/apis/partner.cinema.api";
 import {
@@ -148,6 +150,129 @@ const ScreenManagement = () => {
     setPagination((prev) => ({ ...prev, page }));
   };
 
+  const handleStartGuide = useCallback(() => {
+    const steps = [
+      {
+        element: "#screen-tour-page",
+        popover: {
+          title: "Quản lý phòng chiếu",
+          description:
+            "Tab này giúp bạn lựa chọn rạp, theo dõi danh sách phòng chiếu và thực hiện các thao tác tạo, chỉnh sửa, quản lý sơ đồ ghế.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#screen-tour-cinema-panel",
+        popover: {
+          title: "Chọn rạp",
+          description: "Tìm kiếm và chọn rạp thuộc quyền quản lý để tải danh sách phòng chiếu tương ứng.",
+          side: "right" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    if (selectedCinema) {
+      steps.push(
+        {
+          element: "#screen-tour-toolbar",
+          popover: {
+            title: "Bộ lọc & thao tác nhanh",
+            description: "Điều chỉnh tìm kiếm phòng, lọc theo loại, trạng thái và sắp xếp danh sách.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#screen-tour-filters",
+          popover: {
+            title: "Bộ lọc nâng cao",
+            description: "Sử dụng các trường tìm kiếm, loại phòng, trạng thái và sắp xếp để thu hẹp kết quả.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#screen-tour-toolbar-actions",
+          popover: {
+            title: "Các hành động chính",
+            description: "Đặt lại bộ lọc, làm mới dữ liệu hoặc mở biểu mẫu để tạo phòng chiếu mới.",
+            side: "right" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#screen-tour-create-btn",
+          popover: {
+            title: "Thêm phòng chiếu",
+            description: "Click để mở biểu mẫu, nhập thông tin về phòng và bố trí ghế.",
+            side: "right" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#screen-tour-table",
+          popover: {
+            title: "Danh sách phòng",
+            description: "Theo dõi các phòng chiếu hiện có, trạng thái hoạt động và sức chứa.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#screen-tour-table-sort",
+          popover: {
+            title: "Sắp xếp linh hoạt",
+            description: "Nhấn tiêu đề cột để sắp xếp theo tên phòng, loại phòng, sức chứa hoặc thời gian cập nhật.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#screen-tour-row",
+          popover: {
+            title: "Chi tiết từng phòng",
+            description: "Mỗi hàng hiển thị thông tin đầy đủ về phòng chiếu và các chỉ số quan trọng.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+      );
+
+      steps.push({
+        element: "#screen-tour-row-actions",
+        popover: {
+          title: "Thao tác trên phòng",
+          description:
+            "Xem chi tiết, chỉnh sửa, vô hiệu hoá hoặc truy cập sơ đồ ghế cho từng phòng.",
+          side: "right" as const,
+          align: "start" as const,
+        },
+      });
+
+      steps.push({
+        element: "#screen-tour-pagination",
+        popover: {
+          title: "Điều hướng danh sách",
+          description: "Chuyển trang để xem thêm phòng chiếu và theo dõi trạng thái tải dữ liệu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      });
+    }
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [selectedCinema]);
+
   const handleCreateClick = () => {
     if (!selectedCinemaId) {
       showToast("Vui lòng chọn rạp trước khi thêm phòng", undefined, "error");
@@ -274,9 +399,30 @@ const ScreenManagement = () => {
   const screenErrorMessage = screensError ? getScreenErrorMessage(screensError) : undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="screen-tour-page">
+      <div className="flex flex-col gap-3 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-[#f5f5f5]">Quản lý phòng chiếu</h2>
+          <p className="text-sm text-[#9e9ea2]">
+            Chọn rạp và quản trị danh sách phòng, sơ đồ ghế cùng trạng thái hoạt động.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleStartGuide}
+          className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] transition hover:bg-[#27272a]"
+          id="screen-tour-start-btn"
+        >
+          Bắt đầu hướng dẫn
+        </Button>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
-        <div className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
+        <div
+          className="rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40"
+          id="screen-tour-cinema-panel"
+        >
           <CinemaSelectionPanel
             cinemas={cinemas}
             loading={cinemasLoading || cinemasFetching}
@@ -289,7 +435,7 @@ const ScreenManagement = () => {
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4" id="screen-tour-content">
           {selectedCinema ? (
             <>
               <ScreenToolbar
@@ -299,6 +445,7 @@ const ScreenManagement = () => {
                 isRefreshing={isRefreshing}
                 onCreate={handleCreateClick}
                 cinemaName={selectedCinema.cinemaName}
+                onStartGuide={handleStartGuide}
               />
 
               <ScreenTable

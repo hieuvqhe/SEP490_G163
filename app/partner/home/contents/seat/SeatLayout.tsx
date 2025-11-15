@@ -33,13 +33,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Seat } from "./Seat";
 import { PopularSeatLayoutSamples } from "./PopularSeatLayoutSamples";
 import type { PopularSeatLayoutSample } from "./PopularSeatLayoutSamples";
 import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 import { useToast } from "@/components/ToastProvider";
+import { Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
+type GuideStep = {
+  element: string;
+  popover: {
+    title: string;
+    description: string;
+    side: "bottom" | "right";
+    align: "start";
+  };
+};
 
 type SeatTypeOption = PartnerSeatType | PartnerSeatLayoutSeatType;
 
@@ -90,6 +103,120 @@ const SeatLayout = () => {
   const updateSeatLayoutMutation = useUpdatePartnerSeatLayout();
   const invalidateSeatLayout = useInvalidatePartnerSeatLayout();
   const { showToast } = useToast();
+
+  const handleStartGuide = useCallback(() => {
+    const hasSelectedScreen = Boolean(screenId);
+    const steps: GuideStep[] = [
+      {
+        element: "#seat-layout-tour-page",
+        popover: {
+          title: "Thiết kế sơ đồ ghế",
+          description:
+            "Tạo hoặc chỉnh sửa bố trí ghế cho từng phòng chiếu, áp dụng mẫu và lưu về hệ thống.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+    ];
+
+    if (!hasSelectedScreen) {
+      steps.push({
+        element: "#seat-layout-tour-context",
+        popover: {
+          title: "Chưa chọn phòng",
+          description:
+            "Chọn phòng chiếu trong tab 'Phòng chiếu' để tải sơ đồ thực tế hoặc tiếp tục tạo sơ đồ mẫu tại đây.",
+          side: "bottom",
+          align: "start",
+        },
+      });
+    } else {
+      steps.push({
+        element: "#seat-layout-tour-context",
+        popover: {
+          title: "Thông tin phòng",
+          description:
+            "Đang thao tác trên phòng đã chọn. Khi lưu, sơ đồ sẽ được cập nhật trực tiếp cho phòng chiếu này.",
+          side: "bottom",
+          align: "start",
+        },
+      });
+
+      steps.push({
+        element: "#seat-layout-tour-status",
+        popover: {
+          title: "Trạng thái dữ liệu",
+          description:
+            "Theo dõi quá trình tải sơ đồ: đang tải, lỗi hoặc đã có dữ liệu thực tế từ hệ thống.",
+          side: "bottom",
+          align: "start",
+        },
+      });
+    }
+
+    steps.push(
+      {
+        element: "#seat-layout-tour-samples",
+        popover: {
+          title: "Sơ đồ mẫu",
+          description:
+            "Áp dụng nhanh các mẫu bố trí tham khảo để tiết kiệm thời gian thiết kế.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+      {
+        element: "#seat-layout-tour-form",
+        popover: {
+          title: "Tạo sơ đồ",
+          description:
+            "Nhập số hàng, số cột và chọn loại ghế mặc định trước khi tạo sơ đồ mới.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+      {
+        element: "#seat-layout-tour-canvas",
+        popover: {
+          title: "Khu vực ghế",
+          description:
+            "Nhấp vào hàng/cột để chọn nhanh, kéo chuột để phóng to/thu nhỏ và xem bố cục tổng thể.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+      {
+        element: "#seat-layout-tour-tools",
+        popover: {
+          title: "Thao tác ghế",
+          description:
+            "Chọn nhiều ghế để đổi trạng thái, đổi loại ghế, ẩn hiện ghế vô hiệu hoặc xem dữ liệu JSON.",
+          side: "right",
+          align: "start",
+        },
+      },
+      {
+        element: "#seat-layout-tour-legend",
+        popover: {
+          title: "Chú thích",
+          description:
+            "Danh sách loại ghế cùng màu sắc giúp bạn đối chiếu nhanh trong quá trình thiết kế.",
+          side: "bottom",
+          align: "start",
+        },
+      }
+    );
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [screenId]);
 
   const [rows, setRows] = useState<number>(5);
   const [cols, setCols] = useState<number>(5);
@@ -273,17 +400,18 @@ const SeatLayout = () => {
       return false;
     }
 
-    const isCoupleSeatType = Boolean(
+    const selectedSeatObjects = seats.filter((seat) =>
+      selectedSeats.includes(`${seat.row}${seat.column}`)
+    );
+    const selectedSeatIdSet = new Set(selectedSeats);
+
+    const isTargetCoupleSeatType = Boolean(
       seatType &&
         ((seatType.code && seatType.code.toUpperCase() === "COUPLE") ||
           seatType.name.toLowerCase().includes("ghế đôi"))
     );
 
-    if (isCoupleSeatType) {
-      const selectedSeatObjects = seats.filter((seat) =>
-        selectedSeats.includes(`${seat.row}${seat.column}`)
-      );
-
+    if (isTargetCoupleSeatType) {
       const hasInvalidCount =
         selectedSeatObjects.length < 2 || selectedSeatObjects.length % 2 !== 0;
 
@@ -329,6 +457,39 @@ const SeatLayout = () => {
           "error"
         );
         return false;
+      }
+    } else {
+      const coupleSeatsInSelection = selectedSeatObjects.filter((seat) =>
+        isCoupleSeatType(seat.seatTypeId)
+      );
+
+      if (coupleSeatsInSelection.length > 0) {
+        const hasPartialCouple = coupleSeatsInSelection.some((seat) => {
+          const partnerSeat = seats.find(
+            (candidate) =>
+              candidate.row === seat.row &&
+              candidate.column !== seat.column &&
+              Math.abs(candidate.column - seat.column) === 1 &&
+              isCoupleSeatType(candidate.seatTypeId)
+          );
+
+          if (!partnerSeat) {
+            return true;
+          }
+
+          return !selectedSeatIdSet.has(
+            `${partnerSeat.row}${partnerSeat.column}`
+          );
+        });
+
+        if (hasPartialCouple) {
+          showToast(
+            "Ghế đôi chỉ có thể thay đổi khi chọn đủ 2 ghế kề nhau.",
+            undefined,
+            "error"
+          );
+          return false;
+        }
       }
     }
 
@@ -377,6 +538,146 @@ const SeatLayout = () => {
     return map;
   }, [seats]);
 
+  const isCoupleSeatType = React.useCallback(
+    (seatTypeId: number) => {
+      const seatType = apiSeatTypesById.get(seatTypeId);
+      if (!seatType) return false;
+
+      const normalizedName = seatType.name
+        ?.trim()
+        .toLowerCase()
+        .normalize("NFC");
+      const normalizedCode = seatType.code
+        ?.trim()
+        .toLowerCase()
+        .normalize("NFC");
+
+      const keywords = [
+        "ghế đôi",
+        "ghe doi",
+        "đôi",
+        "doi",
+        "couple",
+        "double",
+        "COUPLE",
+        "Ghế Đôi"
+      ];
+
+      return keywords.some(
+        (keyword) =>
+          normalizedName?.includes(keyword) || normalizedCode?.includes(keyword)
+      );
+    },
+    [apiSeatTypesById]
+  );
+
+  const renderRowSeats = React.useCallback(
+    (
+      rowLabel: string,
+      seatOrderRef: { current: number }
+    ): React.ReactNode[] => {
+      const nodes: React.ReactNode[] = [];
+
+      const getSeatLabel = (seat: SeatData) => {
+        if (seat.status === "Maintenance") {
+          return "Z0";
+        }
+        seatOrderRef.current += 1;
+        return `${seat.row}${seatOrderRef.current}`;
+      };
+
+      for (let index = 0; index < columns.length; ) {
+        const column = columns[index];
+        const seat = seatLookup.get(`${rowLabel}-${column}`);
+        const seatKey = `${rowLabel}${column}`;
+
+        if (!seat) {
+          nodes.push(
+            <div
+              key={`${rowLabel}-${column}-empty`}
+              className="flex h-10 w-10 items-center justify-center rounded-md border border-dashed border-zinc-700/60 text-xs text-zinc-500"
+            >
+              —
+            </div>
+          );
+          index += 1;
+          continue;
+        }
+
+        const seatIsCouple = isCoupleSeatType(seat.seatTypeId);
+
+        if (seatIsCouple) {
+          const nextColumn = columns[index + 1];
+          const isContinuousNext = nextColumn === column + 1;
+          const nextSeat = isContinuousNext
+            ? seatLookup.get(`${rowLabel}-${nextColumn}`)
+            : undefined;
+
+          if (
+            nextSeat &&
+            isCoupleSeatType(nextSeat.seatTypeId) &&
+            isContinuousNext
+          ) {
+            const firstLabel = getSeatLabel(seat);
+            const secondLabel = getSeatLabel(nextSeat);
+            const nextSeatKey = `${rowLabel}${nextColumn}`;
+
+            nodes.push(
+              <div
+                key={`${rowLabel}-${column}-couple`}
+                className="inline-grid grid-cols-2 gap-0 w-max"
+                style={{ gridColumn: "span 2" }}
+              >
+                <Seat
+                  key={`${seat.row}-${seat.column}`}
+                  data={seat}
+                  isSelected={selectedSeats.includes(seatKey)}
+                  onToggleSelect={() => toggleSelect(seat.row, seat.column)}
+                  label={firstLabel}
+                  isPreview={isPreview}
+                  variant="coupleLeft"
+                />
+                <Seat
+                  key={`${nextSeat.row}-${nextSeat.column}`}
+                  data={nextSeat}
+                  isSelected={selectedSeats.includes(nextSeatKey)}
+                  onToggleSelect={() =>
+                    toggleSelect(nextSeat.row, nextSeat.column)
+                  }
+                  label={secondLabel}
+                  isPreview={isPreview}
+                  variant="coupleRight"
+                />
+              </div>
+            );
+
+            index += 2;
+            continue;
+          }
+        }
+
+        const label = getSeatLabel(seat);
+
+        nodes.push(
+          <Seat
+            key={`${seat.row}-${seat.column}`}
+            data={seat}
+            isSelected={selectedSeats.includes(seatKey)}
+            onToggleSelect={() => toggleSelect(seat.row, seat.column)}
+            label={label}
+            isPreview={isPreview}
+            variant="single"
+          />
+        );
+
+        index += 1;
+      }
+
+      return nodes;
+    },
+    [columns, isCoupleSeatType, isPreview, seatLookup, selectedSeats, toggleSelect]
+  );
+
   const sanitizedSeatData = (() => {
     const sortedSeats = seats.slice().sort((a, b) => {
       const rowCompare = a.row.localeCompare(b.row, "vi");
@@ -407,6 +708,53 @@ const SeatLayout = () => {
     seats: sanitizedSeatData,
   };
   const seatLayoutJson = JSON.stringify(seatLayoutData, null, 2);
+
+  const handleSeatDataGuide = useCallback(() => {
+    if (!isSeatDataModalOpen) return;
+
+    const steps: GuideStep[] = [
+      {
+        element: "#seat-layout-data-tour-header",
+        popover: {
+          title: "Dữ liệu sơ đồ ghế",
+          description:
+            "Theo dõi JSON sơ đồ ghế để kiểm tra tổng quan trước khi gửi lên hệ thống.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-layout-data-tour-preview",
+        popover: {
+          title: "Nội dung JSON",
+          description:
+            "Cuộn để xem từng ghế (seatName, seatTypeId, status...) và đảm bảo số hàng/cột khớp thực tế.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-layout-data-tour-actions",
+        popover: {
+          title: "Sao chép & đóng",
+          description:
+            "Sao chép dữ liệu vào clipboard, sau đó đóng hộp thoại khi đã kiểm tra xong.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [isSeatDataModalOpen]);
 
   const handleCopySeatLayout = async () => {
     if (!seatLayoutJson) return;
@@ -651,10 +999,11 @@ const SeatLayout = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6" id="seat-layout-tour-page">
       <div
         className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between
       rounded-xl border border-slate-800/60 bg-zinc-900/60 p-6 shadow-lg"
+        id="seat-layout-tour-context"
       >
         <div>
           <h2 className="text-2xl font-semibold text-white">
@@ -676,18 +1025,33 @@ const SeatLayout = () => {
               liệu).
             </p>
           )}
-          {renderApiStatus()}
+          <div id="seat-layout-tour-status">{renderApiStatus()}</div>
         </div>
-        <Button variant="outline" onClick={() => setActiveTab("screen")}>
-          Quay lại quản lý phòng chiếu
-        </Button>
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+          <Button
+            variant="outline"
+            onClick={handleStartGuide}
+            className="border-slate-700 bg-zinc-900/60 text-slate-100 transition hover:bg-zinc-800"
+            id="seat-layout-tour-start-btn"
+          >
+            <Info className="mr-2 size-4" /> Hướng dẫn
+          </Button>
+          <Button variant="outline" onClick={() => setActiveTab("screen")}>
+            Quay lại quản lý phòng chiếu
+          </Button>
+        </div>
       </div>
 
-      <PopularSeatLayoutSamples onApplySample={handleApplySeatLayoutSample} />
+      <div id="seat-layout-tour-samples">
+        <PopularSeatLayoutSamples onApplySample={handleApplySeatLayoutSample} />
+      </div>
 
       <div className="flex flex-col gap-10 xl:flex-row">
         <div className="flex-1 space-y-8 w-full">
-          <div className="rounded-xl border border-slate-800/60 w-4xl bg-zinc-900/60 p-6 shadow-lg">
+          <div
+            className="rounded-xl border border-slate-800/60 w-4xl bg-zinc-900/60 p-6 shadow-lg"
+            id="seat-layout-tour-form"
+          >
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               <form onSubmit={handleGenSeat} className="flex-1 space-y-4">
                 <div className="space-y-2">
@@ -799,7 +1163,10 @@ const SeatLayout = () => {
             </div>
           </div>
 
-          <div className="rounded-xl flex flex-col w-4xl h-fit items-center border overflow-hidden border-slate-800/60 bg-zinc-900/60 p-6 shadow-lg">
+          <div
+            className="rounded-xl flex flex-col w-4xl h-fit items-center border overflow-hidden border-slate-800/60 bg-zinc-900/60 p-6 shadow-lg"
+            id="seat-layout-tour-canvas"
+          >
             <div className="mb-6 flex flex-col items-center gap-2 text-center text-slate-300">
               <span className="w-40 border-b border-dashed border-slate-500" />
               <p className="text-xs uppercase tracking-widest text-slate-500">
@@ -856,14 +1223,13 @@ const SeatLayout = () => {
                           selectedSeats.includes(`${rowLabel}${seat.column}`)
                         );
 
-                        let seatOrder = 0;
+                        const seatOrderRef = { current: 0 };
 
                         return (
                           <div
                             key={rowLabel}
                             className="flex w-full items-center gap-3"
                           >
-                            {/* <div className="w-10" /> */}
                             <div
                               onClick={() => toggleRowSelect(rowLabel)}
                               className={`w-10 cursor-pointer text-center text-sm font-semibold ${
@@ -880,42 +1246,7 @@ const SeatLayout = () => {
                                 gridTemplateColumns: `repeat(${cols}, 2.5rem)`,
                               }}
                             >
-                              {columns.map((column) => {
-                                const seat = seatLookup.get(
-                                  `${rowLabel}-${column}`
-                                );
-                                const seatKey = `${rowLabel}${column}`;
-
-                                if (!seat) {
-                                  return (
-                                    <div
-                                      key={seatKey}
-                                      className="flex h-10 w-10 items-center justify-center rounded-md border border-dashed border-zinc-700/60 text-xs text-zinc-500"
-                                    >
-                                      —
-                                    </div>
-                                  );
-                                }
-
-                                const isMaintenance =
-                                  seat.status === "Maintenance";
-                                const label = isMaintenance
-                                  ? "Z0"
-                                  : `${seat.row}${++seatOrder}`;
-
-                                return (
-                                  <Seat
-                                    key={`${seat.row}-${seat.column}`}
-                                    data={seat}
-                                    isSelected={selectedSeats.includes(seatKey)}
-                                    onToggleSelect={() =>
-                                      toggleSelect(seat.row, seat.column)
-                                    }
-                                    label={label}
-                                    isPreview={isPreview}
-                                  />
-                                );
-                              })}
+                              {renderRowSeats(rowLabel, seatOrderRef)}
                             </div>
                           </div>
                         );
@@ -929,7 +1260,10 @@ const SeatLayout = () => {
         </div>
 
         <div className="flex w-full max-w-xl flex-col gap-4">
-          <div className="rounded-xl border border-zinc-700 bg-zinc-900/80 shadow-xl">
+          <div
+            className="rounded-xl border border-zinc-700 bg-zinc-900/80 shadow-xl"
+            id="seat-layout-tour-tools"
+          >
             <div className="flex items-center justify-between border-b border-zinc-700 px-5 py-3">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-200">
                 Thao tác ghế
@@ -1093,7 +1427,10 @@ const SeatLayout = () => {
             </div>
           </div>
 
-          <div className="rounded-xl border border-zinc-700 bg-zinc-900/70 p-4 shadow-md">
+          <div
+            className="rounded-xl border border-zinc-700 bg-zinc-900/70 p-4 shadow-md"
+            id="seat-layout-tour-legend"
+          >
             <p className="text-xs font-semibold uppercase tracking-wide text-zinc-300">
               Chú thích loại ghế
             </p>
@@ -1108,12 +1445,18 @@ const SeatLayout = () => {
                       className="inline-flex h-4 w-4 shrink-0 rounded border border-white/20"
                       style={{ backgroundColor: seatType.color }}
                     />
-                    <div className="space-y-0.5">
-                      <p className="text-sm font-medium text-zinc-100">
+                    <div className="space-y-0.5 overflow-hidden">
+                      <p
+                        className="text-sm font-medium text-zinc-100 truncate"
+                        title={seatType.name}
+                      >
                         {seatType.name}
                       </p>
                       {seatType.code && (
-                        <p className="text-xs uppercase tracking-wide text-zinc-500">
+                        <p
+                          className="text-xs uppercase tracking-wide text-zinc-500 truncate"
+                          title={seatType.code}
+                        >
                           {seatType.code}
                         </p>
                       )}
@@ -1132,11 +1475,14 @@ const SeatLayout = () => {
 
       <Dialog open={isSeatDataModalOpen} onOpenChange={setIsSeatDataModalOpen}>
         <DialogContent className="max-w-3xl border border-zinc-800 bg-zinc-900 text-zinc-100">
-          <DialogHeader>
+          <DialogHeader id="seat-layout-data-tour-header">
             <DialogTitle>Dữ liệu sơ đồ ghế</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="max-h-96 overflow-auto rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 text-sm font-mono">
+            <div
+              className="max-h-96 overflow-auto rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 text-sm font-mono"
+              id="seat-layout-data-tour-preview"
+            >
               {seatLayoutJson ? (
                 <pre className="whitespace-pre-wrap break-words text-zinc-100">
                   {seatLayoutJson}
@@ -1145,7 +1491,10 @@ const SeatLayout = () => {
                 <p className="text-zinc-400">Chưa có dữ liệu ghế.</p>
               )}
             </div>
-            <div className="flex items-center justify-between gap-3">
+            <div
+              className="flex items-center justify-between gap-3"
+              id="seat-layout-data-tour-actions"
+            >
               <Button
                 onClick={handleCopySeatLayout}
                 className="bg-blue-500 text-white hover:bg-blue-500/80"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Modal from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,19 @@ import type { Movie } from "@/types/movie.type";
 import type { PartnerCinema } from "@/apis/partner.cinema.api";
 import type { PartnerScreen } from "@/apis/partner.screen.api";
 import type { PartnerShowtime } from "@/apis/partner.showtime.api";
+import { Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
+type GuideStep = {
+  element: string;
+  popover: {
+    title: string;
+    description: string;
+    side: "bottom" | "right";
+    align: "start";
+  };
+};
 
 interface ShowtimeFormModalProps {
   open: boolean;
@@ -391,6 +404,115 @@ const ShowtimeFormModal = ({
     onSubmit(values);
   };
 
+  const handleStartGuide = useCallback(() => {
+    const steps: GuideStep[] = [
+      {
+        element: "#showtime-form-tour-header",
+        popover: {
+          title: mode === "create" ? "Tạo suất chiếu mới" : "Chỉnh sửa suất chiếu",
+          description:
+            mode === "create"
+              ? "Xác định thời gian, giá vé và trạng thái cho suất chiếu mới trước khi đưa vào lịch hoạt động."
+              : "Kiểm tra thông tin hiện có, cập nhật các trường cần thiết và lưu lại thay đổi.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+    ];
+
+    if (summary) {
+      steps.push({
+        element: "#showtime-form-tour-context",
+        popover: {
+          title: "Bối cảnh suất chiếu",
+          description:
+            "Hiển thị phim, rạp và phòng chiếu đang thao tác. Hãy chắc chắn thông tin này chính xác trước khi lưu.",
+          side: "bottom",
+          align: "start",
+        },
+      });
+    }
+
+    steps.push(
+      {
+        element: "#showtime-form-tour-schedule",
+        popover: {
+          title: "Thiết lập thời gian",
+          description:
+            "Chọn thời gian bắt đầu và kết thúc. Hệ thống tự gợi ý giờ kết thúc dựa trên thời lượng phim và thời gian nghỉ.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+      {
+        element: "#showtime-form-tour-pricing",
+        popover: {
+          title: "Giá và sức chứa",
+          description:
+            "Nhập giá cơ bản, số ghế khả dụng và định dạng chiếu để phục vụ tính doanh thu và hiển thị đặt vé.",
+          side: "bottom",
+          align: "start",
+        },
+      },
+      {
+        element: "#showtime-form-tour-status",
+        popover: {
+          title: "Trạng thái suất chiếu",
+          description:
+            "Chuyển sang 'Đã chiếu' khi lịch đã hoàn tất hoặc giữ 'Sắp diễn ra' trong giai đoạn chuẩn bị.",
+          side: "bottom",
+          align: "start",
+        },
+      }
+    );
+
+    if (mode === "create" && onBulkCreate) {
+      steps.push({
+        element: "#showtime-form-tour-bulk",
+        popover: {
+          title: "Tạo hàng loạt",
+          description:
+            "Nhập khoảng thời gian phục vụ và thời gian nghỉ để hệ thống sinh ra nhiều suất liên tiếp tự động.",
+          side: "bottom",
+          align: "start",
+        },
+      });
+
+      if (generatedBulkShowtimes.length > 0) {
+        steps.push({
+          element: "#showtime-form-tour-bulk-preview",
+          popover: {
+            title: "Danh sách suất đã sinh",
+            description:
+              "Kiểm tra từng suất, bao gồm thời gian chiếu và phút nghỉ giữa các suất trước khi xác nhận tạo hàng loạt.",
+            side: "bottom",
+            align: "start",
+          },
+        });
+      }
+    }
+
+    steps.push({
+      element: "#showtime-form-tour-actions",
+      popover: {
+        title: "Hoàn tất",
+        description: "Nhấn Lưu để xác nhận, hoặc Đóng nếu bạn muốn rời khỏi biểu mẫu mà không thay đổi dữ liệu.",
+        side: "bottom",
+        align: "start",
+      },
+    });
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [generatedBulkShowtimes.length, mode, onBulkCreate, summary]);
+
   return (
     <Modal
       isOpen={open}
@@ -399,9 +521,35 @@ const ShowtimeFormModal = ({
       size="lg"
       contentClassName="bg-[#151518] text-[#f5f5f5] border border-[#27272a] [&>div:first-child]:border-[#27272a] [&>div:first-child]:bg-[#151518] [&>div:first-child>h3]:text-[#f5f5f5] [&>div:first-child>button]:text-[#f5f5f5]/70 [&>div:first-child>button:hover]:text-white [&>div:first-child>button:hover]:bg-[#27272a]"
     >
-      <div className="space-y-5">
+      <div className="space-y-5" id="showtime-form-tour-container">
+        <div
+          className="flex flex-col gap-3 rounded-lg border border-[#27272a] bg-[#1c1c1f] px-4 py-3 md:flex-row md:items-center md:justify-between"
+          id="showtime-form-tour-header"
+        >
+          <div className="space-y-1 text-sm">
+            <p className="text-base font-semibold text-[#f5f5f5]">
+              {mode === "create" ? "Khai báo suất chiếu mới" : "Cập nhật thông tin suất chiếu"}
+            </p>
+            <p className="text-xs text-[#9e9ea2]">
+              Đảm bảo các khung giờ không trùng lặp và thông tin giá vé phản ánh đúng chính sách vận hành.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleStartGuide}
+            className="border border-[#3a3a3d] bg-[#27272a]/70 text-[#f5f5f5] hover:bg-[#27272a]"
+            id="showtime-form-tour-guide-btn"
+          >
+            <Info className="size-4" /> Hướng dẫn
+          </Button>
+        </div>
+
         {summary && (
-          <div className="rounded-lg border border-[#27272a] bg-[#1c1c1f] p-4 text-sm text-[#9e9ea2]">
+          <div
+            className="rounded-lg border border-[#27272a] bg-[#1c1c1f] p-4 text-sm text-[#9e9ea2]"
+            id="showtime-form-tour-context"
+          >
             <p className="text-xs uppercase tracking-wide text-[#f5f5f5]/70">Bối cảnh suất chiếu</p>
             <p className="mt-1 text-[#f5f5f5]">{summary}</p>
             {durationMinutes ? (
@@ -410,7 +558,7 @@ const ShowtimeFormModal = ({
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2" id="showtime-form-tour-schedule">
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Thời gian bắt đầu <span className="text-rose-400">*</span>
@@ -441,7 +589,7 @@ const ShowtimeFormModal = ({
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3" id="showtime-form-tour-pricing">
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Giá cơ bản (VND) <span className="text-rose-400">*</span>
@@ -481,7 +629,7 @@ const ShowtimeFormModal = ({
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" id="showtime-form-tour-status">
           <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
             Trạng thái suất chiếu
           </label>
@@ -501,7 +649,7 @@ const ShowtimeFormModal = ({
         </div>
 
         {mode === "create" && onBulkCreate ? (
-          <div className="space-y-3 rounded-lg border border-[#27272a] bg-[#1b1b1f] p-4">
+          <div className="space-y-3 rounded-lg border border-[#27272a] bg-[#1b1b1f] p-4" id="showtime-form-tour-bulk">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-[#f5f5f5]">Tạo hàng loạt suất chiếu</p>
               <p className="text-xs text-[#9e9ea2]">
@@ -578,7 +726,10 @@ const ShowtimeFormModal = ({
             {bulkError ? <p className="text-xs text-rose-400">{bulkError}</p> : null}
 
             {generatedBulkShowtimes.length ? (
-              <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border border-dashed border-[#3a3a3d] p-3">
+              <div
+                className="max-h-48 space-y-2 overflow-y-auto rounded-md border border-dashed border-[#3a3a3d] p-3"
+                id="showtime-form-tour-bulk-preview"
+              >
                 <p className="text-xs uppercase tracking-wide text-[#9e9ea2]">
                   Danh sách suất chiếu ({generatedBulkShowtimes.length})
                 </p>
@@ -597,7 +748,7 @@ const ShowtimeFormModal = ({
           </div>
         ) : null}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3" id="showtime-form-tour-actions">
           <Button
             variant="outline"
             onClick={onClose}

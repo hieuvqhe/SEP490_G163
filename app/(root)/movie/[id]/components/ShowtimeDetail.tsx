@@ -15,6 +15,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { useCreateBookingSession } from "@/apis/user.booking-session.api";
 
 export interface Showtime {
   showtimeId: number;
@@ -73,13 +74,29 @@ interface ShowtimeDetailCardProps {
 const ShowtimeDetailCard = ({ cinema }: ShowtimeDetailCardProps) => {
   const { user } = useAuthStore();
   const [alertDialog, setAlertDialog] = useState<boolean>(false);
+  const [lastShowtimeId, setLastShowtimeId] = useState<number>();
+  const [seatLayoutContent, setSeatLayoutContent] = useState<boolean>(false);
 
-  const handleGetSeatLayout = () => {
-    // Check đã đăng nhập chưa
-    if (!user) {
-      setAlertDialog(true);
-    }
+  const createSessionMutate = useCreateBookingSession();
+
+  // Tạo session booking mới nhưng dựa trên showtimeID, chỉ tạo session mới khi có showtimeID mới
+  const handleCreateNewSession = (showtimeId: number) => {
+    console.log(showtimeId);
+    if (showtimeId === lastShowtimeId) return;
+
+    setLastShowtimeId(showtimeId);
+
+    createSessionMutate.mutate(showtimeId, {
+      onSuccess: (res) => {
+        setSeatLayoutContent(true);
+        console.log("Create new session success: " + res.bookingSessionId);
+      },
+      onError: (err) => {
+        console.error("Failed to create session:", err);
+      },
+    });
   };
+
   return (
     <div className="w-full bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col gap-5 hover:bg-white/10 transition-all duration-200">
       {/* Header */}
@@ -125,32 +142,18 @@ const ShowtimeDetailCard = ({ cinema }: ShowtimeDetailCardProps) => {
                           ? "opacity-50 cursor-not-allowed"
                           : "hover:bg-primary hover:text-white"
                       }`}
-                      onClick={handleGetSeatLayout}
+                      onClick={() => handleCreateNewSession(st.showtimeId)}
                     >
                       {formatTime(st.startTime)} ~ {formatTime(st.endTime)}
                     </Button>
                   </DialogTrigger>
-
-                  {alertDialog ? (
-                    <DialogContent className="bg-zinc-800 sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Yêu cầu đăng nhập</DialogTitle>
-                        <DialogDescription>
-                          Bạn cần đăng nhập để tiếp tục sử dụng tính năng này.
-                          Điều này giúp chúng tôi mang đến trải nghiệm tốt nhất
-                          cho bạn.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button className="hover:bg-[#f84565]/60 transition-colors duration-150">
-                            Tiếp tục
-                          </Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  ) : (
-                    <SeatLayout showtime={st} />
+                  {seatLayoutContent && (
+                    <SeatLayout
+                      showtime={st}
+                      sessionId={
+                        createSessionMutate.data?.bookingSessionId ?? ""
+                      }
+                    />
                   )}
                 </Dialog>
               ))}

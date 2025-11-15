@@ -34,8 +34,10 @@ const MovieDetail = ({ movie }: MovieProp) => {
   );
 
   useEffect(() => {
-    console.log("brandCodeSelect: " + brandCodeSelect);
-  }, [brandCodeSelect]);
+    if (showtimeOverviews && showtimeOverviews?.brands?.length > 0) {
+      setBrandCodeSelect(showtimeOverviews.brands[0].code);
+    }
+  }, [showtimeOverviews]);
 
   return (
     <div className="relative min-h-screen w-full bg-black">
@@ -175,10 +177,12 @@ const MovieDetail = ({ movie }: MovieProp) => {
                     brands={showtimeOverviews?.brands}
                     onSelect={setBrandCodeSelect}
                   />
-                  <ShowtimeDetail
-                    brandCode={brandCodeSelect}
-                    showtimeOverview={showtimeOverviews.cinemas.items}
-                  />
+                  {showtimeOverviews && brandCodeSelect && (
+                    <ShowtimeDetail
+                      brandCode={brandCodeSelect}
+                      showtimeOverview={showtimeOverviews.cinemas.items}
+                    />
+                  )}
                 </div>
               )}
               {/* // {!showtimeOverviews?.brands ||
