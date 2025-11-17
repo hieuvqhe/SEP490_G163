@@ -215,6 +215,19 @@ export function MovieSubmissionDetailDialog({
     className: "text-zinc-300",
   };
   const isPendingStatus = normalizedStatus === "pending";
+  const canEditSubmission = normalizedStatus === "draft" || normalizedStatus === "rejected";
+  const editLockMessage = (() => {
+    if (normalizedStatus === "pending") {
+      return "Bản nháp đang chờ duyệt. Bạn chỉ có thể xem thông tin cho tới khi quản lý phản hồi.";
+    }
+    if (normalizedStatus === "approved") {
+      return "Phim đã được duyệt. Bạn không thể chỉnh sửa, xoá hay gửi lại submission này.";
+    }
+    if (!canEditSubmission) {
+      return "Submission ở trạng thái hiện tại không hỗ trợ chỉnh sửa.";
+    }
+    return null;
+  })();
 
   const fetchReadSas = useCallback(
     async (field: PdfField, blobUrl: string) => {
@@ -597,7 +610,7 @@ export function MovieSubmissionDetailDialog({
                       <p className="text-xs text-sky-300">Diễn viên mới trong bản nháp</p>
                     )}
                   </div>
-                  {!isPendingStatus && (
+                  {canEditSubmission && (
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
@@ -778,7 +791,7 @@ export function MovieSubmissionDetailDialog({
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-300">
                   Diễn viên trong bản nháp
                 </h3>
-                {!isPendingStatus ? (
+                {canEditSubmission ? (
                   <Button
                     size="sm"
                     variant="outline"
@@ -866,11 +879,9 @@ export function MovieSubmissionDetailDialog({
 
             <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/80 p-4">
               <p className="text-sm text-zinc-400">
-                {isPendingStatus
-                  ? "Bản nháp đang chờ duyệt. Bạn chỉ có thể xem thông tin cho tới khi quản lý phản hồi."
-                  : "Nhấn \"Chỉnh sửa\" để cập nhật thông tin bản nháp trong form đầy đủ."}
+                {editLockMessage ?? "Nhấn \"Chỉnh sửa\" để cập nhật thông tin bản nháp trong form đầy đủ."}
               </p>
-              {detail && onEdit && !isPendingStatus ? (
+              {detail && onEdit && canEditSubmission ? (
                 <Button
                   variant="outline"
                   size="sm"
@@ -892,11 +903,7 @@ export function MovieSubmissionDetailDialog({
             Đóng
           </Button>
           {detail ? (
-            isPendingStatus ? (
-              <div className="order-1 sm:order-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
-                Phim đang chờ duyệt. Bạn không thể chỉnh sửa, xoá hay gửi lại cho tới khi có phản hồi từ quản lý.
-              </div>
-            ) : (
+            canEditSubmission ? (
               <div className="flex flex-col gap-2 sm:flex-row sm:order-2 sm:justify-end">
                 <Button
                   variant="secondary"
@@ -914,6 +921,10 @@ export function MovieSubmissionDetailDialog({
                 >
                   Xoá bản nháp
                 </Button>
+              </div>
+            ) : (
+              <div className="order-1 sm:order-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
+                {editLockMessage ?? "Submission này không thể thao tác chỉnh sửa trong trạng thái hiện tại."}
               </div>
             )
           ) : null}
