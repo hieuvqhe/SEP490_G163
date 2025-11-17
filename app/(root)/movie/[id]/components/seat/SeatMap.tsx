@@ -151,16 +151,18 @@ const SeatMap = ({
     return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
   }, [seats]);
 
+  const safeBasePrice = basePrice ?? 0;
+
   const totalPrice = useMemo(() => {
     return selectedSeats.reduce((total, sSeat) => {
       const seat = seats?.find((s) => s.seatId === sSeat.seatId);
       if (seat) {
         const surcharge = seatTypeSurcharge[seat.seatTypeId] || 0;
-        return total + basePrice + surcharge;
+        return total + safeBasePrice + surcharge;
       }
       return total;
     }, 0);
-  }, [selectedSeats, seats, seatTypeSurcharge, basePrice]);
+  }, [selectedSeats, seats, seatTypeSurcharge, safeBasePrice]);
 
   const selectedSeatLabels = useMemo(() => {
     return selectedSeats

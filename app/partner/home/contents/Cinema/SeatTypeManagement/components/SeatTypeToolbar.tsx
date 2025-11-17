@@ -99,7 +99,7 @@ const SeatTypeToolbar = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-5" id="seat-type-tour-filters">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between" id="seat-type-tour-filters">
         <div className="relative md:col-span-2" id="seat-type-tour-search">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9e9ea2]" />
           <Input
