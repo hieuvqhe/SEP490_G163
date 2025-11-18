@@ -1,7 +1,9 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { MovieSubmissionDetail } from "@/apis/manager.movie.api";
+import { useGenerateReadSasUrl } from "@/apis/pdf.blob.api";
+import { useToast } from "@/components/ToastProvider";
 
 // --- Props & Component chính (Giữ nguyên) ---
 
@@ -13,6 +15,20 @@ interface MovieDetailModalProps {
   onUpdateAndResubmit?: (submission: MovieSubmissionDetail) => void;
 }
 
+type PdfField = "copyrightDocumentUrl" | "distributionLicenseUrl";
+
+const extractFileNameFromUrl = (url?: string | null) => {
+  if (!url) return "Tài liệu PDF";
+  try {
+    const pathname = new URL(url).pathname;
+    const name = pathname.split("/").pop();
+    return name || "Tài liệu PDF";
+  } catch (_error) {
+    const segments = url.split("/");
+    return segments.pop() || "Tài liệu PDF";
+  }
+};
+
 const MovieDetailModal = ({
   open,
   submission,
@@ -20,6 +36,12 @@ const MovieDetailModal = ({
   onClose,
   onUpdateAndResubmit,
 }: MovieDetailModalProps) => {
+  const { showToast } = useToast();
+  const generateReadSasMutation = useGenerateReadSasUrl();
+  const [previewingField, setPreviewingField] = useState<PdfField | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<Partial<Record<PdfField, string>>>({});
+  const [previewLoadingField, setPreviewLoadingField] = useState<PdfField | null>(null);
+
   if (!open) return null;
 
   const normalizedStatus = submission?.status ? submission.status.toLowerCase() : "";
@@ -29,226 +51,319 @@ const MovieDetailModal = ({
   const isDuplicateMovieRejection =
     normalizedStatus === "rejected" && normalizedRejectionReason === "đã có phim trùng";
 
+  const handleClose = () => {
+    setPreviewingField(null);
+    setPreviewUrls({});
+    setPreviewLoadingField(null);
+    generateReadSasMutation.reset();
+    onClose();
+  };
+
+  const handlePreviewPdf = async (field: PdfField) => {
+    if (!submission) return;
+    const blobUrl = submission[field];
+
+    if (!blobUrl) {
+      showToast("Không tìm thấy tài liệu để xem trước", undefined, "error");
+      return;
+    }
+
+    const cachedUrl = previewUrls[field];
+    if (cachedUrl) {
+      setPreviewingField(field);
+      return;
+    }
+
+    try {
+      setPreviewLoadingField(field);
+      const response = await generateReadSasMutation.mutateAsync({ blobUrl });
+      const readUrl = response.result.readSasUrl;
+      setPreviewUrls((prev) => ({ ...prev, [field]: readUrl }));
+      setPreviewingField(field);
+    } catch (error: any) {
+      const message = error?.message || "Không thể tạo liên kết xem trước";
+      showToast(message, undefined, "error");
+    } finally {
+      setPreviewLoadingField(null);
+    }
+  };
+
+  const activePreviewUrl = previewingField ? previewUrls[previewingField] ?? null : null;
+  const activePreviewFileName = previewingField
+    ? extractFileNameFromUrl(submission?.[previewingField])
+    : "";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur">
-      {/* Container của Modal */}
-      <div className="mx-4 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-gray-900/70 p-8 text-white shadow-xl backdrop-blur-lg">
-        {/* === Header (Giữ nguyên) === */}
-        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold">Chi tiết submission phim</h2>
-            <p className="mt-1 text-sm text-gray-300">
-              Thông tin chi tiết về phim do đối tác gửi lên hệ thống.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 self-start">
-            {shouldShowUpdateAndResubmitButton && (
-              <button
-                type="button"
-                onClick={() => submission && onUpdateAndResubmit?.(submission)}
-                className="rounded-lg border border-orange-400/40 bg-orange-500/20 px-3 py-1 text-sm font-medium text-orange-100 transition hover:bg-orange-500/30 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isDuplicateMovieRejection}
-                title={
-                  isDuplicateMovieRejection
-                    ? "Không thể cập nhật và nộp lại do phim đã tồn tại trên hệ thống"
-                    : undefined
-                }
-              >
-                Cập nhật và nộp lại
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-sm text-gray-200 hover:bg-white/10"
-              type="button"
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
-
-        {/* === Body === */}
-        {isLoading ? (
-          <div className="py-24 text-center text-sm text-gray-300">Đang tải chi tiết submission...</div>
-        ) : !submission ? (
-          <div className="py-24 text-center text-sm text-gray-300">Không tìm thấy thông tin submission.</div>
-        ) : (
-          <div className="space-y-8">
-            
-            <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 shadow-xl shadow-black/20">
-              {submission.bannerUrl && (
-                <div className="pointer-events-none absolute inset-0">
-                  <img
-                    src={submission.bannerUrl}
-                    alt={`${submission.title} background`}
-                    className="h-full w-full object-cover opacity-40"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/80 to-slate-900/30" />
-                </div>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur">
+        {/* Container của Modal */}
+        <div className="mx-4 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-gray-900/70 p-8 text-white shadow-xl backdrop-blur-lg">
+          {/* === Header (Giữ nguyên) === */}
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Chi tiết submission phim</h2>
+              <p className="mt-1 text-sm text-gray-300">
+                Thông tin chi tiết về phim do đối tác gửi lên hệ thống.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 self-start">
+              {shouldShowUpdateAndResubmitButton && (
+                <button
+                  type="button"
+                  onClick={() => submission && onUpdateAndResubmit?.(submission)}
+                  className="rounded-lg border border-orange-400/40 bg-orange-500/20 px-3 py-1 text-sm font-medium text-orange-100 transition hover:bg-orange-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isDuplicateMovieRejection}
+                  title={
+                    isDuplicateMovieRejection
+                      ? "Không thể cập nhật và nộp lại do phim đã tồn tại trên hệ thống"
+                      : undefined
+                  }
+                >
+                  Cập nhật và nộp lại
+                </button>
               )}
+              <button
+                onClick={handleClose}
+                className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-sm text-gray-200 hover:bg-white/10"
+                type="button"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
 
-              <div className="relative flex flex-col gap-6 p-6 md:flex-row md:items-start md:gap-10 md:p-8">
-                <div className="mx-auto w-24 flex-shrink-0 md:mx-0 md:w-36 lg:w-44 xl:w-52">
-                  <Poster
-                    title={submission.title}
-                    src={submission.posterUrl ?? undefined}
-                    className="shadow-lg shadow-black/30"
-                  />
-                </div>
+          {/* === Body === */}
+          {isLoading ? (
+            <div className="py-24 text-center text-sm text-gray-300">Đang tải chi tiết submission...</div>
+          ) : !submission ? (
+            <div className="py-24 text-center text-sm text-gray-300">Không tìm thấy thông tin submission.</div>
+          ) : (
+            <div className="space-y-8">
+              <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 shadow-xl shadow-black/20">
+                {submission.bannerUrl && (
+                  <div className="pointer-events-none absolute inset-0">
+                    <img
+                      src={submission.bannerUrl}
+                      alt={`${submission.title} background`}
+                      className="h-full w-full object-cover opacity-40"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/80 to-slate-900/30" />
+                  </div>
+                )}
 
-                <main className="flex-1 space-y-5">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-orange-200">
-                      <span className="inline-flex items-center rounded-full border border-orange-400/40 bg-orange-500/20 px-3 py-1 uppercase tracking-wide">
-                        {formatStatus(submission.status)}
-                      </span>
-                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-gray-200">
-                        Mã phim: {submission.movieId ? `#${submission.movieId}` : "-"}
-                      </span>
+                <div className="relative flex flex-col gap-6 p-6 md:flex-row md:items-start md:gap-10 md:p-8">
+                  <div className="mx-auto w-24 flex-shrink-0 md:mx-0 md:w-36 lg:w-44 xl:w-52">
+                    <Poster
+                      title={submission.title}
+                      src={submission.posterUrl ?? undefined}
+                      className="shadow-lg shadow-black/30"
+                    />
+                  </div>
+
+                  <main className="flex-1 space-y-5">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-orange-200">
+                        <span className="inline-flex items-center rounded-full border border-orange-400/40 bg-orange-500/20 px-3 py-1 uppercase tracking-wide">
+                          {formatStatus(submission.status)}
+                        </span>
+                        <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-gray-200">
+                          Mã phim: {submission.movieId ? `#${submission.movieId}` : "-"}
+                        </span>
+                      </div>
+
+                      <h3 className="text-2xl font-bold text-white md:text-3xl lg:text-4xl">
+                        {submission.title}
+                      </h3>
+                      <p className="text-sm leading-relaxed text-gray-200 md:text-base">
+                        {submission.description || "Không có mô tả"}
+                      </p>
                     </div>
 
-                    <h3 className="text-2xl font-bold text-white md:text-3xl lg:text-4xl">
-                      {submission.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-gray-200 md:text-base">
-                      {submission.description || "Không có mô tả"}
-                    </p>
-                  </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <InfoCard label="Đạo diễn" value={submission.director || "-"} />
+                      <InfoCard label="Hãng sản xuất" value={submission.production || "-"} />
+                      <InfoCard label="Thời lượng" value={formatDuration(submission.durationMinutes)} />
+                      <InfoCard label="Thể loại" value={submission.genre || "-"} />
+                      <InfoCard label="Ngôn ngữ" value={submission.language || "-"} />
+                      <InfoCard label="Quốc gia" value={submission.country || "-"} />
+                      <InfoCard label="Ngày công chiếu" value={formatDate(submission.premiereDate)} />
+                      <InfoCard label="Ngày kết thúc" value={formatDate(submission.endDate)} />
+                    </div>
 
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <InfoCard label="Đạo diễn" value={submission.director || "-"} />
-                    <InfoCard label="Hãng sản xuất" value={submission.production || "-"} />
-                    <InfoCard label="Thời lượng" value={formatDuration(submission.durationMinutes)} />
-                    <InfoCard label="Thể loại" value={submission.genre || "-"} />
-                    <InfoCard label="Ngôn ngữ" value={submission.language || "-"} />
-                    <InfoCard label="Quốc gia" value={submission.country || "-"} />
-                    <InfoCard label="Ngày công chiếu" value={formatDate(submission.premiereDate)} />
-                    <InfoCard label="Ngày kết thúc" value={formatDate(submission.endDate)} />
-                  </div>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <InfoCard
+                        label="Đối tác"
+                        value={`${submission.partner.partnerName} (#${submission.partner.partnerId})`}
+                      />
+                      <InfoCard label="Ngày gửi" value={formatDateTime(submission.submittedAt)} />
+                      <InfoCard label="Ngày duyệt" value={formatDateTime(submission.reviewedAt)} />
+                    </div>
+                  </main>
+                </div>
+              </section>
 
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <InfoCard
+              <section className="space-y-8">
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-100">Banner & Trailer</h4>
+                  {submission.bannerUrl ? (
+                    <BannerPreview title={submission.title} src={submission.bannerUrl} />
+                  ) : (
+                    <p className="text-sm text-gray-300">Không có banner</p>
+                  )}
+                  <DetailGrid>
+                    <InfoItem
+                      label="Trailer"
+                      value={
+                        submission.trailerUrl ? (
+                          <DocumentLink href={submission.trailerUrl}>Mở trailer</DocumentLink>
+                        ) : (
+                          "Không có"
+                        )
+                      }
+                    />
+                  </DetailGrid>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-100">Diễn viên</h4>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {submission.actors.length === 0 ? (
+                      <p className="col-span-full text-sm text-gray-300">Không có thông tin diễn viên.</p>
+                    ) : (
+                      submission.actors.map((actor) => (
+                        <div
+                          key={actor.movieSubmissionActorId}
+                          className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4"
+                        >
+                          <ActorAvatar avatarUrl={actor.actorAvatarUrl} name={actor.actorName} />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-white">
+                              {actor.actorName || actorFallbackName(actor)}
+                            </p>
+                            <p className="truncate text-xs text-gray-300">Vai: {actor.role || "Chưa cập nhật"}</p>
+                            <p className="truncate text-xs text-gray-400">
+                              {actor.isExistingActor ? "Diễn viên có sẵn" : "Diễn viên mới"}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-4 pt-4 border-t border-white/10">
+                <h4 className="text-lg font-semibold text-gray-100">Thông tin quản lý & Hệ thống</h4>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <InfoBlock title="Thông tin Submission">
+                    <InfoItem
                       label="Đối tác"
                       value={`${submission.partner.partnerName} (#${submission.partner.partnerId})`}
                     />
-                    <InfoCard label="Ngày gửi" value={formatDateTime(submission.submittedAt)} />
-                    <InfoCard label="Ngày duyệt" value={formatDateTime(submission.reviewedAt)} />
-                  </div>
-                </main>
-              </div>
-            </section>
-            
+                    <InfoItem label="Trạng thái" value={formatStatus(submission.status)} />
+                    <InfoItem label="Mã phim hệ thống" value={submission.movieId ? `#${submission.movieId}` : "-"} />
+                    <InfoItem label="Ngày gửi" value={formatDateTime(submission.submittedAt)} />
+                    <InfoItem label="Ngày duyệt" value={formatDateTime(submission.reviewedAt)} />
+                    <InfoItem label="Lý do từ chối" value={submission.rejectionReason || "-"} />
+                  </InfoBlock>
 
-            <section className="space-y-8">
+                  <InfoBlock title="Tài liệu & Ghi chú">
+                    <InfoItem
+                      label="Tài liệu bản quyền"
+                      value={
+                        submission?.copyrightDocumentUrl ? (
+                          <div className="space-y-2">
+                          
+                            <button
+                              type="button"
+                              onClick={() => void handlePreviewPdf("copyrightDocumentUrl")}
+                              disabled={previewLoadingField === "copyrightDocumentUrl"}
+                              className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-3 py-1 text-xs font-medium text-orange-100 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {previewLoadingField === "copyrightDocumentUrl"
+                                ? "Đang mở..."
+                                : "Xem trước PDF"}
+                            </button>
+                          </div>
+                        ) : (
+                          "Không có"
+                        )
+                      }
+                    />
+                    <InfoItem
+                      label="Giấy phép phân phối"
+                      value={
+                        submission?.distributionLicenseUrl ? (
+                          <div className="space-y-2">
 
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-gray-100">Banner & Trailer</h4>
-                {submission.bannerUrl ? (
-                  <BannerPreview title={submission.title} src={submission.bannerUrl} />
-                ) : (
-                  <p className="text-sm text-gray-300">Không có banner</p>
-                )}
-                <DetailGrid>
-                  <InfoItem
-                    label="Trailer"
-                    value={
-                      submission.trailerUrl ? (
-                        <DocumentLink href={submission.trailerUrl}>Mở trailer</DocumentLink>
-                      ) : (
-                        "Không có"
-                      )
-                    }
-                  />
-                </DetailGrid>
-              </div>
+                            <button
+                              type="button"
+                              onClick={() => void handlePreviewPdf("distributionLicenseUrl")}
+                              disabled={previewLoadingField === "distributionLicenseUrl"}
+                              className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-3 py-1 text-xs font-medium text-orange-100 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {previewLoadingField === "distributionLicenseUrl"
+                                ? "Đang mở..."
+                                : "Xem trước PDF"}
+                            </button>
+                          </div>
+                        ) : (
+                          "Không có"
+                        )
+                      }
+                    />
+                    <InfoItem
+                      label="Ghi chú bổ sung"
+                      value={submission.additionalNotes?.trim() ? submission.additionalNotes : "Không có"}
+                    />
+                  </InfoBlock>
 
-        
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-gray-100">Diễn viên</h4>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {submission.actors.length === 0 ? (
-                    <p className="col-span-full text-sm text-gray-300">Không có thông tin diễn viên.</p>
-                  ) : (
-                    submission.actors.map((actor) => (
-                      <div
-                        key={actor.movieSubmissionActorId}
-                        className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4"
-                      >
-                        <ActorAvatar avatarUrl={actor.actorAvatarUrl} name={actor.actorName} />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-white">
-                            {actor.actorName || actorFallbackName(actor)}
-                          </p>
-                          <p className="truncate text-xs text-gray-300">Vai: {actor.role || "Chưa cập nhật"}</p>
-                          <p className="truncate text-xs text-gray-400">
-                            {actor.isExistingActor ? "Diễn viên có sẵn" : "Diễn viên mới"}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                  <InfoBlock title="Thông tin Hệ thống">
+                    <InfoItem label="Ngày tạo" value={formatDateTime(submission.createdAt)} />
+                    <InfoItem label="Cập nhật lần cuối" value={formatDateTime(submission.updatedAt)} />
+                  </InfoBlock>
                 </div>
-              </div>
-            </section>
-
-   
-            <section className="space-y-4 pt-4 border-t border-white/10">
-              <h4 className="text-lg font-semibold text-gray-100">Thông tin quản lý & Hệ thống</h4>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <InfoBlock title="Thông tin Submission">
-                  <InfoItem
-                    label="Đối tác"
-                    value={`${submission.partner.partnerName} (#${submission.partner.partnerId})`}
-                  />
-                  <InfoItem label="Trạng thái" value={formatStatus(submission.status)} />
-                  <InfoItem label="Mã phim hệ thống" value={submission.movieId ? `#${submission.movieId}` : "-"} />
-                  <InfoItem label="Ngày gửi" value={formatDateTime(submission.submittedAt)} />
-                  <InfoItem label="Ngày duyệt" value={formatDateTime(submission.reviewedAt)} />
-                  <InfoItem label="Lý do từ chối" value={submission.rejectionReason || "-"} />
-                </InfoBlock>
-
-                <InfoBlock title="Tài liệu & Ghi chú">
-                  <InfoItem
-                    label="Tài liệu bản quyền"
-                    value={
-                      submission.copyrightDocumentUrl ? (
-                        <DocumentLink href={submission.copyrightDocumentUrl}>Xem tài liệu</DocumentLink>
-                      ) : (
-                        "Không có"
-                      )
-                    }
-                  />
-                  <InfoItem
-                    label="Giấy phép phân phối"
-                    value={
-                      submission.distributionLicenseUrl ? (
-                        <DocumentLink href={submission.distributionLicenseUrl}>Xem tài liệu</DocumentLink>
-                      ) : (
-                        "Không có"
-                      )
-                    }
-                  />
-                  <InfoItem
-                    label="Ghi chú bổ sung"
-                    value={submission.additionalNotes?.trim() ? submission.additionalNotes : "Không có"}
-                  />
-                </InfoBlock>
-
-                <InfoBlock title="Thông tin Hệ thống">
-                  <InfoItem label="Ngày tạo" value={formatDateTime(submission.createdAt)} />
-                  <InfoItem label="Cập nhật lần cuối" value={formatDateTime(submission.updatedAt)} />
-                </InfoBlock>
-              </div>
-            </section>
-          </div>
-        )}
+              </section>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+      {previewingField ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6">
+          <div className="relative flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-white">Xem trước PDF</p>
+                <p className="text-xs text-gray-300">{activePreviewFileName}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewingField(null)}
+                className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-gray-200 transition hover:bg-white/10"
+              >
+                Đóng
+              </button>
+            </div>
+            <div className="flex-1 bg-black/40">
+              {activePreviewUrl ? (
+                <iframe
+                  title="PDF Preview"
+                  src={`${activePreviewUrl}#toolbar=0`}
+                  className="h-full w-full"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-gray-300">
+                  Không tìm thấy tài liệu để hiển thị.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 };
-
-
 
 const InfoCard = ({ label, value }: { label: string; value: ReactNode }) => {
   return (
