@@ -7,7 +7,7 @@ import { CiFolderOff, CiPlay1 } from "react-icons/ci";
 import DateSelector from "./DateSelector";
 import TheaterSelector from "./TheaterSelector";
 import ShowtimeDetail from "./ShowtimeDetail";
-import { X } from "lucide-react";
+import { Star, X } from "lucide-react";
 import { useGetShowtimesOverview } from "@/apis/user.catalog.api";
 import dayjs from "dayjs";
 import { Spinner } from "@/components/ui/spinner";
@@ -34,6 +34,10 @@ const MovieDetail = ({ movie }: MovieProp) => {
       Date: dateSelectorValue,
     });
 
+  const bannerImageUrl =
+    movie.posterUrl ??
+    "https://image.tmdb.org/t/p/original/4m0eLZzOr5W1BK9el9ASQrTwd0m.jpg";
+
   const showtimeOverviews = showtimeOverviewRes?.result;
   const [brandCodeSelect, setBrandCodeSelect] = useState<string>(
     showtimeOverviews?.brands[0]?.code ?? "CGV"
@@ -52,7 +56,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url("https://image.tmdb.org/t/p/original/4m0eLZzOr5W1BK9el9ASQrTwd0m.jpg")`,
+            backgroundImage: `url(${bannerImageUrl})`,
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-black/60" />
@@ -90,6 +94,27 @@ const MovieDetail = ({ movie }: MovieProp) => {
               <p className="text-lg text-amber-400">{movie.genre}</p>
             </div>
 
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setTrailerModal(true)}
+                className="inline-flex items-center justify-center rounded-full bg-amber-500 px-6 py-2 text-sm font-semibold text-black shadow-lg shadow-amber-500/30 transition hover:bg-amber-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+              >
+                Xem trailer
+              </button>
+              <button
+                type="button"
+                onClick={() => {}}
+                className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-black px-6 py-2 text-sm font-semibold text-white transition hover:border-white hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <Star
+                  className="h-4 w-4 text-white transition-colors duration-200 group-hover:text-amber-500"
+                  fill="currentColor"
+                />
+                Xem review
+              </button>
+            </div>
+
             {/* Movie Details */}
             <div className="w-full space-y-4">
               <div>
@@ -121,9 +146,9 @@ const MovieDetail = ({ movie }: MovieProp) => {
 
               <div>
                 <h3 className="text-sm font-semibold text-white mb-1">
-                  Sản xuất
+                  Ngôn ngữ
                 </h3>
-                <p className="text-sm text-gray-300">{movie.createdBy}</p>
+                <p className="text-sm text-gray-300">{movie.language}</p>
               </div>
 
               <div>
@@ -137,14 +162,26 @@ const MovieDetail = ({ movie }: MovieProp) => {
                 <h3 className="text-sm font-semibold text-white mb-1">
                   Diễn viên
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {movie.actor.map((item) => (
-                    <span
+                    <div
                       key={item.id}
-                      className="text-sm text-gray-300 bg-white/10 px-3 py-1 rounded-full"
+                      className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-full"
                     >
-                      {item.name}
-                    </span>
+                      <div className="relative h-10 w-10 overflow-hidden rounded-full">
+                        <Image
+                          src={
+                            item.profileImage ||
+                            "https://ui-avatars.com/api/?background=1f2937&color=fff&name=Actor"
+                          }
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          sizes="40px"
+                        />
+                      </div>
+                      <span className="text-sm text-gray-100">{item.name}</span>
+                    </div>
                   ))}
                 </div>
               </div>
