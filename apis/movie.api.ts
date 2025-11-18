@@ -6,6 +6,7 @@ import {
   Movie,
   MovieQueryParams,
 } from "@/types/movie.type";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 // Create public axios instance for public movie endpoints
@@ -153,4 +154,13 @@ export const getTopRateMovies = async (
   } catch (error) {
     throw handleMovieError(error);
   }
+};
+
+export const useGetMovieById = (movieId?: number) => {
+  return useQuery({
+    queryKey: ["movie-detail", movieId],
+    queryFn: () => getMoviesById(movieId!),
+    enabled: !!movieId,
+    staleTime: 1000 * 60 * 5,
+  });
 };

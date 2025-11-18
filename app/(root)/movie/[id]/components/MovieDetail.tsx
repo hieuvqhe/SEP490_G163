@@ -17,6 +17,12 @@ interface MovieProp {
 }
 
 const MovieDetail = ({ movie }: MovieProp) => {
+  useEffect(() => {
+    if (movie) {
+      localStorage.setItem("movieId", String(movie.movieId));
+    }
+  }, [movie.movieId]);
+
   const [trailerModal, setTrailerModal] = useState<boolean>(false);
   const [dateSelectorValue, setDateSelectorValue] = useState<string>(
     dayjs().format("YYYY-MM-DD")

@@ -49,10 +49,27 @@ const nextConfig = {
         port: "",
         pathname: "/**", // Cho phép tất cả đường dẫn từ Wikimedia
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "seeklogo.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        source: "/api/payos/:path*",
+        destination:
+          "https://expressticketcinemasystemapi-fjescsgjg9djeuf5.southeastasia-01.azurewebsites.net/api/payments/payos/:path*",
+      },
     ],
   },
   eslint: {
-    ignoreDuringBuilds: true, 
+    ignoreDuringBuilds: true,
   },
 };
 

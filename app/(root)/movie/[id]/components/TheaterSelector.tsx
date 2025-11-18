@@ -38,7 +38,10 @@ const TheaterSelector = ({ brands, onSelect }: TheaterSelectorProps) => {
             )}
           >
             <Image
-              src={brand.logoUrl}
+              src={
+                brand.logoUrl ??
+                "https://seeklogo.com/images/C/cj-cgv-logo-D89F116F7C-seeklogo.com.png"
+              }
               alt={brand.name}
               width={64}
               height={64}

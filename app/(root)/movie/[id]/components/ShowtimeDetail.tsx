@@ -1,21 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/store/authStore";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SeatLayout from "./SeatLayout";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { useCreateBookingSession } from "@/apis/user.booking-session.api";
+  useCreateBookingSession,
+  useGetBookingSessionDetail,
+  useSeatActions,
+} from "@/apis/user.booking-session.api";
 
 export interface Showtime {
   showtimeId: number;
@@ -72,30 +66,102 @@ interface ShowtimeDetailCardProps {
 }
 
 const ShowtimeDetailCard = ({ cinema }: ShowtimeDetailCardProps) => {
-  const { user } = useAuthStore();
-  const [alertDialog, setAlertDialog] = useState<boolean>(false);
   const [lastShowtimeId, setLastShowtimeId] = useState<number>();
   const [seatLayoutContent, setSeatLayoutContent] = useState<boolean>(false);
+  const [currentSessionId, setcurrentSessionId] = useState<string>();
+  const [sessionStillOnTime, setSessionStillOnTime] = useState<boolean>(false);
 
   const createSessionMutate = useCreateBookingSession();
+  const getSessionDetailQuery = useGetBookingSessionDetail(
+    currentSessionId ?? "",
+    Boolean(currentSessionId) // Chỉ chạy khi có sessionId
+  );
+
+  useEffect(() => {
+    const expiresAt = getSessionDetailQuery.data?.result.expiresAt;
+    if (!expiresAt) return;
+
+    const end = new Date(expiresAt).getTime();
+    const now = Date.now();
+
+    setSessionStillOnTime(now < end);
+  }, [currentSessionId, getSessionDetailQuery.data]);
 
   // Tạo session booking mới nhưng dựa trên showtimeID, chỉ tạo session mới khi có showtimeID mới
   const handleCreateNewSession = (showtimeId: number) => {
     console.log(showtimeId);
-    if (showtimeId === lastShowtimeId) return;
+    if (showtimeId === lastShowtimeId && !sessionStillOnTime) {
+      console.log("session da duoc tao: " + currentSessionId);
+      return;
+    }
 
     setLastShowtimeId(showtimeId);
 
     createSessionMutate.mutate(showtimeId, {
       onSuccess: (res) => {
         setSeatLayoutContent(true);
-        console.log("Create new session success: " + res.bookingSessionId);
+        setcurrentSessionId(res.result.bookingSessionId);
+        console.log(
+          "Create new session success: " + res.result.bookingSessionId
+        );
       },
       onError: (err) => {
+        setSeatLayoutContent(false);
         console.error("Failed to create session:", err);
       },
     });
   };
+
+  const mutateSeatActions = useSeatActions();
+
+  const handleReleaseSeats = () => {
+    console.log(currentSessionId);
+    console.log(
+      "SEATS KHI GỌI handleReleaseSeats:",
+      getSessionDetailQuery.data?.result.items.seats
+    );
+
+    const seats = getSessionDetailQuery.data?.result.items.seats;
+
+    mutateSeatActions.release.mutate(
+      {
+        selectedSeat: seats ?? [],
+        sessionId: currentSessionId ?? "",
+      },
+      {
+        onSuccess: () => console.log("release toàn bộ ghế thành công"),
+        onError: (error) => console.log("Không release được ghế: ", error),
+      }
+    );
+  };
+
+  // const releaseOnUnload = () => {
+  //   try {
+  //     const seats = getSessionDetailQuery.data?.result.items.seats ?? [];
+
+  //     if (!currentSessionId || seats.length === 0) {
+  //       return; // Không có gì để release
+  //     }
+
+  //     const payload = JSON.stringify({
+  //       seatIds: seats, // 👈 API của bạn yêu cầu seatIds
+  //     });
+
+  //     const url = `${BASE_URL}/${currentSessionId}/seats`;
+
+  //     navigator.sendBeacon(
+  //       url,
+  //       new Blob([payload], { type: "application/json" })
+  //     );
+  //   } catch (err) {
+  //     console.log("Không thể release ghế khi unload:", err);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   window.addEventListener("beforeunload", releaseOnUnload);
+  //   return () => window.removeEventListener("beforeunload", releaseOnUnload);
+  // }, [currentSessionId, getSessionDetailQuery.data]);
 
   return (
     <div className="w-full bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col gap-5 hover:bg-white/10 transition-all duration-200">
@@ -121,45 +187,64 @@ const ShowtimeDetailCard = ({ cinema }: ShowtimeDetailCardProps) => {
 
       {/* Screens and Showtimes */}
       <div className="space-y-4">
-        {cinema.screens.map((screen) => (
-          <div key={screen.screenId} className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-medium text-base">
-                {screen.screenName}
-              </h3>
-              <p className="text-sm text-gray-400">{screen.soundSystem}</p>
-            </div>
+        {cinema.screens.map((screen) => {
+          const now = Date.now();
 
-            <div className="flex flex-wrap gap-3">
-              {screen.showtimes.map((st) => (
-                <Dialog key={st.showtimeId}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      disabled={st.isSoldOut}
-                      className={`text-sm rounded-lg px-4 py-2 ${
-                        st.isSoldOut
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:bg-primary hover:text-white"
-                      }`}
-                      onClick={() => handleCreateNewSession(st.showtimeId)}
-                    >
-                      {formatTime(st.startTime)} ~ {formatTime(st.endTime)}
-                    </Button>
-                  </DialogTrigger>
-                  {seatLayoutContent && (
-                    <SeatLayout
-                      showtime={st}
-                      sessionId={
-                        createSessionMutate.data?.bookingSessionId ?? ""
+          const showtimeFilter = screen.showtimes.filter((item) => {
+            const start = new Date(item.startTime).getTime();
+            return start >= now;
+          });
+
+          if (showtimeFilter.length === 0) {
+            return <div key={screen.screenId} className=""></div>;
+          }
+
+          return (
+            <div key={screen.screenId} className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-medium text-base">
+                  {screen.screenName}
+                </h3>
+                <p className="text-sm text-gray-400">{screen.soundSystem}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {showtimeFilter.map((st) => (
+                  <Dialog
+                    onOpenChange={(open) => {
+                      if (!open) {
+                        console.log("Dialog đã bị tắt");
+                        handleReleaseSeats();
                       }
-                    />
-                  )}
-                </Dialog>
-              ))}
+                    }}
+                    key={st.showtimeId}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        disabled={st.isSoldOut}
+                        className={`text-sm rounded-lg w-[10vw] px-4 py-2 ${
+                          st.isSoldOut
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-primary hover:text-white"
+                        }`}
+                        onClick={() => handleCreateNewSession(st.showtimeId)}
+                      >
+                        {formatTime(st.startTime)} ~ {formatTime(st.endTime)}
+                      </Button>
+                    </DialogTrigger>
+                    {seatLayoutContent && (
+                      <SeatLayout
+                        showtime={st}
+                        sessionId={currentSessionId ?? ""}
+                      />
+                    )}
+                  </Dialog>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

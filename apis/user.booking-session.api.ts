@@ -1,18 +1,28 @@
 import {
   createPublicRequest,
   handleShowtimeOverviewError,
-  Seat,
 } from "./user.catalog.api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 interface BookingSessionRes {
-  bookingSessionId: string;
-  showtimeId: number;
-  state: string;
-  expiresAt: Date;
-  items: {
-    seats: Seat[];
-    combos: [];
+  message: string;
+  result: {
+    bookingSessionId: string;
+    showtimeId: number;
+    state: string;
+    items: {
+      seats: number[];
+      combos: number[];
+    };
+    pricing: {
+      subtotal: number;
+      discount: number;
+      fees: number;
+      total: number;
+      currency: string;
+    };
+    expiresAt: Date;
+    version: number;
   };
 }
 
@@ -22,7 +32,10 @@ interface GetBookingSessionDetailRes {
     bookingSessionId: string; // GUID
     state: string;
     showtimeId: number;
-    items: string; // tùy bạn define thêm
+    items: {
+      seats: number[];
+      combos: ComboItem[];
+    };
     pricing: string; // tùy bạn define thêm
     expiresAt: string; // ISO date string
     version: number;
@@ -147,7 +160,7 @@ interface PostPricingPreviewReq {
   voucherCode: string;
 }
 
-interface PostPricingPreviewRes {
+export interface PostPricingPreviewRes {
   message: string;
   result: {
     bookingSessionId: string;
@@ -330,7 +343,7 @@ class BookingSessionsManagement {
     try {
       const response = await userApi.post(
         `${this.BASE_URL}/${id}/pricing/preview`,
-        { voucherCode }
+        { voucherCode: voucherCode }
       );
       return response.data;
     } catch (error) {
@@ -417,7 +430,7 @@ class BookingSessionSeatsManagement {
     try {
       const response = await userApi.post(
         `${this.BASE_URL}/${sessionId}/seats`,
-        { selectedSeat }
+        { seatIds: selectedSeat }
       );
       return response.data;
     } catch (error) {
@@ -556,10 +569,10 @@ export const usePutSessionVoucher = () => {
 };
 
 // ---------- DELETE SESSION VOUCHER ----------
-  export const useDeleteSessionVoucher = () => {
-return useMutation({
-  mutationFn: (id: string) => bookingSessionServices.deleteSessionVoucher(id),
-});
+export const useDeleteSessionVoucher = () => {
+  return useMutation({
+    mutationFn: (id: string) => bookingSessionServices.deleteSessionVoucher(id),
+  });
 };
 
 // ---------- CREATE CHECKOUT ----------
@@ -599,4 +612,3 @@ export const useSeatActions = () => {
 
   return { lock, release, replace };
 };
-

@@ -2,8 +2,21 @@
 
 import React, { useState, useMemo } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { Seat } from "@/apis/user.catalog.api";
-import { useLockSeats, useSeatActions } from "@/apis/user.booking-session.api";
+import {
+  useGetBookingSessionDetail,
+  useSeatActions,
+} from "@/apis/user.booking-session.api";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import CombosDialog from "../CombosDialog";
+import { IoChevronBackOutline } from "react-icons/io5";
+import { RealtimeSeat, useSeatRealtime } from "@/hooks/useRealTimeSeatStream";
+import { Spinner } from "@/components/ui/spinner";
 
 interface SeatType {
   seatTypeId: number;
@@ -14,9 +27,6 @@ interface SeatType {
 }
 
 interface SeatMapProps {
-  totalRows?: number;
-  totalColumns?: number;
-  seats?: Seat[];
   seatTypes?: SeatType[];
   cinemaName?: string;
   movieTitle?: string;
@@ -26,7 +36,6 @@ interface SeatMapProps {
 }
 
 const SeatMap = ({
-  seats,
   seatTypes,
   cinemaName,
   movieTitle,
@@ -34,11 +43,24 @@ const SeatMap = ({
   sessionId,
   onPurchase,
 }: SeatMapProps) => {
+  const { data: sessionDetailRes } = useGetBookingSessionDetail(
+    sessionId ?? "",
+    true
+  );
+
+  const showtimeId = sessionDetailRes?.result?.showtimeId;
+
+  const { seats: realtimeSeats } = useSeatRealtime(
+    showtimeId ? Number(showtimeId) : 0
+  );
+
   const [selectedSeats, setSelectedSeats] = useState<
     { seatId: number; seatTitle: string }[]
   >([]);
-  const MAX_SEATS = 8;
 
+  const [isMutating, setIsMutating] = useState(false);
+
+  const MAX_SEATS = 8;
   const mutateSeatActions = useSeatActions();
 
   const seatTypeColor = useMemo(() => {
@@ -57,119 +79,218 @@ const SeatMap = ({
     return map;
   }, [seatTypes]);
 
-  const toggleSeat = (seat: Seat, seatTitle: string) => {
-    console.log(seat.seatId);
+  const handleLockReleaseSeat = async ({
+    isSeatExist,
+    lockSeat,
+  }: {
+    isSeatExist: boolean;
+    lockSeat: RealtimeSeat;
+  }) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    const seatIds = [lockSeat.SeatId];
+    if (isSeatExist) {
+      // release
+      mutateSeatActions.release.mutate(
+        {
+          selectedSeat: seatIds,
+          sessionId: sessionId ?? "",
+        },
+        {
+          onSuccess: (res) => {
+            console.log("release ghế thành công:", res?.currentSeatIds);
+            setIsMutating(false);
+          },
+          onError: (error) => {
+            console.error("Không release được ghế:", error);
+            setIsMutating(false);
+          },
+        }
+      );
+    } else {
+      // lock
+      mutateSeatActions.lock.mutate(
+        {
+          sessionId: sessionId ?? "",
+          selectedSeat: seatIds,
+        },
+        {
+          onSuccess: (res) => {
+            console.log("Lock ghế thành công:", res?.currentSeatIds);
+            setIsMutating(false);
+          },
+          onError: (error) => {
+            console.error("Không lock được ghế:", error);
+            setIsMutating(false);
+          },
+        }
+      );
+    }
+  };
 
-    const type = seatTypes?.find((t) => t.seatTypeId === seat.seatTypeId);
+  const handleLockReleaseCoupleSeat = async ({
+    isSeatExist,
+    lockSeat1,
+    lockSeat2,
+  }: {
+    isSeatExist: boolean;
+    lockSeat1: RealtimeSeat;
+    lockSeat2: RealtimeSeat;
+  }) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    const seatIds = [lockSeat1.SeatId, lockSeat2.SeatId];
+
+    if (isSeatExist) {
+      mutateSeatActions.release.mutate(
+        {
+          selectedSeat: seatIds,
+          sessionId: sessionId ?? "",
+        },
+        {
+          onSuccess: () => {
+            console.log(`Release ghế: ${seatIds.join(", ")}`);
+            setIsMutating(false);
+          },
+          onError: (err) => {
+            console.error("Không release được ghế:", err);
+            setIsMutating(false);
+          },
+        }
+      );
+    } else {
+      mutateSeatActions.lock.mutate(
+        {
+          selectedSeat: seatIds,
+          sessionId: sessionId ?? "",
+        },
+        {
+          onSuccess: (res) => {
+            console.log("Lock ghế thành công:", res?.currentSeatIds);
+            setIsMutating(false);
+          },
+          onError: (err) => {
+            console.error("Không lock được ghế:", err);
+            setIsMutating(false);
+          },
+        }
+      );
+    }
+  };
+
+  const toggleSeat = (seat: RealtimeSeat, seatTitle: string) => {
+    const type = seatTypes?.find((t) => t.seatTypeId === seat.SeatTypeId);
     if (
       !type ||
-      type.code === "DISABLE" ||
-      type.code === "BROKEN" ||
-      seat.status !== "AVAILABLE"
+      type.code === "DISABLE"
+      //   type.code === "BROKEN" ||
+      //   seat.Status !== "AVAILABLE"
     )
       return;
 
     const existing = selectedSeats.some(
-      (sSeat) => seat.seatId === sSeat.seatId
+      (sSeat) => seat.SeatId === sSeat.seatId
     );
+
+    console.log(seat);
 
     setSelectedSeats((prev) => {
       if (existing) {
-        return prev.filter((sSeat) => sSeat.seatId !== seat.seatId);
+        return prev.filter((sSeat) => sSeat.seatId !== seat.SeatId);
       } else {
         if (prev.length >= MAX_SEATS) {
           alert(`Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`);
           return prev;
         }
-
-        const newSeats = prev.filter((sSeat) => sSeat.seatId !== seat.seatId);
-
-        return [...newSeats, { seatId: seat.seatId, seatTitle }];
+        const newSeats = prev.filter((sSeat) => sSeat.seatId !== seat.SeatId);
+        return [...newSeats, { seatId: seat.SeatId, seatTitle }];
       }
     });
 
-    // if (existing) {
-    //   // release
-    //   mutateSeatActions.release.mutate({
-    //     selectedSeat: [seat.seatId],
-    //     sessionId: sessionId ?? "",
-    //   });
-    // } else {
-    //   // lock
-    //   mutateSeatActions.lock.mutate({
-    //     selectedSeat: [seat.seatId],
-    //     sessionId: sessionId ?? "",
-    //   });
-    // }
+    handleLockReleaseSeat({ isSeatExist: existing, lockSeat: seat });
   };
 
-  const toggleCoupleSeat = (seat1: Seat, seat2: Seat, seatTitle: string) => {
-    const type = seatTypes?.find((t) => t.seatTypeId === seat1.seatTypeId);
-    if (!type || type.code === "DISABLE" || type.code === "BROKEN") return;
-    if (seat1.status !== "AVAILABLE" || seat2.status !== "AVAILABLE") return;
+  const toggleCoupleSeat = (seat1: RealtimeSeat, seat2: RealtimeSeat) => {
+    const type = seatTypes?.find((t) => t.seatTypeId === seat1.SeatTypeId);
+    if (!type || type.code === "DISABLE") return;
+
+    const hasSeat1 = selectedSeats.some((s) => s.seatId === seat1.SeatId);
+    const hasSeat2 = selectedSeats.some((s) => s.seatId === seat2.SeatId);
+
+    const isBothSelected = hasSeat1 && hasSeat2;
 
     setSelectedSeats((prev) => {
-      const hasSeat1 = prev.some((sSeat) => seat1.seatId === sSeat.seatId);
-      const hasSeat2 = prev.some((sSeat) => seat2.seatId === sSeat.seatId);
-
-      // Nếu cả 2 đều được chọn, bỏ chọn cả 2
-      if (hasSeat1 && hasSeat2) {
+      // Nếu đang selected cả đôi -> unselect cả đôi
+      if (isBothSelected) {
         return prev.filter(
-          (sSeat) =>
-            sSeat.seatId !== seat1.seatId && sSeat.seatId !== seat2.seatId
+          (s) => s.seatId !== seat1.SeatId && s.seatId !== seat2.SeatId
         );
       }
 
-      // Nếu chưa chọn hoặc chỉ chọn 1, chọn cả 2
-      const newSeats = prev.filter(
-        (sSeat) =>
-          sSeat.seatId !== seat1.seatId && sSeat.seatId !== seat2.seatId
+      // Chưa chọn đủ -> chọn cả đôi
+      const newPrev = prev.filter(
+        (s) => s.seatId !== seat1.SeatId && s.seatId !== seat2.SeatId
       );
-      if (newSeats.length + 2 > MAX_SEATS) {
+
+      if (newPrev.length + 2 > MAX_SEATS) {
         alert(`Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`);
         return prev;
       }
+
       return [
-        ...newSeats,
-        { seatId: seat1.seatId, seatTitle },
-        { seatId: seat2.seatId, seatTitle: "" },
+        ...newPrev,
+        {
+          seatId: seat1.SeatId,
+          seatTitle: `${seat1.RowCode}${seat1.SeatNumber}`,
+        },
+        {
+          seatId: seat2.SeatId,
+          seatTitle: `${seat2.RowCode}${seat2.SeatNumber}`,
+        },
       ];
+    });
+
+    // Call lock / release
+    handleLockReleaseCoupleSeat({
+      isSeatExist: isBothSelected,
+      lockSeat1: seat1,
+      lockSeat2: seat2,
     });
   };
 
+  // group rows
   const rows = useMemo(() => {
-    const grouped: Record<string, Seat[]> = {};
-    seats?.forEach((seat) => {
-      if (!grouped[seat.rowCode]) grouped[seat.rowCode] = [];
-      grouped[seat.rowCode].push(seat);
+    const grouped: Record<string, RealtimeSeat[]> = {};
+    realtimeSeats?.forEach((seat) => {
+      if (!grouped[seat.RowCode]) grouped[seat.RowCode] = [];
+      grouped[seat.RowCode].push(seat);
     });
-
     Object.values(grouped).forEach((row) =>
-      row.sort((a, b) => a.seatNumber - b.seatNumber)
+      row.sort((a, b) => a.SeatNumber - b.SeatNumber)
     );
-
     return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
-  }, [seats]);
+  }, [realtimeSeats]);
 
   const totalPrice = useMemo(() => {
     return selectedSeats.reduce((total, sSeat) => {
-      const seat = seats?.find((s) => s.seatId === sSeat.seatId);
+      const seat = realtimeSeats?.find((s) => s.SeatId === sSeat.seatId);
+      const newBasePrice = basePrice ?? 0;
       if (seat) {
-        const surcharge = seatTypeSurcharge[seat.seatTypeId] || 0;
-        return total + basePrice + surcharge;
+        const surcharge = seatTypeSurcharge[seat.SeatTypeId] || 0;
+        return total + newBasePrice + surcharge;
       }
       return total;
     }, 0);
-  }, [selectedSeats, seats, seatTypeSurcharge, basePrice]);
+  }, [selectedSeats, realtimeSeats, seatTypeSurcharge, basePrice]);
 
   const selectedSeatLabels = useMemo(() => {
     return selectedSeats
-      .map((sSeat) => {
-        return sSeat.seatTitle;
-      })
+      .map((sSeat) => sSeat.seatTitle)
       .filter(Boolean)
       .join(", ");
   }, [selectedSeats]);
+
+  const [combosDialog, setCombosDialog] = useState<boolean>(false);
 
   const handlePurchase = () => {
     if (selectedSeats.length === 0) {
@@ -179,6 +300,7 @@ const SeatMap = ({
     if (onPurchase) {
       const newSelectedSeats = selectedSeats.map((item) => item.seatId);
       onPurchase(newSelectedSeats);
+      setCombosDialog(true);
     } else {
       alert(
         `Xác nhận mua ${
@@ -188,54 +310,47 @@ const SeatMap = ({
     }
   };
 
-  const renderSeats = (rowCode: string, rowSeats: Seat[]) => {
-    const elements = [];
+  const renderSeats = (rowCode: string, rowSeats: RealtimeSeat[]) => {
+    const elements: React.ReactNode[] = [];
     let i = 0;
     let index = 1;
 
     while (i < rowSeats.length) {
       const seat = rowSeats[i];
-      const type = seatTypes?.find((t) => t.seatTypeId === seat.seatTypeId);
+      const type = seatTypes?.find((t) => t.seatTypeId === seat.SeatTypeId);
 
-      const isSeatDisabled =
-        type?.code === "DISABLE" ||
-        type?.code === "BROKEN" ||
-        seat.status !== "AVAILABLE";
+      const isSeatDisabled = type?.code === "DISABLE";
+      // type?.code === "BROKEN" ||
+      // seat.Status !== "AVAILABLE";
 
-      // =========================
-      // HANDLE COUPLE SEAT
-      // =========================
+      const isSeatLocked = seat.Status === "LOCKED";
+
+      // handle couple
       if (type?.code === "COUPLE" && i + 1 < rowSeats.length) {
         const nextSeat = rowSeats[i + 1];
         const nextType = seatTypes?.find(
-          (t) => t.seatTypeId === nextSeat.seatTypeId
+          (t) => t.seatTypeId === nextSeat.SeatTypeId
         );
 
         if (
           nextType?.code === "COUPLE" &&
-          nextSeat.seatNumber === seat.seatNumber + 1
+          nextSeat.SeatNumber === seat.SeatNumber + 1
         ) {
           const isCoupleDisabled =
-            isSeatDisabled || nextSeat.status !== "AVAILABLE";
-
-          const color = seatTypeColor[seat.seatTypeId] || "#ccc";
+            isSeatDisabled || nextSeat.Status !== "AVAILABLE";
+          const color = seatTypeColor[seat.SeatTypeId] || "#ccc";
           const isSelected =
-            selectedSeats.some((sSeat) => seat.seatId === sSeat.seatId) &&
-            selectedSeats.some((sSeat) => nextSeat.seatId === sSeat.seatId);
+            selectedSeats.some((sSeat) => seat.SeatId === sSeat.seatId) &&
+            selectedSeats.some((sSeat) => nextSeat.SeatId === sSeat.seatId);
 
           const index1 = index;
           const index2 = index + 1;
 
           elements.push(
             <button
-              key={`${seat.seatId}-${nextSeat.seatId}`}
-              onClick={() =>
-                toggleCoupleSeat(
-                  seat,
-                  nextSeat,
-                  `${rowCode}${index1} - ${rowCode}${index2}`
-                )
-              }
+              key={`${seat.SeatId}-${nextSeat.SeatId}`}
+              onClick={() => toggleCoupleSeat(seat, nextSeat)}
+              disabled={isMutating}
               className={`w-26 h-12 rounded-lg text-white/80 transition-all flex items-center justify-center text-xs font-bold
               ${isSelected ? "ring-2 ring-yellow-400 scale-105" : ""}
               ${
@@ -245,73 +360,120 @@ const SeatMap = ({
               }
             `}
               style={{
-                backgroundColor: isCoupleDisabled ? "" : color,
+                backgroundColor: isCoupleDisabled ? undefined : color,
               }}
-              title={`${rowCode}${seat.seatNumber} - ${rowCode}${nextSeat.seatNumber} - ${type?.name}`}
+              title={`${rowCode}${seat.SeatNumber} - ${rowCode}${nextSeat.SeatNumber} - ${type?.name}`}
             >
-              {!isCoupleDisabled && `${rowCode}${index1} - ${rowCode}${index2}`}
+              {!isCoupleDisabled
+                ? `${rowCode}${index1} - ${rowCode}${index2}`
+                : null}
             </button>
           );
 
-          // Couple seat dùng chung 1 index
           if (!isCoupleDisabled) index += 2;
-
           i += 2;
           continue;
         }
       }
 
-      // =========================
-      // NORMAL SEAT
-      // =========================
-
-      const color = seatTypeColor[seat.seatTypeId] || "#ccc";
-      const isSelected = selectedSeats.some((s) => s.seatId === seat.seatId);
+      // normal seat
+      const color = seatTypeColor[seat.SeatTypeId] || "#ccc";
+      const isSelected = selectedSeats.some((s) => s.seatId === seat.SeatId);
       const seatDisplayTitle = `${rowCode}${index}`;
 
       elements.push(
         <button
-          key={seat.seatId}
+          key={seat.SeatId}
           onClick={() => toggleSeat(seat, seatDisplayTitle)}
-          className={`w-12 h-12 rounded-lg text-white opacity-90 transition-all flex items-center justify-center text-xs font-bold
-          ${isSelected ? "ring-2 ring-yellow-400 scale-105" : ""}
-          ${isSeatDisabled ? "bg-zinc-900" : "hover:scale-110 cursor-pointer"}
-        `}
+          disabled={isMutating}
+          className={`
+w-12 h-12 rounded-lg text-white opacity-90 transition-all flex items-center justify-center text-xs font-bold
+
+/* Selected seat (your own locked seat) */
+${
+  isSelected
+    ? "scale-105 ring ring-amber-400 hover:scale-110 cursor-pointer"
+    : ""
+}
+
+/* Disabled seat */
+${
+  !isSelected && isSeatDisabled
+    ? "bg-zinc-900 cursor-default pointer-events-none"
+    : ""
+}
+
+/* Locked by others */
+${
+  !isSelected && isSeatLocked
+    ? "bg-red-900 cursor-default pointer-events-none"
+    : ""
+}
+
+/* Normal seat */
+${
+  !isSelected && !isSeatDisabled && !isSeatLocked
+    ? "hover:scale-110 cursor-pointer"
+    : ""
+}
+`}
           style={{
-            backgroundColor: isSeatDisabled ? "" : color,
+            backgroundColor: isSeatDisabled
+              ? undefined
+              : isSeatLocked || isSelected
+              ? "#7f1d1d"
+              : color,
           }}
-          title={`${rowCode}${index} - ${type?.name}`}
+          title={`${rowCode}${seat.SeatNumber} - ${type?.name}`}
         >
-          {!isSeatDisabled && `${rowCode}${index}`}
+          {!isSeatDisabled ? `${rowCode}${index}` : null}
         </button>
       );
 
       if (!isSeatDisabled) index += 1;
-
-      i++;
+      i += 1;
     }
 
     return elements;
   };
 
-  return (
-    <div className="flex flex-col h-full bg-zinc-900 rounded-xl">
-      {/* Header */}
-      <div className="relative flex items-center justify-center gap-4 p-4 bg-zinc-800 border-b border-zinc-700 rounded-xl">
-        <h2 className="text-xl font-bold text-white">Buy Movie Tickets</h2>
-      </div>
+  // if (realtimeSeats.length === 0) {
+  //   return (
+  //     <div className="flex w-full items-center justify-center gap-3 h-[10vh] bg-zinc-900 rounded-xl">
+  //       <Spinner />
+  //       <p>Đang tải sơ đồ rạp...</p>
+  //     </div>
+  //   );
+  // }
 
-      <div className="flex-1 overflow-auto">
-        {/* Seat Map with Zoom/Pan */}
-        <div className="px-4">
-          <TransformWrapper
-            initialScale={1}
-            minScale={0.5}
-            maxScale={3}
-            centerOnInit={true}
-          >
-            {() => (
-              <>
+  return (
+    <DialogContent
+      className="!max-w-[98vw] !w-[60vw] !h-fit bg-white/5 border 
+    border-white/10 rounded-xl p-0 flex flex-col gap-5 
+    transition-all duration-200 [&>button]:hidden"
+    >
+      <DialogTitle className="sr-only">Seat Selection</DialogTitle>
+      <div className="flex flex-col h-full bg-zinc-900 rounded-xl">
+        {/* Header */}
+        <div className="relative flex items-center justify-center gap-4 p-4 bg-zinc-800 border-b border-zinc-700 rounded-xl">
+          <h2 className="text-xl font-bold text-white">Buy Movie Tickets</h2>
+          <DialogClose className="absolute left-1">
+            <IoChevronBackOutline
+              className="cursor-pointer hover:scale-125 duration-150 transition-all"
+              size={20}
+            />
+          </DialogClose>
+        </div>
+
+        <div className="flex-1 overflow-auto">
+          <div className="px-4">
+            <TransformWrapper
+              initialScale={1}
+              minScale={0.5}
+              maxScale={3}
+              centerOnInit={true}
+            >
+              {() => (
                 <TransformComponent
                   wrapperClass="!w-full !h-[50vh]"
                   contentClass="!w-auto !h-auto"
@@ -324,104 +486,115 @@ const SeatMap = ({
                         Màn hình
                       </span>
                     </div>
-                    {rows.map(([rowCode, rowSeats]) => (
-                      <div
-                        key={rowCode}
-                        className="flex items-center justify-center gap-2"
-                      >
-                        {renderSeats(rowCode, rowSeats)}
+                    {realtimeSeats.length > 0 ? (
+                      rows.map(([rowCode, rowSeats]) => (
+                        <div
+                          key={rowCode}
+                          className="flex items-center justify-center gap-2"
+                        >
+                          {renderSeats(rowCode, rowSeats)}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center">
+                        <Spinner />
+                        Đang tải sơ đồ rạp...
                       </div>
-                    ))}
+                    )}
                   </div>
                 </TransformComponent>
-              </>
-            )}
-          </TransformWrapper>
-        </div>
-
-        {/* Legend */}
-        <div className="px-3 py-2 flex flex-wrap gap-2 justify-center">
-          {seatTypes?.map((type) => (
-            <div key={type.seatTypeId} className="flex items-center gap-2">
-              <div
-                className="w-3 h-3 rounded"
-                style={{ backgroundColor: type.color }}
-              />
-              <span className="text-xs text-gray-300">{type.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom Info Section */}
-      <div className="bg-zinc-800/90 border border-zinc-700/60 rounded-2xl shadow-lg p-3 backdrop-blur-md">
-        {/* Header: Movie & Cinema Info */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-zinc-700/70">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
-              Rạp chiếu
-            </p>
-            <p className="text-white font-semibold text-base">{cinemaName}</p>
+              )}
+            </TransformWrapper>
           </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
-              Phim
-            </p>
-            <p className="text-white font-semibold text-base">{movieTitle}</p>
-          </div>
-        </div>
 
-        {/* Selected Seats */}
-        <div className="pt-2">
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
-            Ghế đã chọn
-          </p>
-          <div className="flex items-center justify-between">
-            <div>
-              <p
-                className={`font-semibold ${
-                  selectedSeats.length > 0
-                    ? "text-white"
-                    : "text-gray-500 italic"
-                }`}
-              >
-                {selectedSeatLabels}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {selectedSeats.length}/{MAX_SEATS} ghế
-              </p>
-            </div>
-            {selectedSeats.length > 0 && (
-              <div className="text-xs text-gray-400 bg-zinc-700/60 rounded-lg px-3 py-1">
-                Đang chọn
+          {/* Legend */}
+          <div className="px-3 py-2 flex flex-wrap gap-2 justify-center">
+            {seatTypes?.map((type) => (
+              <div key={type.seatTypeId} className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: type.color }}
+                />
+                <span className="text-xs text-gray-300">{type.name}</span>
               </div>
-            )}
+            ))}
           </div>
         </div>
 
-        {/* Total Price & Action */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-5 mt-4 border-t border-zinc-700/70">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider">
-              Tổng tiền
-            </p>
-            <p className="text-3xl font-bold text-yellow-400 drop-shadow-sm">
-              {totalPrice.toLocaleString("vi-VN")}đ
-            </p>
+        {/* Bottom Info */}
+        <div className="bg-zinc-800/90 border border-zinc-700/60 rounded-2xl shadow-lg p-3 backdrop-blur-md">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-zinc-700/70">
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                Rạp chiếu
+              </p>
+              <p className="text-white font-semibold text-base">{cinemaName}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                Phim
+              </p>
+              <p className="text-white font-semibold text-base">{movieTitle}</p>
+            </div>
           </div>
-          <button
-            onClick={handlePurchase}
-            disabled={selectedSeats.length === 0}
-            className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-white transition-all duration-200
-        bg-gradient-to-r from-[#f84565] to-[#d92d52]
-        hover:from-[#ff5a77] hover:to-[#f84565]
-        disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed shadow-md"
-          >
-            Mua vé
-          </button>
+
+          <div className="pt-2">
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+              Ghế đã chọn
+            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p
+                  className={`font-semibold ${
+                    selectedSeats.length > 0
+                      ? "text-white"
+                      : "text-gray-500 italic"
+                  }`}
+                >
+                  {selectedSeatLabels || "Chưa chọn ghế"}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {selectedSeats.length}/{MAX_SEATS} ghế
+                </p>
+              </div>
+              {selectedSeats.length > 0 && (
+                <div className="text-xs text-gray-400 bg-zinc-700/60 rounded-lg px-3 py-1">
+                  Đang chọn
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-5 mt-4 border-t border-zinc-700/70">
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wider">
+                Tổng tiền
+              </p>
+              <p className="text-3xl font-bold text-yellow-400 drop-shadow-sm">
+                {totalPrice.toLocaleString("vi-VN")}đ
+              </p>
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  onClick={handlePurchase}
+                  disabled={selectedSeats.length === 0}
+                  className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-white transition-all duration-200 bg-gradient-to-r from-[#f84565] to-[#d92d52] hover:from-[#ff5a77] hover:to-[#f84565] disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed shadow-md"
+                >
+                  Tiếp tục
+                </button>
+              </DialogTrigger>
+              {combosDialog && (
+                <CombosDialog
+                  sessionId={sessionId}
+                  selectedSeats={selectedSeats}
+                />
+              )}
+            </Dialog>
+          </div>
         </div>
       </div>
-    </div>
+    </DialogContent>
   );
 };
 

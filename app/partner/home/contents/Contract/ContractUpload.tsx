@@ -12,7 +12,7 @@ import {
   FiEye,
 } from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 // Initialize PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -252,6 +252,7 @@ const ContractUpload = () => {
 
           {/* PDF Preview Modal */}
           <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+            <DialogTitle className="sr-only">PDF Preview</DialogTitle>
             <DialogContent className="!max-w-5xl bg-zinc-900 text-zinc-100 border border-zinc-800 shadow-2xl rounded-2xl overflow-hidden">
               <div className="flex items-center justify-between border-b border-zinc-800 px-6 pb-2 bg-zinc-900/70 backdrop-blur-md">
                 <div>
