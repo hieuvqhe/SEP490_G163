@@ -149,8 +149,8 @@ export default function ContractList() {
                     </CardDescription>
 
                     <div className="mt-4 space-y-1 text-sm text-zinc-500">
-                      <p>📅 Ngày tạo: {contract.createdAt}</p>
-                      <p>🧾 Loại: {contract.contractType}</p>
+                      <p>Ngày tạo: {contract.createdAt}</p>
+                      <p>Loại: {contract.contractType}</p>
                     </div>
 
                     <CardFooter className="mt-4 flex justify-between p-0">
@@ -158,7 +158,7 @@ export default function ContractList() {
                         Xem chi tiết
                       </Button>
                       <Button variant="outline" size="sm">
-                        Tải PDF nè
+                        Tải PDF
                       </Button>
                     </CardFooter>
                   </Card>

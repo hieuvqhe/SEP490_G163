@@ -424,7 +424,124 @@ const getLineContent = (rawValue: MaybeString, actualValue?: string | number | n
     return actualText;
   }
 
-  return replacePlaceholder(rawValue, actualText || undefined).trim();
+  if (rawValue.match(/\[[\.]+\]/)) {
+    return replacePlaceholder(rawValue, actualText || undefined).trim();
+  }
+
+  if (!actualText) {
+    return rawValue.trim();
+  }
+
+  return `${rawValue} ${actualText}`.trim();
+};
+
+const sanitizeCompanySegment = (value: MaybeString): string => {
+  if (!isNonEmptyString(value)) {
+    return 'CTY';
+  }
+
+  const asciiValue = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase();
+
+  return asciiValue.slice(0, 5) || 'CTY';
+};
+
+const generateContractNumber = (contract: ContractDetail): string => {
+  const baseDate = contract.startDate ?? contract.createdAt ?? '';
+  const parsedDate = baseDate ? new Date(baseDate) : new Date();
+  const year = Number.isNaN(parsedDate.getTime()) ? new Date().getFullYear() : parsedDate.getFullYear();
+  const sequence = String(contract.contractId ?? 0).padStart(3, '0');
+  const companySegment = sanitizeCompanySegment(contract.partnerName ?? contract.companyName ?? '');
+
+  return `HD-${year}-${sequence}-${companySegment}`;
+};
+
+const getContractNumberDisplay = (contract: ContractDetail): string => {
+  const rawNumber = (contract.contractNumber ?? '').trim();
+
+  return rawNumber || 'Nhập số hợp đồng';
+};
+
+const partyFieldLabels: Partial<Record<keyof ContractTemplatePartyInfo, string>> = {
+  tenCongTy: 'Tên công ty',
+  daiDien: 'Đại diện',
+  chucVu: 'Chức vụ',
+  diaChi: 'Địa chỉ',
+  dienThoai: 'Số điện thoại cá nhân',
+  email: 'Email',
+  taiKhoanSo: 'Tài khoản',
+  maSoThue: 'Mã số thuế',
+  diaChiDangKy_Raw: 'Địa chỉ đăng ký',
+  diaChiGiaoDich_Raw: 'Địa chỉ giao dịch',
+  dienThoai_Raw: 'Số điện thoại đăng ký',
+  taiKhoanSo_Raw: 'Tài khoản đăng ký',
+  emailDangKy_Raw: 'Email đăng ký',
+};
+
+const formatPartyField = (
+  rawValue: MaybeString,
+  actualValue: MaybeString | number | undefined,
+  fallbackLabel?: string
+): string => {
+  const actualText =
+    actualValue !== undefined && actualValue !== null ? String(actualValue).trim() : '';
+  const rawText = typeof rawValue === 'string' ? rawValue.trim() : '';
+
+  if (!actualText) {
+    if (rawText && /\[[\.]+\]/.test(rawText)) {
+      return '';
+    }
+    return rawText;
+  }
+
+  let line = '';
+
+  if (fallbackLabel && /\[[\.]+\]/.test(rawText)) {
+    return `${fallbackLabel}: ${actualText}`.trim();
+  }
+
+  if (rawText) {
+    if (/\[[\.]+\]/.test(rawText)) {
+      line = rawText.replace(/\[[\.]+\]/g, actualText);
+    } else if (rawText.includes(':')) {
+      const [rawLabel] = rawText.split(':');
+      const label = rawLabel.trim() || fallbackLabel;
+      line = label ? `${label}: ${actualText}` : actualText;
+    } else {
+      if (fallbackLabel) {
+        line = `${fallbackLabel}: ${actualText}`;
+      } else {
+        line = `${rawText} ${actualText}`.trim();
+      }
+    }
+  } else {
+    line = fallbackLabel ? `${fallbackLabel}: ${actualText}` : actualText;
+  }
+
+  line = line.replace(/\s+/g, ' ').trim();
+
+  if (!line) {
+    return '';
+  }
+
+  if (fallbackLabel) {
+    const colonIndex = line.indexOf(':');
+    if (colonIndex !== -1) {
+      const currentLabel = line.slice(0, colonIndex).trim();
+      const valuePart = line.slice(colonIndex + 1).trim();
+      if (currentLabel.toLowerCase() !== fallbackLabel.toLowerCase()) {
+        return `${fallbackLabel}: ${valuePart}`.trim();
+      }
+      return `${currentLabel}: ${valuePart}`.trim();
+    }
+
+    return `${fallbackLabel}: ${line}`.trim();
+  }
+
+  return line;
 };
 
 const buildPartyLines = (
@@ -455,8 +572,9 @@ const buildPartyLines = (
     .map((field) => {
       const templateValue = info[field];
       const actualValue = dynamicValues[field];
+      const fallbackLabel = partyFieldLabels[field];
 
-      return getLineContent(templateValue, actualValue ?? undefined);
+      return formatPartyField(templateValue, actualValue ?? undefined, fallbackLabel);
     })
     .filter(isNonEmptyString);
 };
@@ -491,7 +609,10 @@ const ContractDocument = ({ contract, template }: ContractDocumentProps) => {
   const thongTinChungRows = [
     {
       label: 'Số hợp đồng',
-      value: getLineContent(thongTinChungDetails.soHopDong ?? null, contract.contractNumber),
+      value: getLineContent(
+        thongTinChungDetails.soHopDong ?? null,
+        getContractNumberDisplay(contract)
+      ),
     },
     {
       label: 'Loại hợp đồng',
