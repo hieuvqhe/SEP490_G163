@@ -35,7 +35,8 @@ const MovieDetail = ({ movie }: MovieProp) => {
     });
 
   const bannerImageUrl =
-    movie.posterUrl ??
+    movie.bannerUrl ||
+    movie.posterUrl ||
     "https://image.tmdb.org/t/p/original/4m0eLZzOr5W1BK9el9ASQrTwd0m.jpg";
 
   const showtimeOverviews = showtimeOverviewRes?.result;

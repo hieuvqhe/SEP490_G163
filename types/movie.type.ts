@@ -10,6 +10,7 @@ export interface Movie {
   country: string;
   isActive: true;
   posterUrl: string;
+  bannerUrl?: string;
   production: string;
   description: string;
   status?: "now_showing" | "coming_soon" | "ended";
