@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, RefreshCcw, Send, X } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
@@ -13,7 +13,9 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/components/ToastProvider';
 
-import ContractDocument from './ContractDocument';
+import ContractDocument, { type ContractTemplate } from './ContractDocument';
+
+const CONTRACT_TEMPLATE_URL = '/data-contract/data.json';
 
 interface SendContractModalProps {
   contractId: number;
@@ -28,6 +30,9 @@ const SendContractModal = ({ contractId, onClose, onSent }: SendContractModalPro
   const [notes, setNotes] = useState('');
   const [pdfUrl, setPdfUrl] = useState('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [template, setTemplate] = useState<ContractTemplate | null>(null);
+  const [isTemplateLoading, setIsTemplateLoading] = useState(false);
+  const [templateError, setTemplateError] = useState<string | null>(null);
 
   const hasGeneratedRef = useRef(false);
 
@@ -41,20 +46,78 @@ const SendContractModal = ({ contractId, onClose, onSent }: SendContractModalPro
 
   const contract = useMemo(() => data?.result, [data]);
 
+  const loadTemplate = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        if (!signal?.aborted) {
+          setIsTemplateLoading(true);
+          setTemplateError(null);
+        }
+
+        const response = await fetch(CONTRACT_TEMPLATE_URL, { signal });
+
+        if (!response.ok) {
+          throw new Error('Không thể tải mẫu hợp đồng.');
+        }
+
+        const json = (await response.json()) as { hop_dong?: ContractTemplate; hopDong?: ContractTemplate };
+        const templateData = json.hop_dong ?? json.hopDong;
+
+        if (!templateData) {
+          throw new Error('Dữ liệu mẫu hợp đồng không hợp lệ.');
+        }
+
+        if (!signal?.aborted) {
+          setTemplate(templateData);
+        }
+      } catch (error) {
+        if (signal?.aborted) {
+          return;
+        }
+
+        setTemplate(null);
+        const message =
+          error instanceof Error ? error.message : 'Đã xảy ra lỗi khi tải mẫu hợp đồng.';
+        setTemplateError(message);
+        showToast(message, undefined, 'error');
+      } finally {
+        if (!signal?.aborted) {
+          setIsTemplateLoading(false);
+        }
+      }
+    },
+    [showToast]
+  );
+
   useEffect(() => {
     if (contractId) {
       setNotes('');
       setPdfUrl('');
       hasGeneratedRef.current = false;
+      setTemplate(null);
+      setTemplateError(null);
     }
   }, [contractId]);
 
   useEffect(() => {
-    if (!contractId || !contract || !accessToken) return;
+    if (!contractId) {
+      return;
+    }
+
+    const controller = new AbortController();
+    loadTemplate(controller.signal).catch(() => undefined);
+
+    return () => {
+      controller.abort();
+    };
+  }, [contractId, loadTemplate]);
+
+  useEffect(() => {
+    if (!contractId || !contract || !accessToken || !template || isTemplateLoading) return;
     if (hasGeneratedRef.current || isGeneratingPdf) return;
 
     void handleGenerateAndUploadPdf();
-  }, [contractId, contract, accessToken]);
+  }, [contractId, contract, accessToken, template, isTemplateLoading]);
 
   const handleGenerateAndUploadPdf = async () => {
     if (!contractId || !contract) {
@@ -67,10 +130,16 @@ const SendContractModal = ({ contractId, onClose, onSent }: SendContractModalPro
       return;
     }
 
+    if (!template) {
+      showToast('Mẫu hợp đồng chưa sẵn sàng', undefined, 'error');
+      void loadTemplate();
+      return;
+    }
+
     try {
       setIsGeneratingPdf(true);
 
-      const blob = await pdf(<ContractDocument contract={contract} />).toBlob();
+      const blob = await pdf(<ContractDocument contract={contract} template={template} />).toBlob();
       const fileName = `contract-${contractId}-${Date.now()}.pdf`;
 
       const sasResponse = await generateUploadSasMutation.mutateAsync({
@@ -200,7 +269,12 @@ const SendContractModal = ({ contractId, onClose, onSent }: SendContractModalPro
                 void handleGenerateAndUploadPdf();
               }}
               className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
-              disabled={isGeneratingPdf || sendContractMutation.isPending}
+              disabled={
+                isGeneratingPdf ||
+                sendContractMutation.isPending ||
+                isTemplateLoading ||
+                !!templateError
+              }
             >
               <RefreshCcw size={16} />
               Tạo lại link PDF
@@ -209,7 +283,13 @@ const SendContractModal = ({ contractId, onClose, onSent }: SendContractModalPro
             <button
               onClick={handleSendContract}
               className="flex items-center gap-2 rounded-lg bg-orange-500/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-500"
-              disabled={isGeneratingPdf || !pdfUrl || sendContractMutation.isPending}
+              disabled={
+                isGeneratingPdf ||
+                !pdfUrl ||
+                sendContractMutation.isPending ||
+                isTemplateLoading ||
+                !!templateError
+              }
             >
               {sendContractMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
               Gửi hợp đồng
@@ -217,8 +297,23 @@ const SendContractModal = ({ contractId, onClose, onSent }: SendContractModalPro
           </div>
         </div>
 
+        {templateError ? (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+            <p>{templateError}</p>
+            <button
+              onClick={() => loadTemplate().catch(() => undefined)}
+              className="mt-2 text-xs font-semibold text-orange-300 underline underline-offset-2 hover:text-orange-200"
+            >
+              Thử tải lại mẫu hợp đồng
+            </button>
+          </div>
+        ) : null}
+
         <AnimatePresence>
-          {(isContractLoading || isGeneratingPdf || generateUploadSasMutation.isPending) && (
+          {(isContractLoading ||
+            isGeneratingPdf ||
+            generateUploadSasMutation.isPending ||
+            isTemplateLoading) && (
             <motion.div
               className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/80"
               initial={{ opacity: 0 }}
@@ -227,7 +322,13 @@ const SendContractModal = ({ contractId, onClose, onSent }: SendContractModalPro
             >
               <div className="flex flex-col items-center gap-3 text-sm text-gray-200">
                 <Loader2 className="animate-spin" size={24} />
-                <p>Đang tạo link PDF, vui lòng chờ...</p>
+                <p>
+                  {isTemplateLoading
+                    ? 'Đang tải mẫu hợp đồng, vui lòng chờ...'
+                    : isContractLoading
+                      ? 'Đang tải dữ liệu hợp đồng, vui lòng chờ...'
+                      : 'Đang tạo link PDF, vui lòng chờ...'}
+                </p>
               </div>
             </motion.div>
           )}

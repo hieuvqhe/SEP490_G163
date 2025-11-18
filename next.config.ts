@@ -45,6 +45,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "media.themoviedb.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "upload.wikimedia.org",
         port: "",
         pathname: "/**", // Cho phép tất cả đường dẫn từ Wikimedia

@@ -3,7 +3,7 @@
 import * as Toast from '@radix-ui/react-toast';
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
-type ToastType = 'success' | 'error' | 'info';
+type ToastType = "success" | "error" | "info" | "warning";
 
 type ToastMessageInput =
   | string
@@ -85,40 +85,51 @@ export function ToastProvider({ children }: ToastProviderProps) {
 
   const getToastStyles = useCallback((type: ToastType) => {
     switch (type) {
-      case 'success':
+      case "success":
         return {
-          background: 'linear-gradient(135deg, #10B981, #059669)',
-          border: '1px solid #059669'
+          background: "linear-gradient(135deg, #10B981, #059669)",
+          border: "1px solid #059669",
         };
-      case 'error':
+      case "error":
         return {
-          background: 'linear-gradient(135deg, #EF4444, #DC2626)',
-          border: '1px solid #DC2626'
+          background: "linear-gradient(135deg, #EF4444, #DC2626)",
+          border: "1px solid #DC2626",
         };
-      case 'info':
+      case "warning":
+        return {
+          background: "linear-gradient(135deg, #F59E0B, #D97706)",
+          border: "1px solid #D97706",
+        };
+      case "info":
       default:
         return {
-          background: 'linear-gradient(135deg, #F84565, #E11D48)',
-          border: '1px solid #E11D48'
+          background: "linear-gradient(135deg, #F84565, #E11D48)",
+          border: "1px solid #E11D48",
         };
     }
   }, []);
 
   const getIcon = useCallback((type: ToastType) => {
     switch (type) {
-      case 'success':
+      case "success":
         return (
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         );
-      case 'error':
+      case "error":
         return (
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         );
-      case 'info':
+      case "warning":
+        return (
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M2.458 19h19.084c1.54 0 2.497-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L.726 16c-.765 1.333.193 3 1.732 3z" />
+          </svg>
+        );
+      case "info":
       default:
         return (
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

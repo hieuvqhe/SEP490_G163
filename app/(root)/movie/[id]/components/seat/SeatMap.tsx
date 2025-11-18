@@ -271,6 +271,8 @@ const SeatMap = ({
     return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
   }, [realtimeSeats]);
 
+  const safeBasePrice = basePrice ?? 0;
+
   const totalPrice = useMemo(() => {
     return selectedSeats.reduce((total, sSeat) => {
       const seat = realtimeSeats?.find((s) => s.SeatId === sSeat.seatId);

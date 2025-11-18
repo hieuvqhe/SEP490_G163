@@ -307,6 +307,10 @@ export const uploadSignaturesImage = async (
   }
 };
 
+export interface GenerateSasSignatureRequest {
+  fileName: string;
+}
+
 export interface GenerateSasSignatureResponse {
   message: string;
   result: {
@@ -317,13 +321,13 @@ export interface GenerateSasSignatureResponse {
 }
 
 export const generateSasSignature = async (
-  fileName: string
+  payload: GenerateSasSignatureRequest
 ): Promise<GenerateSasSignatureResponse> => {
   try {
     const partnerApi = createPartnerRequest();
     const response = await partnerApi.post(
       `/partners/contracts/generate-signature-upload-sas`,
-      fileName
+      payload
     );
     return response.data;
   } catch (error) {

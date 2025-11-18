@@ -2,6 +2,7 @@ import {
   ContractQueryParams,
   createPartner,
   generateSasSignature,
+  GenerateSasSignatureRequest,
   GenerateSasSignatureResponse,
   getPartnersContract,
   PartnerApiError,
@@ -102,8 +103,13 @@ export const useCreatePartner = (options: UseCreatePartnerOptions = {}) => {
 };
 
 export const useGenerateSasSignature = () => {
-  return useMutation<GenerateSasSignatureResponse, PartnerApiError, string>({
-    mutationFn: (fileName: string) => generateSasSignature(fileName),
+  return useMutation<
+    GenerateSasSignatureResponse,
+    PartnerApiError,
+    GenerateSasSignatureRequest
+  >({
+    mutationFn: (payload: GenerateSasSignatureRequest) => 
+      generateSasSignature(payload),
   });
 };
 

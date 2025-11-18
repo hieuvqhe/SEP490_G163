@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, RefreshCcw, X } from 'lucide-react';
 import { PDFViewer } from '@react-pdf/renderer';
@@ -9,7 +9,9 @@ import { useGetContractById } from '@/apis/manager.contract.api';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/components/ToastProvider';
 
-import ContractDocument from './ContractDocument';
+import ContractDocument, { type ContractTemplate } from './ContractDocument';
+
+const CONTRACT_TEMPLATE_URL = '/data-contract/data.json';
 
 interface ContractDetailModalProps {
   contractId: number;
@@ -27,6 +29,59 @@ const ContractDetailModal = ({ contractId, onClose }: ContractDetailModalProps) 
     error,
     refetch
   } = useGetContractById(contractId, accessToken || undefined);
+
+  const [template, setTemplate] = useState<ContractTemplate | null>(null);
+  const [isTemplateLoading, setIsTemplateLoading] = useState(true);
+  const [templateError, setTemplateError] = useState<string | null>(null);
+
+  const loadTemplate = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        if (!signal?.aborted) {
+          setIsTemplateLoading(true);
+          setTemplateError(null);
+        }
+
+        const response = await fetch(CONTRACT_TEMPLATE_URL, { signal });
+
+        if (!response.ok) {
+          throw new Error('Không thể tải mẫu hợp đồng.');
+        }
+
+        const json = (await response.json()) as { hop_dong?: ContractTemplate; hopDong?: ContractTemplate };
+        const templateData = json.hop_dong ?? json.hopDong;
+
+        if (!templateData) {
+          throw new Error('Dữ liệu mẫu hợp đồng không hợp lệ.');
+        }
+
+        if (!signal?.aborted) {
+          setTemplate(templateData);
+        }
+      } catch (error) {
+        if (signal?.aborted) {
+          return;
+        }
+
+        setTemplate(null);
+        setTemplateError(error instanceof Error ? error.message : 'Đã xảy ra lỗi khi tải mẫu hợp đồng.');
+      } finally {
+        if (!signal?.aborted) {
+          setIsTemplateLoading(false);
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadTemplate(controller.signal).catch(() => undefined);
+
+    return () => {
+      controller.abort();
+    };
+  }, [loadTemplate]);
 
   useEffect(() => {
     if (isError) {
@@ -62,7 +117,10 @@ const ContractDetailModal = ({ contractId, onClose }: ContractDetailModalProps) 
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => refetch()}
+              onClick={() => {
+                refetch();
+                loadTemplate().catch(() => undefined);
+              }}
               className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white transition hover:bg-white/20"
             >
               <RefreshCcw size={14} />
@@ -91,9 +149,29 @@ const ContractDetailModal = ({ contractId, onClose }: ContractDetailModalProps) 
             </div>
           )}
 
-          {accessToken && !isLoading && data?.result && (
+          {accessToken && !isLoading && isTemplateLoading && (
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-sm text-gray-300">
+              <Loader2 className="animate-spin" size={24} />
+              <p>Đang tải mẫu hợp đồng...</p>
+            </div>
+          )}
+
+          {accessToken && !isLoading && templateError && (
+            <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-sm text-gray-300">
+              <p>{templateError}</p>
+              <button
+                onClick={() => loadTemplate().catch(() => undefined)}
+                className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white transition hover:bg-white/20"
+              >
+                <RefreshCcw size={14} />
+                Thử lại
+              </button>
+            </div>
+          )}
+
+          {accessToken && !isLoading && !isTemplateLoading && template && data?.result && (
             <PDFViewer style={{ width: '100%', height: '100%' }}>
-              <ContractDocument contract={data.result} />
+              <ContractDocument contract={data.result} template={template} />
             </PDFViewer>
           )}
 

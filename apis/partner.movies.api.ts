@@ -33,21 +33,21 @@ export interface CreateMovieSubmissionReq {
   copyrightDocumentUrl: string; // .jpeg
   distributionLicenseUrl: string; // .pdf
   additionalNotes: string;
-  actorIds: number[];
-  newActors: NewActor[];
-  actorRoles: Record<string, string>;
+  actorIds: number[] | null;
+  newActors: NewActor[] | null;
+  actorRoles: Record<string, string> | null;
 }
 
-interface MovieSubmissionActor {
+export interface MovieSubmissionActor {
   movieSubmissionActorId: number;
-  actorId: number;
+  actorId: number | null;
   actorName: string;
   actorAvatarUrl: string;
   role: string;
   isExistingActor: boolean;
 }
 
-interface MovieSubmissionResult {
+export interface MovieSubmissionResult {
   movieSubmissionId: number;
   title: string;
   genre: string;
@@ -65,11 +65,11 @@ interface MovieSubmissionResult {
   copyrightDocumentUrl: string;
   distributionLicenseUrl: string;
   additionalNotes: string;
-  status: string; // có thể là "Pending" | "Approved" | "Rejected"
-  submittedAt: string; // ISO timestamp
-  reviewedAt: string; // ISO timestamp
-  rejectionReason: string;
-  movieId: number;
+  status: string;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
+  movieId: number | null;
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
   actors: MovieSubmissionActor[];
@@ -82,7 +82,7 @@ interface MovieSubmissionResponse {
 
 interface MovieSubmissionParams {
   page?: number;
-  limit?: number;
+  pageSize?: number;
   status?: string;
   search?: string;
   sortBy?: string;
@@ -92,23 +92,21 @@ interface MovieSubmissionParams {
 interface GetMoviesSubmissionResponse {
   message: string;
   result: {
-    submissions: [MovieSubmissionResult];
+    submissions: MovieSubmissionResult[];
     pagination: {
       currentPage: number;
       pageSize: number;
       totalCount: number;
       totalPages: number;
       hasPrevious: boolean;
-      hasNext: true;
+      hasNext: boolean;
     };
   };
 }
 
 interface MovieDetailResponse {
   message: string;
-  result: {
-    submissions: MovieSubmissionResult;
-  };
+  result: MovieSubmissionResult;
 }
 
 interface UpdateDataRequest {
@@ -122,12 +120,15 @@ interface UpdateDataRequest {
   bannerUrl: string;
   production: string;
   description: string;
-  premiereDate: Date;
-  endDate: Date;
+  premiereDate: string;
+  endDate: string;
   trailerUrl: string;
   copyrightDocumentUrl: string;
   distributionLicenseUrl: string;
   additionalNotes: string;
+  actorIds: number[] | null;
+  newActors: NewActor[] | null;
+  actorRoles: Record<string, string> | null;
 }
 
 interface MovieSubSubmitResponse {
@@ -147,9 +148,9 @@ interface DeleteMovieSubResponse {
 }
 
 interface ActorRequest {
-  actorId: number;
-  actorName: string;
-  actorAvatarUrl: string;
+  actorId?: number | null;
+  actorName?: string | null;
+  actorAvatarUrl?: string | null;
   role: string;
 }
 
@@ -157,9 +158,9 @@ interface CreateNewActorResponse {
   message: string;
   result: {
     movieSubmissionActorId: number;
-    actorId: number;
+    actorId: number | null;
     actorName: string;
-    actorAvatarUrl: string;
+    actorAvatarUrl: string | null;
     role: string;
     isExistingActor: boolean;
   };
@@ -193,6 +194,11 @@ interface DeleteActorFromMovieSubRes {
   result: string;
 }
 
+interface UpdateActorInMovieSubRes {
+  message: string;
+  result: MovieSubmissionActor;
+}
+
 // ===============================
 // MOVIES MANAGEMENT APIS
 // ===============================
@@ -219,7 +225,7 @@ class PartnerMoviesManagement {
     try {
       const queryParams = new URLSearchParams();
       if (params?.page) queryParams.append("page", params.page.toString());
-      if (params?.limit) queryParams.append("limit", params.limit.toString());
+      if (params?.pageSize) queryParams.append("pageSize", params.pageSize.toString());
       if (params?.status && params.status !== "all") {
         queryParams.append("status", params.status);
       }
@@ -353,7 +359,7 @@ class PartnerActorsManagement {
     submissionId: number,
     actorId: number,
     newActor: NewActorReq
-  ): Promise<CreateNewActorResponse> => {
+  ): Promise<UpdateActorInMovieSubRes> => {
     try {
       const response = await partnerApi.put(
         `${this.basePath}/${submissionId}/actors/${actorId}`,
@@ -509,6 +515,10 @@ export const useCreateNewActor = (submissionId: number) => {
       queryClient.invalidateQueries({
         queryKey: ["partner", "movie-submission", submissionId, "actors"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["movie-submission-detail", submissionId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["movie-submissions"] });
     },
   });
 };
@@ -517,7 +527,7 @@ export const useUpdateActorInMovieSub = (submissionId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation<
-    CreateNewActorResponse,
+    UpdateActorInMovieSubRes,
     Error,
     { actorId: number; newActor: NewActorReq }
   >({
@@ -532,6 +542,10 @@ export const useUpdateActorInMovieSub = (submissionId: number) => {
       queryClient.invalidateQueries({
         queryKey: ["partner", "movie-submission", submissionId, "actors"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["movie-submission-detail", submissionId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["movie-submissions"] });
     },
   });
 };
@@ -547,6 +561,10 @@ export const useRemoveActorFromMovieSub = (submissionId: number) => {
       queryClient.invalidateQueries({
         queryKey: ["partner", "movie-submission", submissionId, "actors"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["movie-submission-detail", submissionId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["movie-submissions"] });
     },
   });
 };

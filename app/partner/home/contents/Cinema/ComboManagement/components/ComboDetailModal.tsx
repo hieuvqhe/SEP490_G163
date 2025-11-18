@@ -192,8 +192,21 @@ const ComboDetailModal = ({ open, combo, loading, onClose }: ComboDetailModalPro
               </div>
             </div>
 
-            <div className="rounded-lg border border-dashed border-[#27272a] bg-[#1c1c1f] p-4 text-xs text-[#9e9ea2]" id="combo-detail-tour-link">
-              Link ảnh combo: {combo.imageUrl || "Chưa có"}
+            <div
+              className="rounded-lg border border-dashed border-[#27272a] bg-[#1c1c1f] p-4 text-xs text-[#9e9ea2]"
+              id="combo-detail-tour-link"
+            >
+              <p className="uppercase tracking-wide">Link ảnh combo</p>
+              {combo.imageUrl ? (
+                <span
+                  className="mt-2 block max-w-full truncate text-sm text-[#f5f5f5]"
+                  title={combo.imageUrl}
+                >
+                  {combo.imageUrl}
+                </span>
+              ) : (
+                <span className="mt-2 block text-sm">Combo chưa có link ảnh.</span>
+              )}
             </div>
           </div>
         ) : (

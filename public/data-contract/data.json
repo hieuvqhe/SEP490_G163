@@ -1,0 +1,346 @@
+{
+  "hopDong": {
+    "quocHieu": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM",
+    "tieuNgu": "Độc lập – Tự do – Hạnh phúc",
+    "tieuDeChinh": "HỢP ĐỒNG HỢP TÁC KINH DOANH PHÂN PHỐI VÉ XEM PHIM",
+    "cacBenThamGia": [
+      "CÔNG TY TNHH GIẢI TRÍ TRUYỀN THÔNG EXPRESSTICKET",
+      "CÔNG TY TNHH CJ CGV VIỆT NAM"
+    ],
+    "mucDich": "HỢP TÁC BÁN VÉ XEM PHIM QUA NỀN TẢNG EXPRESSTICKET",
+    "thongTinKyKet": {
+      "moTa": "HỢP ĐỒNG HỢP TÁC SẢN XUẤT PHIM này (“ Hợp đồng này” ) được lập vào ngày 31 tháng 05 năm 2016 tại Văn phòng Công ty TNHH Giải Trí Truyền Thông ABC có giá trị ràng buộc đối với Các bên:",
+      "ngayLap": "31 tháng 05 năm 2016",
+      "diaDiem": "Văn phòng Công ty TNHH Giải Trí Truyền Thông ABC"
+    },
+    "thongTinChung": {
+      "tieuDe": "Thông tin chung về hợp đồng",
+      "chiTiet": {
+        "soHopDong": "[..............................]",
+        "loaiHopDong": "[..............................]",
+        "ngayBatDau": "[..............................]",
+        "ngayKetThuc": "[..............................]",
+        "tyLeHoaHong": "[..............................]"
+      }
+    },
+    "thongTinCacBen": {
+      "benA": {
+        "tenGoi": "BÊN A",
+        "tenCongTy": "CÔNG TY TNHH GIẢI TRÍ TRUYỀN THÔNG EXPRESSTICKET",
+        "daiDien": "Ông Vũ Quang Hiếu",
+        "chucVu": "Tên quản lý : Giám đốc điều hành",
+        "diaChi": "Chức vụ : Quản lý đối tác",
+        "dienThoai": "Số điện thoại cá nhân : [..............................]",
+        "taiKhoanSo": "Email: [..............................]",
+        "maSoThue": "Tài khoản : [..............................] tại [..............................]"
+      },
+      "benB": {
+        "tenGoi": "BÊN B",
+        "tenCongTy": "CÔNG TY CỔ PHẦN ĐẦU TƯ VÀ SẢN XUẤT PHIM XYZ",
+        "daiDien": "Đại diện bởi : Ông / bà [..............................]",
+        "diaChiDangKy_Raw": "Chức vụ : Đại diện hợp pháp",
+        "diaChiGiaoDich_Raw": "Địa chỉ đăng ký : [..............................]",
+        "dienThoai_Raw": "Email đăng ký : [..............................]",
+        "taiKhoanSo_Raw": "s Số điện thoại đăng ký : [..............................]",
+        "maSoThue": "[..............................]"
+      },
+      "dinhNghiaTenGoi": "Trong Hợp đồng này, CÔNG TY TNHH GIẢI TRÍ TRUYỀN THÔNG EXPRESSTICKET được gọi là “ Bên A ”; CÔNG TY TNHH CJ CGV VIỆT NAM được gọi là “ Bên B ”; và được gọi riêng là “ Bên ” hoặc gọi chung là “ Các bên ”."
+    },
+    "danNhap": [
+      {
+        "muc": "A",
+        "noiDung": "Các Bên mong muốn hợp tác trong việc kết nối hệ thống bán vé , phân phối và kinh doanh vé xem phim của hệ thống rạp chiếu phim do Bên B sở hữu thông qua nền tảng trực tuyến “ExpressTicket” do Bên A vận hành, trên nguyên tắc bình đẳng, minh bạch và phát huy tối đa năng lực của mỗi Bên."
+      },
+      {
+        "muc": "B",
+        "noiDung": "Hợp đồng này được ký kết trên cơ sở Bên B là đơn vị sở hữu hợp pháp hệ thống rạp chiếu phim , bao gồm phim, suất chiếu, giá vé, chương trình khuyến mãi và toàn bộ dữ liệu liên quan. Việc hợp tác với Bên A để phân phối vé không làm thay đổi, hạn chế hay chuyển giao quyền sở hữu nội dung, dữ liệu hoặc tài sản của Bên B."
+      },
+      {
+        "muc": "C",
+        "noiDung": "Các Bên đồng ý rằng Bên A (ExpressTicket) là đơn vị cung cấp nền tảng, hệ thống kỹ thuật, hạ tầng công nghệ và dịch vụ bán vé trực tuyến, thực hiện việc phân phối vé đến khách hàng, tiếp nhận đặt vé, xử lý thanh toán và truyền thông tin đơn hàng cho Bên B.;"
+      },
+      {
+        "muc": "D",
+        "noiDung": "Các Bên cam kết phối hợp, đối soát và chia sẻ doanh thu phát sinh từ việc bán vé xem phim thông qua nền tảng ExpressTicket, theo tỷ lệ và phương thức quy định trong Hợp đồng này, đảm bảo công bằng, rõ ràng và đúng số liệu thực tế"
+      }
+    ],
+    "cacDieuKhoan": [
+      {
+        "soDieu": "1",
+        "tieuDe": "MỤC ĐÍCH VÀ RÀNG BUỘC",
+        "cacMuc": [
+          {
+            "soMuc": "1.1",
+            "tieuDe": "Mục đích của Hợp đồng",
+            "noiDung": "Các Bên ký kết Hợp đồng này với mục đích hợp tác kinh doanh trong lĩnh vực phân phối và bán vé xem phim trực tuyến thông qua nền tảng ExpressTicket do Bên A vận hành, đối với các suất chiếu và dịch vụ thuộc hệ thống rạp chiếu phim do Bên B sở hữu hoặc quản lý.",
+            "chiTietHopTac": [
+              "Kết nối hệ thống bán vé và đồng bộ dữ liệu suất chiếu giữa hai Bên;",
+              "Phân phối vé xem phim đến khách hàng thông qua nền tảng ExpressTicket;",
+              "Chia sẻ doanh thu, phí dịch vụ và chiết khấu theo thỏa thuận giữa các Bên;",
+              "Phối hợp vận hành, xử lý giao dịch, chăm sóc khách hàng và đối soát định kỳ."
+            ],
+            "khangDinh": "Hợp đồng này không chuyển giao quyền sở hữu đối với hệ thống rạp chiếu phim, phim, suất chiếu hoặc dữ liệu của Bên B, và không chuyển giao quyền sở hữu đối với nền tảng công nghệ ExpressTicket của Bên A.."
+          },
+          {
+            "soMuc": "1.2",
+            "tieuDe": "Giải thích Hợp đồng",
+            "noiDung": "Các điều khoản trong Hợp đồng này được hiểu và giải thích theo nội dung thỏa thuận giữa Các Bên, phù hợp với mục tiêu hợp tác đã nêu tại Điều 1.1 và theo quy định của pháp luật Việt Nam về thương mại, công nghệ thông tin, điện ảnh và các quy định pháp luật liên quan.",
+            "uuTienGiaiThich": [
+              "(a) Mục đích hợp tác;",
+              "(b) Nguyên tắc thiện chí – trung thực – hợp tác;",
+              "(c) Các quy định pháp luật hiện hành."
+            ]
+          },
+          {
+            "soMuc": "1.3",
+            "tieuDe": "Ràng buộc trách nhiệm của Các bên",
+            "noiDung": [
+              "Tất cả nội dung trong Hợp đồng này, bao gồm phần dẫn nhập, phần thuật ngữ, các điều khoản chính và toàn bộ tài liệu, phụ lục, tài liệu kỹ thuật, quy chuẩn kết nối hoặc chính sách vận hành kèm theo (nếu có), đều có giá trị pháp lý và ràng buộc trách nhiệm giữa Các Bên ngay từ thời điểm ký kết.",
+              "Mỗi Bên cam kết thực hiện đúng và đầy đủ các nghĩa vụ của mình theo Hợp đồng này, đồng thời chịu trách nhiệm trước pháp luật Việt Nam nếu vi phạm."
+            ]
+          }
+        ]
+      },
+      {
+        "soDieu": "2",
+        "tieuDe": "ĐỐI TƯỢNG CỦA HỢP ĐỒNG VÀ THỜI HẠN THỰC HIỆN HỢP ĐỒNG",
+        "cacMuc": [
+          {
+            "soMuc": "2.1",
+            "noiDung": "Các Bên thống nhất hợp tác trong việc kết nối, phân phối và kinh doanh vé xem phim trực tuyến đối với toàn bộ hoặc một phần hệ thống rạp chiếu phim thuộc Bên B thông qua nền tảng ExpressTicket của Bên A. Nội dung hợp tác bao gồm nhưng không giới hạn",
+            "chiTiet": [
+              {
+                "soMucCon": "2.1.1",
+                "tieuDe": "Vai trò của Bên A (ExpressTicket)",
+                "trachNhiem": [
+                  "a. Cung cấp nền tảng công nghệ để khách hàng có thể tra cứu suất chiếu, đặt vé và thanh toán trực tuyến;b.",
+                  "Kết nối kỹ thuật (API) với Bên B để đồng bộ dữ liệu suất chiếu, giá vé, sơ đồ ghế và trạng thái vé;c.",
+                  "Thực hiện vận hành hệ thống, hỗ trợ khách hàng, xử lý giao dịch và chuyển thông tin vé cho Bên B;d.",
+                  "Thực hiện đối soát định kỳ, chia sẻ doanh thu và thanh toán cho Bên B theo thỏa thuận của Hợp đồng;e.",
+                  "Triển khai các hoạt động marketing hoặc hỗ trợ quảng bá theo chương trình do Các Bên phối hợp thống nhất."
+                ]
+              },
+              {
+                "soMucCon": "2.1.2",
+                "tieuDe": "Vai trò của Bên B (Đơn vị sở hữu rạp chiếu phim)",
+                "trachNhiem": [
+                  "a. Cung cấp đầy đủ dữ liệu suất chiếu, giá vé, phụ thu, chính sách khuyến mãi và cập nhật thay đổi kịp thời;b.",
+                  "Cung cấp API hoặc dữ liệu về phim ( Điều 3.) để thực hiện đồng bộ .c.",
+                  "Đảm bảo tính chính xác của thông tin suất chiếu, giá vé và tình trạng ghế;d.",
+                  "Thực hiện quy trình nhận vé, kiểm soát vé và phục vụ khách hàng tại rạp;e.",
+                  "Hỗ trợ Bên A trong việc xác minh giao dịch, xử lý vé lỗi, hủy vé, hoàn vé (nếu áp dụng);f.",
+                  "Phối hợp đối soát và xác nhận số liệu tại mỗi kỳ đối soát."
+                ]
+              }
+            ]
+          },
+          {
+            "soMuc": "2.2",
+            "tieuDe": "Phạm vi vé và dịch vụ được phân phối",
+            "chiTiet": [
+              "a. Toàn bộ phim đang chiếu và sắp chiếu tại hệ thống rạp của Bên B;b.",
+              "Tất cả loại vé, loại ghế, phòng chiếu, chương trình khuyến mãi (trừ các loại vé hạn chế theo chính sách nội bộ của Bên B – nếu có);c.",
+              "Các dịch vụ bổ sung tại rạp (nếu Các Bên có thỏa thuận riêng, ví dụ: combo thức ăn, voucher…)."
+            ]
+          },
+          {
+            "soMuc": "2.3",
+            "tieuDe": "Thời hạn Hợp đồng",
+            "noiDung": [
+              "Hợp đồng này có hiệu lực kể từ ngày ký và kéo dài trong thời hạn: ___ năm hoặc đến khi một trong Các Bên đề nghị chấm dứt theo quy định của Hợp đồng này.",
+              "Các Bên có thể gia hạn bằng phụ lục hoặc thỏa thuận bằng văn bản/email có xác nhận của đại diện hợp pháp."
+            ]
+          }
+        ]
+      },
+      {
+        "soDieu": "5",
+        "tieuDe": "CÁC QUYỀN VÀ NGHĨA VỤ KHÁC CỦA CÁC BÊN",
+        "cacMuc": [
+          {
+            "soMuc": "5.1",
+            "tieuDe": "Quyền và nghĩa vụ của Bên A",
+            "chiTiet": [
+              {
+                "soMucCon": "5.1.1",
+                "noiDung": "Vận hành và duy trì hệ thống ExpressTicket ổn định, an toàn, đảm bảo khách hàng có thể tra cứu suất chiếu, đặt vé và thanh toán thuận lợi."
+              },
+              {
+                "soMucCon": "5.1.2",
+                "noiDung": "Thực hiện kết nối kỹ thuật (API) với hệ thống của Bên B; đảm bảo đồng bộ chính xác dữ liệu phim, suất chiếu, giá vé, sơ đồ ghế, và trạng thái ghế."
+              },
+              {
+                "soMucCon": "5.1.3",
+                "noiDung": "Tổ chức, quản lý và xử lý toàn bộ giao dịch đặt vé trên nền tảng ExpressTicket, bao gồm thanh toán, xác nhận vé điện tử và hỗ trợ khách hàng."
+              },
+              {
+                "soMucCon": "5.1.4",
+                "noiDung": "Được hưởng phí dịch vụ/chiết khấu theo tỷ lệ hai Bên thỏa thuận, từ mỗi giao dịch bán vé phát sinh qua nền tảng."
+              },
+              {
+                "soMucCon": "5.1.5",
+                "noiDung": "Thực hiện đối soát và thanh toán doanh thu cho Bên B theo đúng thời hạn, quy trình và tỷ lệ quy định tại Điều 3 của Hợp đồng này."
+              },
+              {
+                "soMucCon": "5.1.6",
+                "noiDung": "Có quyền tạm ngừng cung cấp dịch vụ khi:",
+                "dieuKien": [
+                  "Có sự cố kỹ thuật nghiêm trọng;",
+                  "Có nguy cơ mất an toàn hệ thống;",
+                  "Bên B cung cấp dữ liệu sai, thiếu, hoặc gây lỗi giao dịch.",
+                  "(Bên A phải thông báo kịp thời cho Bên B.)"
+                ]
+              },
+              {
+                "soMucCon": "5.1.7",
+                "noiDung": "Có quyền yêu cầu Bên B cung cấp hoặc cập nhật thông tin suất chiếu, phim, giá vé một cách đầy đủ, chính xác và kịp thời."
+              },
+              {
+                "soMucCon": "5.1.8",
+                "noiDung": "Cung cấp báo cáo giao dịch, báo cáo bán vé, đối soát định kỳ theo mẫu thống nhất giữa hai Bên."
+              },
+              {
+                "soMucCon": "5.1.9",
+                "noiDung": "Có nghĩa vụ bảo mật toàn bộ thông tin: dữ liệu giao dịch, dữ liệu khách hàng, thông tin kỹ thuật, nội dung hợp tác và các điều khoản của Hợp đồng này."
+              },
+              {
+                "soMucCon": "5.1.10",
+                "noiDung": "Không sử dụng dữ liệu khách hàng cho mục đích ngoài phạm vi hợp tác, trừ khi có sự đồng ý bằng văn bản của Bên B hoặc theo quy định pháp luật."
+              },
+              {
+                "soMucCon": "5.1.11",
+                "noiDung": "Hỗ trợ Bên B trong việc xử lý sự cố liên quan đến vé tại rạp (vé không quét được, giao dịch lỗi…)."
+              },
+              {
+                "soMucCon": "5.1.12",
+                "noiDung": "Triển khai các chương trình marketing, khuyến mãi chung theo thỏa thuận và đảm bảo tuân thủ thương hiệu của Bên B."
+              }
+            ]
+          },
+          {
+            "soMuc": "5.2",
+            "tieuDe": "Quyền và nghĩa vụ của Bên B ( Đơn vị sở hữu rạp chiếu phim )",
+            "chiTiet": [
+              {
+                "soMucCon": "5.2.1",
+                "noiDung": "Cung cấp đầy đủ và kịp thời dữ liệu phim, suất chiếu, giá vé, phụ thu, khuyến mãi và các thông tin vận hành khác cho Bên A."
+              },
+              {
+                "soMucCon": "5.2.2",
+                "noiDung": "Trong trường hợp quy định tại Điều 5.2.1, nếu dữ liệu phim được cung cấp thông qua một hệ thống hoặc kho dữ liệu phim chung do các bên liên quan quản lý, Bên A có trách nhiệm tiếp nhận và sử dụng dữ liệu phim từ kho dữ liệu chung để thực hiện việc tạo lịch chiếu, phòng chiếu và các hoạt động liên quan khác. Trường hợp Bên B và Bên khác ( Bên C - khi hợp tác nhiều chuỗi rạp) cung cấp dữ liệu phim trùng thời điểm, việc lựa chọn dữ liệu phim được đồng bộ lên kho dữ liệu phim chung sẽ do Bên A quyết định và chịu trách nhiệm vận hành, cập nhật, đảm bảo thống nhất dữ liệu cho quá trình khai thác và bán vé."
+              },
+              {
+                "soMucCon": "5.2.3",
+                "noiDung": "Đảm bảo quy trình check-in vé điện tử tại rạp, bao gồm quét mã QR/mã vé do Bên A phát hành."
+              },
+              {
+                "soMucCon": "5.2.4",
+                "noiDung": "Chịu trách nhiệm xử lý các vấn đề tại rạp liên quan đến suất chiếu, sắp xếp ghế, hết ghế, thay đổi giờ chiếu, hoặc lỗi vận hành tại rạp."
+              },
+              {
+                "soMucCon": "5.2.5",
+                "noiDung": "Nhận doanh thu ròng do Bên A chuyển trả theo kỳ đối soát và theo quy định trong Điều 3 của Hợp đồng."
+              },
+              {
+                "soMucCon": "5.2.6",
+                "noiDung": "Có quyền yêu cầu Bên A hỗ trợ kỹ thuật, hỗ trợ khách hàng hoặc điều chỉnh hiển thị thông tin phim trên nền tảng."
+              },
+              {
+                "soMucCon": "5.2.7",
+                "noiDung": "Có quyền đề nghị tạm ngưng bán vé trong các trường hợp bảo trì, sự cố rạp, hoặc thay đổi hệ thống, nhưng phải thông báo trước cho Bên A."
+              },
+              {
+                "soMucCon": "5.2.8",
+                "noiDung": "Bảo mật toàn bộ thông tin liên quan đến hệ thống ExpressTicket, thông tin kỹ thuật, dữ liệu khách hàng, và các điều khoản hợp tác."
+              },
+              {
+                "soMucCon": "5.2.9",
+                "noiDung": "Chịu trách nhiệm về tính chính xác và hợp pháp của mọi thông tin do mình cung cấp."
+              },
+              {
+                "soMucCon": "5.2.10",
+                "noiDung": "Phối hợp với Bên A để giải quyết khiếu nại của khách hàng liên quan đến dịch vụ tại rạp."
+              },
+              {
+                "soMucCon": "5.2.11",
+                "noiDung": "Không được tự ý thay đổi giá vé, suất chiếu hoặc các điều kiện bán vé đã đồng bộ lên hệ thống khi chưa thông báo cho Bên A. Nếu vi phạm phải bên A phải chịu hoàn toàn trách nhiệm trước pháp luật ."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "soDieu": "6",
+        "tieuDe": "BẢN QUYỀN VÀ SỞ HỮU TRÍ TUỆ",
+        "moDau": "Hai bên đồng ý và xác nhận rằng:",
+        "cacMuc": [
+          {
+            "soMuc": "6.1",
+            "noiDung": "Toàn bộ bản quyền, quyền sở hữu trí tuệ, quyền tác giả, quyền liên quan, mã nguồn, mã lệnh, thuật toán, thiết kế hệ thống, tài liệu kỹ thuật, giao diện người dùng, hình ảnh, đồ họa, nội dung, tính năng và các tài sản trí tuệ khác liên quan đến nền tảng ExpressTicket đều thuộc quyền sở hữu hợp pháp và duy nhất của Bên B."
+          },
+          {
+            "soMuc": "6.2",
+            "noiDung": "Tất cả nội dung, hình ảnh, tài liệu, tài sản trí tuệ do Bên B tạo ra hoặc triển khai trong quá trình hợp tác (bao gồm nhưng không giới hạn: giao diện đặt vé, nội dung mô tả phim, thiết kế banner, nội dung quảng cáo, tài liệu truyền thông…) đều thuộc toàn quyền quản lý và sở hữu của Bên B."
+          },
+          {
+            "soMuc": "6.3",
+            "noiDung": "Bên A không có bất kỳ quyền sở hữu, quyền khai thác, quyền sao chép hoặc quyền sửa đổi nào đối với nền tảng ExpressTicket hoặc bất kỳ tài sản trí tuệ nào của Bên B, trừ khi được Bên B chấp thuận bằng văn bản."
+          },
+          {
+            "soMuc": "6.4",
+            "noiDung": "Bên B hoàn toàn chịu trách nhiệm về việc bảo hộ quyền sở hữu trí tuệ liên quan đến nền tảng ExpressTicket và toàn bộ các nội dung do Bên B tạo ra; bao gồm xử lý tranh chấp, khiếu nại, vi phạm bản quyền (nếu phát sinh)."
+          },
+          {
+            "soMuc": "6.5",
+            "noiDung": "Tên thương hiệu, logo, hình ảnh đại diện hoặc yếu tố nhận diện của Bên B chỉ được Bên A sử dụng cho mục đích hợp tác thương mại với ExpressTicket , và phải được Bên B chấp thuận trước khi sử dụng."
+          },
+          {
+            "soMuc": "6.6",
+            "noiDung": "Trong phạm vi hợp tác, Bên B được quyền sử dụng tên, logo và hình ảnh nhận diện thương hiệu của Bên A chỉ để hiển thị thông tin rạp chiếu phim, suất chiếu, vé và các nội dung liên quan trực tiếp đến việc bán vé , không cho mục đích khác nếu không có sự chấp thuận bằng văn bản của Bên A."
+          }
+        ]
+      },
+      {
+        "soDieu": "10",
+        "tieuDe": "LUẬT ĐIỀU CHỈNH:",
+        "noiDung": "Hợp đồng này chịu sự điều chỉnh và được giải thích theo Pháp luật Nước Cộng hòa xã hội chủ nghĩa Việt Nam."
+      },
+      {
+        "soDieu": "12",
+        "tieuDe": "CÁC ĐIỀU KHOẢN KHÁC:",
+        "cacMuc": [
+          {
+            "soMuc": "12.1",
+            "noiDung": "Mọi bổ sung sửa đổi điều khoản nào trong Hợp đồng này đều phải lập thành Phụ lục hợp đồng và phải được sự đồng ý của Các bên. Các phụ lục hợp đồng phải có chữ ký hợp pháp của Các bên và là một phần có hiệu lực của Hợp đồng này."
+          },
+          {
+            "soMuc": "12.2",
+            "noiDung": "Đính kèm và đọc cùng với hợp đồng này là :"
+          },
+          {
+            "soMuc": "12.3",
+            "noiDung": "Các bên cần chủ động thông báo cho nhau biết tiến độ thực hiện hợp đồng, cũng như quá trình tiến hành phần công việc cụ thể của Các bên. Nếu có vấn đề bất lợi phát sinh, Các bên phải kịp thời thông báo cho nhau biết và chủ động bàn bạc giải quyết trên cơ sở thương lượng đảm bảo Các bên cùng có lợi."
+          },
+          {
+            "soMuc": "12.4",
+            "noiDung": "Hợp đồng có hiệu lực từ kể từ ngày Hợp đồng này được ký kết cho đến khi hoàn tất công việc theo yêu cầu của bộ phim và Các bên đã thanh toán đầy đủ theo các quy định trong Hợp đồng và của pháp luật có kèm Biên bản thanh lý hợp đồng."
+          },
+          {
+            "soMuc": "12.5",
+            "noiDung": "Sau khi các nội dung đã được hai Bên thống nhất bằng hình thức trao đổi trực tiếp, Bên B sẽ tiến hành ký tên vào bản hợp đồng và tải bản hợp đồng đã ký lên hệ thống. Bên A có trách nhiệm kiểm tra, xác nhận và thực hiện khóa hợp đồng trên hệ thống để lưu trữ chính thức."
+          }
+        ]
+      }
+    ],
+    "chuKy": {
+      "benA": {
+        "chucDanh": "ĐẠI DIỆN BÊN A",
+        "ten": "NGUYỄN VĂN A"
+      },
+      "benB": {
+        "chucDanh": "ĐẠI DIỆN BÊN B",
+        "ten": "NGUYỄN CAO B"
+      }
+    }
+  }
+}

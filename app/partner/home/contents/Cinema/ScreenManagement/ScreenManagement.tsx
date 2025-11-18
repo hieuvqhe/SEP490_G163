@@ -329,7 +329,7 @@ const ScreenManagement = () => {
               showToast("Tạo phòng thành công", undefined, "success");
               setIsFormOpen(false);
               setFormInitialValues({ ...defaultScreenFormValues });
-              invalidateScreens(selectedCinemaId);
+              invalidateScreens(selectedCinemaId, screenQueryParams);
               invalidateCinemas();
             },
             onError: (error) => {
@@ -353,7 +353,7 @@ const ScreenManagement = () => {
             showToast("Cập nhật phòng thành công", undefined, "success");
             setIsFormOpen(false);
             setEditingScreenId(null);
-            invalidateScreens(selectedCinemaId);
+            invalidateScreens(selectedCinemaId, screenQueryParams);
             invalidateCinemas();
           },
           onError: (error) => {

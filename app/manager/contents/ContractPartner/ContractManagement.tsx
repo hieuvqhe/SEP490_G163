@@ -7,7 +7,8 @@ import { Eye, Loader2, Lock, RefreshCcw, Send } from 'lucide-react';
 import {
   useGetContracts,
   useActivateContract,
-  type Contract
+  type Contract,
+  type ActivateContractRequest
 } from '@/apis/manager.contract.api';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/components/ToastProvider';
@@ -183,7 +184,7 @@ const ContractManagement = () => {
     setActivationContractId(null);
   };
 
-  const handleConfirmActivate = () => {
+  const handleConfirmActivate = (payload: ActivateContractRequest) => {
     if (!accessToken) {
       showToast('Vui lòng đăng nhập lại', undefined, 'error');
       return;
@@ -194,11 +195,12 @@ const ContractManagement = () => {
     }
 
     activateContractMutation.mutate(
-      { contractId: activationContractId, accessToken },
+      { contractId: activationContractId, accessToken, data: payload },
       {
         onSuccess: () => {
           showToast('Kích hoạt HĐ thành công!', undefined, 'success');
           setActivationContractId(null);
+
           refetch();
         },
         onError: (error: any) => {

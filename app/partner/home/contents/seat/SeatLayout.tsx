@@ -464,14 +464,44 @@ const SeatLayout = () => {
       );
 
       if (coupleSeatsInSelection.length > 0) {
+        const coupleSeatPartners = new Map<string, SeatData>();
+
+        const coupleSeatsByRow = seats
+          .filter((seat) => isCoupleSeatType(seat.seatTypeId))
+          .reduce<Map<string, SeatData[]>>((acc, seat) => {
+            const rowSeats = acc.get(seat.row) ?? [];
+            rowSeats.push(seat);
+            acc.set(seat.row, rowSeats);
+            return acc;
+          }, new Map());
+
+        for (const rowSeats of coupleSeatsByRow.values()) {
+          const sortedRowSeats = rowSeats
+            .slice()
+            .sort((a, b) => a.column - b.column);
+
+          for (let index = 0; index < sortedRowSeats.length - 1; index += 2) {
+            const firstSeat = sortedRowSeats[index];
+            const secondSeat = sortedRowSeats[index + 1];
+
+            if (secondSeat.column - firstSeat.column !== 1) {
+              continue;
+            }
+
+            coupleSeatPartners.set(
+              `${firstSeat.row}${firstSeat.column}`,
+              secondSeat
+            );
+            coupleSeatPartners.set(
+              `${secondSeat.row}${secondSeat.column}`,
+              firstSeat
+            );
+          }
+        }
+
         const hasPartialCouple = coupleSeatsInSelection.some((seat) => {
-          const partnerSeat = seats.find(
-            (candidate) =>
-              candidate.row === seat.row &&
-              candidate.column !== seat.column &&
-              Math.abs(candidate.column - seat.column) === 1 &&
-              isCoupleSeatType(candidate.seatTypeId)
-          );
+          const seatKey = `${seat.row}${seat.column}`;
+          const partnerSeat = coupleSeatPartners.get(seatKey);
 
           if (!partnerSeat) {
             return true;

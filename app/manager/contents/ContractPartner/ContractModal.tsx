@@ -14,6 +14,33 @@ import { useToast } from '@/components/ToastProvider';
 const CONTRACT_TYPES = ["partnership", "service", "standard", "premium"] as const;
 const MIN_CONTRACT_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 
+const sanitizePartnerSegment = (value: string | null | undefined): string => {
+  if (!value || !value.trim()) {
+    return "CTY";
+  }
+
+  const asciiValue = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase();
+
+  return asciiValue.slice(0, 5) || "CTY";
+};
+
+const buildDefaultContractNumber = (partner: PartnerWithoutContract | null): string => {
+  if (!partner) {
+    return '';
+  }
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const sequence = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+  const companySegment = sanitizePartnerSegment(partner.partnerName);
+
+  return `HD-${year}-${sequence}-${companySegment}`;
+};
+
 const contractFormBaseSchema = z.object({
   partnerId: z.number(),
   contractNumber: z.string().min(1, 'Không được để trống'),
@@ -74,7 +101,7 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
 
   const defaultValues = useMemo((): CreateContractForm => ({
     partnerId: partner?.partnerId || 0,
-    contractNumber: partner ? `${partner.partnerName}_Contract` : '',
+    contractNumber: buildDefaultContractNumber(partner),
     contractType: 'partnership',
     title: 'HỢP ĐỒNG HỢP TÁC KINH DOANH',
     description: 'Hợp đồng hợp tác cung cấp dịch vụ vé xem phim',
@@ -277,8 +304,9 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
                 <div className="relative">
                   <Receipt className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-400" />
                   <input
-                    readOnly
                     className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-sm text-white placeholder:text-gray-400"
+                    placeholder="VD: HD-2024-001"
+                    autoComplete="off"
                     {...register('contractNumber')}
                   />
                 </div>

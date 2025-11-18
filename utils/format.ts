@@ -28,14 +28,31 @@ export const formatCurrency = (amount: number): string => {
 /**
  * Format date and time for Vietnamese locale
  */
+export const formatDate = (value?: string | Date | null): string => {
+  if (!value) return "-";
+
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
 export const formatDateTime = (
-  dateString: string,
+  dateInput?: string | Date | null,
   options?: {
     includeTime?: boolean;
     relative?: boolean;
   }
 ): string => {
-  const date = new Date(dateString);
+  if (!dateInput) return "-";
+
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  if (Number.isNaN(date.getTime())) return "-";
+
   const now = new Date();
 
   if (options?.relative) {

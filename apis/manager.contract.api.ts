@@ -194,13 +194,8 @@ export interface SendContractPdfResponse {
   result: null;
 }
 
-export interface ActivateContractResponse {
-  message: string;
-  result: ContractDetail;
-}
-
 export interface FinalizeContractRequest {
-  managerSignature: string;
+  managerSignature?: string;
   notes?: string;
 }
 
@@ -218,8 +213,8 @@ export interface FinalizeContractResult {
 }
 
 export interface FinalizeContractResponse {
-  message: string;
-  result: FinalizeContractResult;
+  message?: string;
+  result?: FinalizeContractResult;
 }
 
 // --- Generate upload SAS for PDF ---
@@ -332,7 +327,7 @@ class ManagerContractService {
     try {
       const url = `${this.baseURL}/contracts`;
       const response = await fetch(url, {
-        method: "POST",
+        method: "PUT",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
@@ -376,7 +371,7 @@ class ManagerContractService {
     try {
       const url = `${this.baseURL}/contracts/${contractId}/send-pdf`;
       const response = await fetch(url, {
-        method: "POST",
+        method: "PUT",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
@@ -397,23 +392,56 @@ class ManagerContractService {
     }
   }
 
-  async activateContract(contractId: number, accessToken: string): Promise<ActivateContractResponse> {
+  async activateContract(
+    contractId: number,
+    data: ActivateContractRequest,
+    accessToken: string
+  ): Promise<ActivateContractResponse> {
     try {
-      const url = `${this.baseURL}/contracts/${contractId}/activate`;
+      const url = `${this.baseURL}/contracts/${contractId}/finalize`;
       const response = await fetch(url, {
-        method: "POST",
+        method: "PUT",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify(data ?? {}),
       });
-      const result = await response.json();
-      if (!response.ok) {
-        throw result as ManagerApiError;
+
+      const responseText = await response.text();
+      let parsedBody: unknown = null;
+
+      if (responseText) {
+        try {
+          parsedBody = JSON.parse(responseText);
+        } catch {
+          parsedBody = responseText;
+        }
       }
-      return result;
+
+      if (!response.ok) {
+        if (parsedBody && typeof parsedBody === "object") {
+          throw parsedBody as ManagerApiError;
+        }
+
+        const fallbackMessage =
+          typeof parsedBody === "string" && parsedBody.length > 0
+            ? parsedBody
+            : "Kích hoạt hợp đồng thất bại";
+
+        throw { message: fallbackMessage } as ManagerApiError;
+      }
+
+      if (parsedBody && typeof parsedBody === "object") {
+        return parsedBody as ActivateContractResponse;
+      }
+
+      if (typeof parsedBody === "string") {
+        return { message: parsedBody };
+      }
+
+      return { message: undefined, result: undefined };
     } catch (error: any) {
       if (error.name === "TypeError") {
         throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
@@ -426,7 +454,7 @@ class ManagerContractService {
     try {
       const url = `${this.baseURL}/contracts/${contractId}/finalize`;
       const response = await fetch(url, {
-        method: "POST",
+        method: "PUT",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
@@ -529,11 +557,22 @@ export const useSendContract = () => {
   });
 };
 
+export interface ActivateContractRequest extends FinalizeContractRequest {}
+
+export interface ActivateContractResponse extends FinalizeContractResponse {}
+
 export const useActivateContract = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ contractId, accessToken }: { contractId: number; accessToken: string }) =>
-      managerContractService.activateContract(contractId, accessToken),
+    mutationFn: ({
+      contractId,
+      data,
+      accessToken,
+    }: {
+      contractId: number;
+      data: ActivateContractRequest;
+      accessToken: string;
+    }) => managerContractService.activateContract(contractId, data, accessToken),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["manager-contracts"] });
     },

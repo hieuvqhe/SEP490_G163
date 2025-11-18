@@ -1,83 +1,143 @@
 import { BASE_URL } from "@/constants";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export interface CreateMovieRequest {
+export type MovieSubmissionStatus = "Pending" | "Rejected" | "Resubmitted" | "Approved";
+
+export interface MovieSubmissionPartner {
+  partnerId: number;
+  partnerName: string;
+}
+
+export interface MovieSubmissionSummary {
+  movieSubmissionId: number;
   title: string;
-  genre?: string;
-  durationMinutes?: number;
-  premiereDate?: string; // ISO date
-  endDate?: string; // ISO date
-  director?: string;
-  language?: string;
-  country?: string;
-  isActive?: boolean;
-  posterUrl?: string;
-  production?: string;
-  description?: string;
-  status?: string;
-  trailerUrl?: string;
-  actorIds?: number[];
+  director: string;
+  genre: string;
+  status: MovieSubmissionStatus;
+  submittedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  partner: MovieSubmissionPartner;
 }
 
-export interface MovieActor {
-  id: number;
-  name: string;
-  profileImage?: string | null;
+export interface MovieSubmissionActor {
+  movieSubmissionActorId: number;
+  actorId: number | null;
+  actorName: string;
+  actorAvatarUrl: string | null;
+  role: string | null;
+  isExistingActor: boolean;
 }
 
-export interface CreateMovieResponse {
+export interface MovieSubmissionDetail extends MovieSubmissionSummary {
+  description: string;
+  language: string;
+  country: string;
+  production?: string | null;
+  premiereDate: string;
+  endDate: string;
+  posterUrl?: string | null;
+  bannerUrl?: string | null;
+  trailerUrl?: string | null;
+  durationMinutes?: number | null;
+  copyrightDocumentUrl?: string | null;
+  distributionLicenseUrl?: string | null;
+  additionalNotes?: string | null;
+  reviewedAt?: string | null;
+  rejectionReason?: string | null;
+  movieId?: number | null;
+  actors: MovieSubmissionActor[];
+}
+
+export interface MovieSubmissionReviewResult extends MovieSubmissionDetail {
+  durationMinutes: number;
+  production: string;
+  trailerUrl: string;
+  copyrightDocumentUrl: string;
+  distributionLicenseUrl: string;
+  additionalNotes: string | null;
+  reviewedAt: string;
+  rejectionReason: string | null;
+  movieId: number | null;
+}
+
+export interface Pagination {
+  currentPage: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrevious?: boolean;
+  hasNext?: boolean;
+}
+
+export interface GetMovieSubmissionsResponse {
   message: string;
   result: {
-    movieId: number;
-    title: string;
-    genre?: string;
-    durationMinutes?: number;
-    premiereDate?: string;
-    endDate?: string;
-    director?: string;
-    language?: string;
-    country?: string;
-    isActive?: boolean;
-    posterUrl?: string;
-    production?: string;
-    description?: string;
-    status?: string;
-    trailerUrl?: string;
-    averageRating?: number;
-    ratingsCount?: number;
-    createdAt?: string;
-    createdBy?: string;
-    updateAt?: string;
-    actor?: MovieActor[];
+    submissions: MovieSubmissionSummary[];
+    pagination: Pagination;
   };
+}
+
+export interface GetMovieSubmissionByIdResponse {
+  message: string;
+  result: MovieSubmissionDetail;
+}
+
+export interface ApproveMovieSubmissionResponse {
+  message: string;
+  result: MovieSubmissionReviewResult;
+}
+
+export interface RejectMovieSubmissionRequest {
+  reason: string;
+}
+
+export interface RejectMovieSubmissionResponse {
+  message: string;
+  result: MovieSubmissionReviewResult;
 }
 
 export interface ManagerMovieApiError {
   message: string;
-  errors?: Record<string, { msg: string; path?: string; location?: string }>;
+  detail?: string;
+}
+
+export interface GetMovieSubmissionsParams {
+  page?: number;
+  limit?: number;
+  status?: MovieSubmissionStatus;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 class ManagerMovieService {
-  private baseURL = `${BASE_URL}/api/movie-management`;
+  private baseURL = `${BASE_URL}/api/manager`;
 
-  async createMovie(data: CreateMovieRequest, accessToken: string): Promise<CreateMovieResponse> {
+  async getMovieSubmissions(params: GetMovieSubmissionsParams, accessToken: string): Promise<GetMovieSubmissionsResponse> {
     try {
-      const url = `${this.baseURL}/movies`;
+      const queryParams = new URLSearchParams();
+      if (params.page !== undefined) queryParams.append("page", params.page.toString());
+      if (params.limit !== undefined) queryParams.append("limit", params.limit.toString());
+      if (params.status) queryParams.append("status", params.status);
+      if (params.search) queryParams.append("search", params.search);
+      if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+      if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
+
+      const queryString = queryParams.toString();
+      const url = `${this.baseURL}/movie-submissions${queryString ? `?${queryString}` : ""}`;
       const response = await fetch(url, {
-        method: "POST",
+        method: "GET",
         headers: {
           Accept: "application/json",
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify(data),
       });
-
       const result = await response.json();
       if (!response.ok) {
         throw result as ManagerMovieApiError;
       }
-      return result as CreateMovieResponse;
+      return result as GetMovieSubmissionsResponse;
     } catch (error: any) {
       if (error?.name === "TypeError") {
         throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerMovieApiError;
@@ -86,9 +146,62 @@ class ManagerMovieService {
     }
   }
 
-  async updateMovie(movieId: number, data: CreateMovieRequest, accessToken: string): Promise<CreateMovieResponse> {
+  async getMovieSubmissionById(movieSubmissionId: number, accessToken: string): Promise<GetMovieSubmissionByIdResponse> {
     try {
-      const url = `${this.baseURL}/movies/${movieId}`;
+      const url = `${this.baseURL}/movie-submissions/${movieSubmissionId}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw result as ManagerMovieApiError;
+      }
+      return result as GetMovieSubmissionByIdResponse;
+    } catch (error: any) {
+      if (error?.name === "TypeError") {
+        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerMovieApiError;
+      }
+      throw error;
+    }
+  }
+
+  async approveMovieSubmission(
+    movieSubmissionId: number,
+    accessToken: string,
+  ): Promise<ApproveMovieSubmissionResponse> {
+    try {
+      const url = `${this.baseURL}/movie-submissions/${movieSubmissionId}/approve`;
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw result as ManagerMovieApiError;
+      }
+      return result as ApproveMovieSubmissionResponse;
+    } catch (error: any) {
+      if (error?.name === "TypeError") {
+        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerMovieApiError;
+      }
+      throw error;
+    }
+  }
+
+  async rejectMovieSubmission(
+    movieSubmissionId: number,
+    data: RejectMovieSubmissionRequest,
+    accessToken: string,
+  ): Promise<RejectMovieSubmissionResponse> {
+    try {
+      const url = `${this.baseURL}/movie-submissions/${movieSubmissionId}/reject`;
       const response = await fetch(url, {
         method: "PUT",
         headers: {
@@ -98,36 +211,11 @@ class ManagerMovieService {
         },
         body: JSON.stringify(data),
       });
-
       const result = await response.json();
       if (!response.ok) {
         throw result as ManagerMovieApiError;
       }
-      return result as CreateMovieResponse;
-    } catch (error: any) {
-      if (error?.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerMovieApiError;
-      }
-      throw error;
-    }
-  }
-
-  async deleteMovie(movieId: number, accessToken: string): Promise<{ message: string; result: null }> {
-    try {
-      const url = `${this.baseURL}/movies/${movieId}`;
-      const response = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      const result = await response.json();
-      if (!response.ok) {
-        throw result as ManagerMovieApiError;
-      }
-      return result as { message: string; result: null };
+      return result as RejectMovieSubmissionResponse;
     } catch (error: any) {
       if (error?.name === "TypeError") {
         throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerMovieApiError;
@@ -139,45 +227,54 @@ class ManagerMovieService {
 
 export const managerMovieService = new ManagerMovieService();
 
-export const useCreateMovie = () => {
+export const useGetMovieSubmissions = (params: GetMovieSubmissionsParams, accessToken?: string) => {
+  return useQuery({
+    queryKey: ["manager-movie-submissions", params],
+    queryFn: () => managerMovieService.getMovieSubmissions(params, accessToken!),
+    enabled: !!accessToken,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+};
+
+export const useGetMovieSubmissionById = (movieSubmissionId?: number, accessToken?: string) => {
+  return useQuery({
+    queryKey: ["manager-movie-submission", movieSubmissionId],
+    queryFn: () =>
+      managerMovieService.getMovieSubmissionById(movieSubmissionId as number, accessToken!),
+    enabled: !!accessToken && typeof movieSubmissionId === "number" && movieSubmissionId > 0,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+};
+
+export const useApproveMovieSubmission = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ data, accessToken }: { data: CreateMovieRequest; accessToken: string }) =>
-      managerMovieService.createMovie(data, accessToken),
-    onSuccess: () => {
-      // Invalidate movie lists to refresh
-      queryClient.invalidateQueries({ queryKey: ["manager-movies"] });
+    mutationFn: ({ movieSubmissionId, accessToken }: { movieSubmissionId: number; accessToken: string }) =>
+      managerMovieService.approveMovieSubmission(movieSubmissionId, accessToken),
+    onSuccess: (_, { movieSubmissionId }) => {
+      queryClient.invalidateQueries({ queryKey: ["manager-movie-submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["manager-movie-submission", movieSubmissionId] });
     },
   });
 };
 
-export const useUpdateMovie = () => {
+export const useRejectMovieSubmission = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ movieId, data, accessToken }: { movieId: number; data: CreateMovieRequest; accessToken: string }) =>
-      managerMovieService.updateMovie(movieId, data, accessToken),
-    onSuccess: () => {
-      // Invalidate movie lists and movie detail caches
-      queryClient.invalidateQueries({ queryKey: ["manager-movies"] });
-      // If detail cache is keyed by movie id use that to invalidate only the updated movie
-      // We can't access variables here, so callers can use optimistic updates or we could setQueryData in onMutate/onSuccess with the response.
-      queryClient.invalidateQueries({ queryKey: ["manager-movie"] });
-    },
-  });
-};
-
-export const useDeleteMovie = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ movieId, accessToken }: { movieId: number; accessToken: string }) =>
-      managerMovieService.deleteMovie(movieId, accessToken),
-    onSuccess: (_, variables) => {
-      // Refresh movie list
-      queryClient.invalidateQueries({ queryKey: ["manager-movies"] });
-      // Remove specific movie detail cache if present
-      if (variables?.movieId !== undefined) {
-        queryClient.removeQueries({ queryKey: ["manager-movie", variables.movieId] });
-      }
+    mutationFn: ({
+      movieSubmissionId,
+      data,
+      accessToken,
+    }: {
+      movieSubmissionId: number;
+      data: RejectMovieSubmissionRequest;
+      accessToken: string;
+    }) => managerMovieService.rejectMovieSubmission(movieSubmissionId, data, accessToken),
+    onSuccess: (_, { movieSubmissionId }) => {
+      queryClient.invalidateQueries({ queryKey: ["manager-movie-submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["manager-movie-submission", movieSubmissionId] });
     },
   });
 };

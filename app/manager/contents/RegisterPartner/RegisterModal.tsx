@@ -87,31 +87,51 @@ export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps
                 <User size={20} className="text-blue-400 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="text-gray-400 text-sm font-body">Tên đối tác</p>
-                  <p className="text-white font-body break-words">{partner.partnerName}</p>
+                  <p
+                    className="text-white font-body truncate"
+                    title={partner.partnerName ?? ""}
+                  >
+                    {partner.partnerName}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-3">
                 <User size={20} className="text-green-400 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-sm font-body">Họ tên người liên hệ</p>
-                  <p className="text-white font-body break-words">{partner.fullname}</p>
+                  <p className="text-gray-400 text-sm font-body">Họ tên người đại diện hợp pháp</p>
+                  <p
+                    className="text-white font-body truncate"
+                    title={partner.fullname ?? ""}
+                  >
+                    {partner.fullname}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-3">
                 <Mail size={20} className="text-purple-400 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-sm font-body">Email</p>
-                  <p className="text-white font-body break-words">{partner.userEmail}</p>
+                  <p className="text-gray-400 text-sm font-body">Email liên hệ</p>
+                  <p
+                    className="text-white font-body truncate"
+                    title={partner.userEmail ?? ""}
+                  >
+                    {partner.userEmail}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-3">
                 <Phone size={20} className="text-orange-400 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-sm font-body">Số điện thoại</p>
-                  <p className="text-white font-body">{partner.userPhone}</p>
+                  <p className="text-gray-400 text-sm font-body">Số điện thoại liên hệ</p>
+                  <p
+                    className="text-white font-body truncate"
+                    title={partner.userPhone ?? ""}
+                  >
+                    {partner.userPhone}
+                  </p>
                 </div>
               </div>
             </div>
@@ -126,23 +146,25 @@ export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps
                 <Building size={20} className="text-indigo-400 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="text-gray-400 text-sm font-body">Mã số thuế</p>
-                  <p className="text-white font-body">{partner.taxCode}</p>
+                  <p
+                    className="text-white font-body truncate"
+                    title={partner.taxCode ?? ""}
+                  >
+                    {partner.taxCode}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-3">
                 <MapPin size={20} className="text-red-400 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-sm font-body">Địa chỉ</p>
-                  <p className="text-white font-body break-words">{partner.address}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <FileText size={20} className="text-yellow-400 flex-shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-gray-400 text-sm font-body">Tỷ lệ hoa hồng</p>
-                  <p className="text-white font-body">{partner.commissionRate}%</p>
+                  <p className="text-gray-400 text-sm font-body">Địa chỉ đăng ký kinh doanh</p>
+                  <p
+                    className="text-white font-body truncate"
+                    title={partner.address ?? ""}
+                  >
+                    {partner.address}
+                  </p>
                 </div>
               </div>
 

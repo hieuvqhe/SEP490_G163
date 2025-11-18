@@ -370,7 +370,7 @@ const Newsletter = () => {
                 <input
                   type="text"
                   name="fullName"
-                  placeholder="Họ và tên"
+                  placeholder="Họ và tên người đại diện hợp pháp"
                   value={formData.fullName}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
@@ -385,7 +385,7 @@ const Newsletter = () => {
                   <input
                     type="email"
                     name="email"
-                    placeholder="Email"
+                    placeholder="Email liên hệ"
                     value={formData.email}
                     onChange={handleInputChange}
                     className={`w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 ${
@@ -409,7 +409,7 @@ const Newsletter = () => {
                 <input
                   type="tel"
                   name="phone"
-                  placeholder="Số điện thoại"
+                  placeholder="Số điện thoại liên hệ"
                   value={formData.phone}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
@@ -471,7 +471,7 @@ const Newsletter = () => {
             {/* Company Information Section */}
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100 mb-4">
-                Thông tin công ty
+                Thông tin doanh nghiệp
               </h3>
 
               {/* Partner Name */}
@@ -480,7 +480,7 @@ const Newsletter = () => {
                 <input
                   type="text"
                   name="partnerName"
-                  placeholder="Tên công ty"
+                  placeholder="Tên doanh nghiệp"
                   value={formData.partnerName}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
@@ -517,7 +517,7 @@ const Newsletter = () => {
                 <input
                   type="text"
                   name="address"
-                  placeholder="Địa chỉ"
+                  placeholder="Địa chỉ đăng ký kinh doanh"
                   value={formData.address}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
@@ -556,7 +556,7 @@ const Newsletter = () => {
                 >
                   {formData.identityCardUrl
                     ? "✓ Đã chọn file"
-                    : "Chọn căn cước công dân"}
+                    : "CMND/CCCD của người đại diện theo pháp luật"}
                 </button>
               </div>
 
