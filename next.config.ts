@@ -66,12 +66,16 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+    ],
+  },
+  async rewrites() {
+    return [
       {
         source: "/api/payos/:path*",
         destination:
           "https://expressticketcinemasystemapi-fjescsgjg9djeuf5.southeastasia-01.azurewebsites.net/api/payments/payos/:path*",
       },
-    ],
+    ];
   },
   eslint: {
     ignoreDuringBuilds: true,
