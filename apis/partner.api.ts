@@ -116,6 +116,7 @@ export interface PartnerCreateRequest {
   taxRegistrationCertificateUrl: string;
   identityCardUrl: string;
   theaterPhotosUrls: string[];
+  additionalDocumentsUrls: string[];
 }
 
 export interface PartnerCreateResponse {

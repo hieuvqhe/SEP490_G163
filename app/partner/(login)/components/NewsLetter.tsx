@@ -21,6 +21,8 @@ import { useToast } from "@/components/ToastProvider";
 import FileUpload from "./FileUpload";
 import TheaterImgsUpload from "./TheaterImageUpload";
 import { useUploadToCloudinary } from "@/apis/cloudinary.api";
+import ImagePreviewModal from "./ImagePreviewModal";
+import { Eye } from "lucide-react";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -69,6 +71,7 @@ const Newsletter = () => {
     taxRegistrationCertificateUrl: "",
     identityCardUrl: "",
     theaterPhotosUrls: [""],
+    additionalDocumentsUrls: [""],
   });
 
 
@@ -227,6 +230,9 @@ const Newsletter = () => {
     "business" | "identity" | "tax" | "theater"
   >("business");
   const [currentFileTitle, setCurrentFileTitle] = useState("");
+  const [previewModal, setPreviewModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+  const [previewTitle, setPreviewTitle] = useState("");
 
   const handleChooseFile = (
     fileType: "business" | "identity" | "tax" | "theater"
@@ -322,6 +328,44 @@ const Newsletter = () => {
     },
     [setFormData, uploadMutation]
   );
+
+  const handleAdditionalDocumentsSelect = useCallback(
+    async (files: File[]) => {
+      if (!files || files.length === 0) return;
+
+      const previewUrls = files.map((file) => URL.createObjectURL(file));
+      setFormData((prev) => ({
+        ...prev,
+        additionalDocumentsUrls: previewUrls,
+      }));
+
+      try {
+        const uploadPromises = files.map((file) =>
+          uploadMutation.mutateAsync(file)
+        );
+
+        const uploadedResults = await Promise.all(uploadPromises);
+
+        const uploadedUrls = uploadedResults.map((res) => res.secure_url);
+
+        setFormData((prev) => ({
+          ...prev,
+          additionalDocumentsUrls: uploadedUrls,
+        }));
+
+        previewUrls.forEach((url) => URL.revokeObjectURL(url));
+      } catch (error) {
+        console.error("❌ Upload thất bại:", error);
+      }
+    },
+    [setFormData, uploadMutation]
+  );
+
+  const handlePreviewImage = (url: string, title: string) => {
+    setPreviewImage(url);
+    setPreviewTitle(title);
+    setPreviewModal(true);
+  };
 
   return (
     <div className="relative font-sans w-full min-h-screen flex items-center justify-center overflow-hidden p-4 bg-gray-800/50 dark:bg-black transition-colors duration-300">
@@ -534,44 +578,145 @@ const Newsletter = () => {
 
               {/* Business Registration Certificate */}
               <div className="relative">
-                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-400" />
-                <button
-                  type="button"
-                  onClick={() => handleChooseFile("business")}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-left hover:bg-gray-700/50 dark:hover:bg-gray-700/50"
-                >
-                  {formData.businessRegistrationCertificateUrl
-                    ? "✓ Đã chọn file"
-                    : "Chọn giấy phép đăng ký kinh doanh"}
-                </button>
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-400 z-10" />
+                <div className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 transition-all duration-300">
+                  {formData.businessRegistrationCertificateUrl ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={formData.businessRegistrationCertificateUrl}
+                          alt="Business Registration"
+                          className="h-8 w-8 object-cover rounded"
+                        />
+                        <span>Đã chọn file</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewImage(formData.businessRegistrationCertificateUrl, "Giấy phép đăng ký kinh doanh")}
+                          className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span>Xem chi tiết</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleChooseFile("business")}
+                          className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+                        >
+                          Thay đổi
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleChooseFile("business")}
+                      className="w-full text-left text-gray-400 hover:text-gray-300 transition-colors"
+                    >
+                      Chọn giấy phép đăng ký kinh doanh
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Identity Card */}
               <div className="relative">
-                <Image className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-400" />
-                <button
-                  type="button"
-                  onClick={() => handleChooseFile("identity")}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-left hover:bg-gray-700/50 dark:hover:bg-gray-700/50"
-                >
-                  {formData.identityCardUrl
-                    ? "✓ Đã chọn file"
-                    : "CMND/CCCD của người đại diện theo pháp luật"}
-                </button>
+                <Image className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-400 z-10" />
+                <div className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 transition-all duration-300">
+                  {formData.identityCardUrl ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={formData.identityCardUrl}
+                          alt="Identity Card"
+                          className="h-8 w-8 object-cover rounded"
+                        />
+                        <span>Đã chọn file</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewImage(formData.identityCardUrl, "CMND/CCCD")}
+                          className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span>Xem chi tiết</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleChooseFile("identity")}
+                          className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+                        >
+                          Thay đổi
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleChooseFile("identity")}
+                      className="w-full text-left text-gray-400 hover:text-gray-300 transition-colors"
+                    >
+                      CMND/CCCD của người đại diện theo pháp luật
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Tax Registration Certificate */}
               <div className="relative">
-                <FileImage className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-400" />
-                <button
-                  type="button"
-                  onClick={() => handleChooseFile("tax")}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-left hover:bg-gray-700/50 dark:hover:bg-gray-700/50"
-                >
-                  {formData.taxRegistrationCertificateUrl
-                    ? "✓ Đã chọn file"
-                    : "Chọn giấy chứng nhận đăng ký thuế"}
-                </button>
+                <FileImage className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-400 z-10" />
+                <div className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 transition-all duration-300">
+                  {formData.taxRegistrationCertificateUrl ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={formData.taxRegistrationCertificateUrl}
+                          alt="Tax Registration"
+                          className="h-8 w-8 object-cover rounded"
+                        />
+                        <span>Đã chọn file</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewImage(formData.taxRegistrationCertificateUrl, "Giấy chứng nhận đăng ký thuế")}
+                          className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span>Xem chi tiết</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleChooseFile("tax")}
+                          className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+                        >
+                          Thay đổi
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleChooseFile("tax")}
+                      className="w-full text-left text-gray-400 hover:text-gray-300 transition-colors"
+                    >
+                      Chọn giấy chứng nhận đăng ký thuế
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Additional Documents */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">
+                  Giấy tờ liên quan khác
+                </label>
+                <TheaterImgsUpload
+                  handleTheaterFileSelect={handleAdditionalDocumentsSelect}
+                  label="Giấy tờ liên quan"
+                />
               </div>
 
               {/* Theater Photos */}
@@ -597,11 +742,11 @@ const Newsletter = () => {
 
             {/* Submit Button */}
             <button
-              // disabled={!validateForm()}
               type="submit"
-              className="w-full px-6 py-3 bg-purple-600 dark:bg-purple-600 text-white dark:text-white font-semibold rounded-lg hover:bg-purple-700 dark:hover:bg-purple-700 transition-colors duration-300 shadow-md transform hover:scale-105"
+              disabled={isPending}
+              className="w-full px-6 py-3 bg-purple-600 dark:bg-purple-600 text-white dark:text-white font-semibold rounded-lg hover:bg-purple-700 dark:hover:bg-purple-700 transition-colors duration-300 shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Đăng ký đối tác
+              {isPending ? "Đang xử lý..." : "Đăng ký đối tác"}
             </button>
           </div>
         </motion.form>
@@ -614,6 +759,14 @@ const Newsletter = () => {
           fileType={currentFileType}
           title={currentFileTitle}
           isPending={uploadMutation.isPending}
+        />
+
+        {/* Image Preview Modal */}
+        <ImagePreviewModal
+          isOpen={previewModal}
+          onClose={() => setPreviewModal(false)}
+          imageUrl={previewImage}
+          title={previewTitle}
         />
       </motion.div>
     </div>
