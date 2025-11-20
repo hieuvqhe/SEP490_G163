@@ -43,7 +43,7 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (data: LoginSuccessResponse) => void;
-  onSwitchToRegister: () => void;
+  onSwitchToRegister?: () => void;
 }
 
 interface ValidationErrors {

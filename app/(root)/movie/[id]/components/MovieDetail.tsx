@@ -11,17 +11,22 @@ import { Star, X } from "lucide-react";
 import { useGetShowtimesOverview } from "@/apis/user.catalog.api";
 import dayjs from "dayjs";
 import { Spinner } from "@/components/ui/spinner";
+import { TfiCommentAlt } from "react-icons/tfi";
+import Comment from "./comment-review/Comment";
+
 
 interface MovieProp {
   movie: Movie;
 }
 
 const MovieDetail = ({ movie }: MovieProp) => {
+
+
   useEffect(() => {
     if (movie) {
       localStorage.setItem("movieId", String(movie.movieId));
     }
-  }, [movie.movieId]);
+  },  [movie.movieId]);
 
   const [trailerModal, setTrailerModal] = useState<boolean>(false);
   const [dateSelectorValue, setDateSelectorValue] = useState<string>(
@@ -49,6 +54,8 @@ const MovieDetail = ({ movie }: MovieProp) => {
       setBrandCodeSelect(showtimeOverviews.brands[0].code);
     }
   }, [showtimeOverviews]);
+
+  const [activeTab, setActiveTab] = useState<"comment" | "review">("comment");
 
   return (
     <div className="relative min-h-screen w-full bg-black">
@@ -190,7 +197,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
           </div>
 
           {/* Right Section - Additional Content */}
-          <div className="flex flex-col lg:w-2/3 space-y-6 mt-10">
+          <div className="flex flex-col gap-3 lg:w-2/3 space-y-6 mt-10">
             {/* Add your right section content here */}
             <h2 className="text-3xl font-bold text-white mb-4">
               Chọn suất chiếu
@@ -254,6 +261,43 @@ const MovieDetail = ({ movie }: MovieProp) => {
               //     />
               //   </div>
               // )} */}
+            </div>
+
+            <div className="flex items-center justify-baseline gap-5">
+              <TfiCommentAlt size={25} />
+              <h2 className="text-3xl font-bold text-white">Bình luận</h2>
+              {/* Tabs */}
+              <div className="grid grid-cols-2 gap-0 px-1 py-1 border border-zinc-300 rounded-md overflow-hidden">
+                <button
+                  className={`py-1 px-2 text-xs text-center ${
+                    activeTab !== "comment"
+                      ? " text-white"
+                      : "bg-white/90 rounded-xs text-zinc-600"
+                  }`}
+                  onClick={() => setActiveTab("comment")}
+                >
+                  Bình luận
+                </button>
+
+                <button
+                  className={`py-1 px-2 text-xs text-center ${
+                    activeTab !== "review"
+                      ? " text-white"
+                      : " bg-white/90 rounded-xs text-zinc-800"
+                  }`}
+                  onClick={() => setActiveTab("review")}
+                >
+                  Đánh giá
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div>
+              {activeTab === "comment" && (
+                <Comment />
+              )}
+              {activeTab === "review" && <p>Nội dung tab Đánh giá...</p>}
             </div>
           </div>
         </div>
