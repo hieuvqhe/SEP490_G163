@@ -50,8 +50,8 @@ const contractFormBaseSchema = z.object({
   termsAndConditions: z.string().min(1, 'Không được để trống'),
   startDate: z.string().min(1, 'Không được để trống'),
   endDate: z.string().min(1, 'Không được để trống'),
-  commissionRate: z.coerce.number({ invalid_type_error: 'Tỷ lệ không hợp lệ' }).min(0, 'Tỷ lệ không hợp lệ').max(50, 'Tỷ lệ không thể vượt quá 50%'),
-  minimumRevenue: z.coerce.number({ invalid_type_error: 'Doanh thu không hợp lệ' }).min(1, 'Không được để trống'),
+  commissionRate: z.coerce.number({ invalid_type_error: 'Tỷ lệ không hợp lệ' }).min(0.01, 'Tỷ lệ phải lớn hơn 0').max(100, 'Tỷ lệ không thể vượt quá 100%'),
+  minimumRevenue: z.coerce.number({ invalid_type_error: 'Doanh thu không hợp lệ' }).min(1000000, 'Doanh thu tối thiểu phải từ 1,000,000 trở lên'),
 });
 
 const createContractSchema = contractFormBaseSchema.superRefine((data: z.infer<typeof contractFormBaseSchema>, ctx: z.RefinementCtx) => {
@@ -108,8 +108,8 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
     termsAndConditions: defaultTerms,
     startDate: '',
     endDate: '',
-    commissionRate: 0,
-    minimumRevenue: 1,
+    commissionRate: '' as any,
+    minimumRevenue: '' as any,
   }), [partner]);
 
   const {
@@ -266,14 +266,12 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
     >
       <motion.div
         className="mx-4 w-full max-w-5xl overflow-y-auto max-h-[92vh] rounded-2xl border border-white/10 bg-white/10 p-10 text-white shadow-2xl backdrop-blur-xl"
         initial={{ opacity: 0, scale: 0.8, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-8 flex items-start justify-between">
           <div>
@@ -355,10 +353,26 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
                 <div className="relative">
                   <Percent className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-400" />
                   <input
-                    type="number"
-                    step="0.1"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-sm text-white"
-                    {...register('commissionRate', { valueAsNumber: true })}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Nhập tỷ lệ (0-100)"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-sm text-white placeholder:text-gray-400"
+                    {...register('commissionRate', { 
+                      valueAsNumber: true,
+                      setValueAs: (v) => v === '' ? undefined : parseFloat(v)
+                    })}
+                    onKeyDown={(e) => {
+                      if (!/[0-9.]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onInput={(e) => {
+                      const input = e.currentTarget;
+                      const value = parseFloat(input.value);
+                      if (!isNaN(value) && value > 100) {
+                        input.value = '100';
+                      }
+                    }}
                   />
                 </div>
                 {errors.commissionRate && <p className="text-xs text-red-400">{errors.commissionRate.message}</p>}
@@ -369,9 +383,19 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
                 <div className="relative">
                   <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-green-400" />
                   <input
-                    type="number"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-sm text-white"
-                    {...register('minimumRevenue', { valueAsNumber: true })}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Tối thiểu 1,000,000 VNĐ"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-sm text-white placeholder:text-gray-400"
+                    {...register('minimumRevenue', { 
+                      valueAsNumber: true,
+                      setValueAs: (v) => v === '' ? undefined : parseInt(v, 10)
+                    })}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </div>
                 {errors.minimumRevenue && <p className="text-xs text-red-400">{errors.minimumRevenue.message}</p>}

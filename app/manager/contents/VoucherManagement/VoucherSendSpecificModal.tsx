@@ -68,8 +68,8 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 backdrop-blur-xl">
-      <div className="mx-4 w-full max-w-2xl rounded-2xl border border-white/10 bg-[#1c1c24]/90 p-8 text-white shadow-2xl backdrop-blur-md">
-        <div className="mb-6 flex items-start justify-between">
+      <div className="mx-4 w-full max-w-lg rounded-2xl border border-white/10 bg-[#1c1c24]/90 p-6 text-white shadow-2xl backdrop-blur-md">
+        <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-semibold">Gửi voucher cho người dùng cụ thể</h2>
             <p className="mt-1 text-sm text-gray-300">
@@ -89,7 +89,7 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
           </button>
         </div>
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-200">Tiêu đề email</label>
             <input
@@ -105,7 +105,7 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
             <textarea
               value={customMessage}
               onChange={(event) => setCustomMessage(event.target.value)}
-              className="min-h-[160px] w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:border-orange-400 focus:outline-none"
+              className="min-h-[100px] w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:border-orange-400 focus:outline-none"
               placeholder="Nhập nội dung email"
             />
           </div>
@@ -115,7 +115,7 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
             <textarea
               value={userIdsText}
               onChange={(event) => setUserIdsText(event.target.value)}
-              className="min-h-[120px] w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:border-orange-400 focus:outline-none"
+              className="min-h-[80px] w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:border-orange-400 focus:outline-none"
               placeholder="Nhập các ID, phân tách bằng dấu phẩy hoặc xuống dòng"
             />
             <p className="text-xs text-gray-400">Ví dụ: 25, 16 hoặc 25\n16</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   type CreateVoucherRequest,
   type ManagerVoucherApiError,
@@ -128,16 +128,16 @@ const VoucherManagement = () => {
     isLoading: isEmailHistoryLoading,
   } = useGetVoucherEmailHistory(emailHistoryQueryId, token);
 
-  const resetFormState = () => {
+  const resetFormState = useCallback(() => {
     setIsFormOpen(false);
     setEditingVoucherId(null);
     setFormMode("create");
-  };
+  }, []);
 
-  const handleUpdateFilters = (partial: Partial<VoucherFilterState>) => {
+  const handleUpdateFilters = useCallback((partial: Partial<VoucherFilterState>) => {
     setFilters((prev: VoucherFilterState) => ({ ...prev, ...partial }));
     setPage(1);
-  };
+  }, []);
 
   const handleCreateVoucher = (payload: CreateVoucherRequest) => {
     return new Promise<void>((resolve, reject) => {
@@ -310,14 +310,8 @@ const VoucherManagement = () => {
             filters={filters}
             onChange={handleUpdateFilters}
             isRefreshing={isFetching}
-            onRefresh={() => {
-              void refetch();
-            }}
-            onCreate={() => {
-              setFormMode("create");
-              setEditingVoucherId(null);
-              setIsFormOpen(true);
-            }}
+            onRefresh={refetch}
+            onCreate={resetFormState}
           />
         </div>
       </div>

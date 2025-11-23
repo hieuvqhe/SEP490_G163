@@ -148,8 +148,8 @@ const VoucherFormModal = ({
       voucherCode: formState.voucherCode.trim(),
       discountType: formState.discountType,
       discountVal: Number(formState.discountVal),
-      validFrom: new Date(formState.validFrom).toISOString(),
-      validTo: new Date(formState.validTo).toISOString(),
+      validFrom: formState.validFrom,
+      validTo: formState.validTo,
       usageLimit: Number(formState.usageLimit),
       description: formState.description.trim() || undefined,
       isActive: Boolean(formState.isActive),
@@ -209,8 +209,8 @@ const VoucherFormModal = ({
                   onChange={(event) => handleChange("discountType", event.target.value as DiscountType)}
                   className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white focus:border-orange-400 focus:outline-none"
                 >
-                  <option value="percent">Giảm theo %</option>
-                  <option value="fixed">Giảm theo số tiền</option>
+                  <option value="percent" className="bg-slate-900 text-white">Giảm theo %</option>
+                  <option value="fixed" className="bg-slate-900 text-white">Giảm theo số tiền</option>
                 </select>
               </Field>
 

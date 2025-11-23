@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import { Loader2, RefreshCcw, X } from 'lucide-react';
 import { PDFViewer } from '@react-pdf/renderer';
 
@@ -95,19 +94,12 @@ const ContractDetailModal = ({ contractId, onClose }: ContractDetailModalProps) 
   }
 
   return (
-    <motion.div
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       onClick={onClose}
     >
-      <motion.div
+      <div
         className="mx-4 flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/95 to-slate-950/95 text-white shadow-2xl"
-        initial={{ opacity: 0, scale: 0.85, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        transition={{ duration: 0.25 }}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
@@ -181,8 +173,8 @@ const ContractDetailModal = ({ contractId, onClose }: ContractDetailModalProps) 
             </div>
           )}
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 

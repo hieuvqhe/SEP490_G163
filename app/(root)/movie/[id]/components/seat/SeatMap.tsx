@@ -470,6 +470,8 @@ ${
       className="!max-w-[98vw] !w-[60vw] !h-fit bg-white/5 border 
     border-white/10 rounded-xl p-0 flex flex-col gap-5 
     transition-all duration-200 [&>button]:hidden"
+      onInteractOutside={(e) => e.preventDefault()}
+      onEscapeKeyDown={(e) => e.preventDefault()}
     >
       <DialogTitle className="sr-only">Seat Selection</DialogTitle>
       {/* <span className={isConnected ? "text-green-600" : "text-red-600"}>
