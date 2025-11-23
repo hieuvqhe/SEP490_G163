@@ -2,7 +2,6 @@ import React from "react";
 import HeroSection from "@/components/homepage/HeroSection";
 import FeaturedSection from "@/components/homepage/FeaturedSection";
 import SearchModal from "@/components/SearchModal";
-import TheaterShowtime from "@/components/homepage/TheaterShowtime";
 
 const page = () => {
   return (

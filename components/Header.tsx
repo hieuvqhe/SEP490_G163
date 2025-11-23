@@ -128,22 +128,12 @@ const Header = () => {
 
   return (
     <>
-      <div className="">
-        <div className="relative">
-          {isOpen ? (
-            <IoIosSearch className="w-6 h-6 cursor-pointer transition-colors duration-300 hover:text-orange-500" />
-          ) : (
-            <></>
-          )}
-        </div>
-      </div>
-
       <div
         className={`fixed top-0 left-0 right-0 z-50 
     flex items-center justify-between
     mx-5 mt-3 px-8 py-3
     bg-zinc-800/80 rounded-full
-    [box-shadow:var(--shadow-m)]
+    [box-shadow:var(--shadow-m-inner)]
     backdrop-blur-xl transition-all duration-300`}
       >
         {/* Left Section: Logo + Search */}
@@ -159,7 +149,7 @@ const Header = () => {
           <InputGroup
             className="hidden md:flex h-11 w-[20rem] xl:w-[28rem] rounded-full backdrop-blur-md 
       bg-white/10 border border-white/20 overflow-hidden 
-      focus-within:border-blue-400 transition-all duration-300 [box-shadow:var(--shadow-s)]"
+      focus-within:border-blue-400 transition-all duration-300"
           >
             <InputGroupInput
               placeholder="Tìm tên phim, diễn viên..."

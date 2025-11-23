@@ -14,19 +14,16 @@ import { Spinner } from "@/components/ui/spinner";
 import { TfiCommentAlt } from "react-icons/tfi";
 import Comment from "./comment-review/Comment";
 
-
 interface MovieProp {
   movie: Movie;
 }
 
 const MovieDetail = ({ movie }: MovieProp) => {
-
-
   useEffect(() => {
     if (movie) {
       localStorage.setItem("movieId", String(movie.movieId));
     }
-  },  [movie.movieId]);
+  }, [movie.movieId]);
 
   const [trailerModal, setTrailerModal] = useState<boolean>(false);
   const [dateSelectorValue, setDateSelectorValue] = useState<string>(
@@ -56,6 +53,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
   }, [showtimeOverviews]);
 
   const [activeTab, setActiveTab] = useState<"comment" | "review">("comment");
+  const [outDateShowtime, setOutDateShowtime] = useState<boolean>(false);
 
   return (
     <div className="relative min-h-screen w-full bg-black">
@@ -202,7 +200,11 @@ const MovieDetail = ({ movie }: MovieProp) => {
             <h2 className="text-3xl font-bold text-white mb-4">
               Chọn suất chiếu
             </h2>
-            <div className="bg-white/5 w-full backdrop-blur-sm rounded-lg p-6 border border-white/10 flex flex-col items-baseline gap-10">
+            <div
+              className="bg-white/5 w-full backdrop-blur-sm rounded-lg p-6 
+            border border-white/10 flex flex-col items-baseline gap-10
+            "
+            >
               {/* Add showtimes or other content here */}
               <DateSelector setDate={setDateSelectorValue} />
               {showtimeOverviewLoading ? (
@@ -210,7 +212,8 @@ const MovieDetail = ({ movie }: MovieProp) => {
                   <Spinner className="size-8" />
                 </div>
               ) : !showtimeOverviews?.brands ||
-                showtimeOverviews?.brands.length === 0 ? (
+                showtimeOverviews?.brands.length === 0 ||
+                outDateShowtime ? (
                 <div className="w-full flex flex-col gap-4 h-[30vh] items-center justify-center">
                   <CiFolderOff size={100} />
                   <div className="flex flex-col gap-3 items-center justify-center">
@@ -232,42 +235,18 @@ const MovieDetail = ({ movie }: MovieProp) => {
                     <ShowtimeDetail
                       brandCode={brandCodeSelect}
                       showtimeOverview={showtimeOverviews.cinemas.items}
+                      setOutDateShowtime={setOutDateShowtime}
                     />
                   )}
                 </div>
               )}
-              {/* // {!showtimeOverviews?.brands ||
-              // showtimeOverviews?.brands.length === 0 ? (
-              //   <div className="w-full flex flex-col gap-4 h-[30vh] items-center justify-center">
-              //     <CiFolderOff size={100} />
-              //     <div className="flex flex-col gap-3 items-center justify-center">
-              //       <h1 className="font-bold text-2xl text-zinc-200">
-              //         Không có suất chiếu nào !
-              //       </h1>
-              //       <p className="text-md text-zinc-400">
-              //         Bạn thử đổi ngày khác xem nhé
-              //       </p>
-              //     </div>
-              //   </div>
-              // ) : (
-              //   <div className="w-full flex flex-col gap-10">
-              //     <TheaterSelector
-              //       brands={showtimeOverviews?.brands}
-              //       onSelect={setBrandCodeSelect}
-              //     />
-              //     <ShowtimeDetail
-              //       brandCode={brandCodeSelect}
-              //       showtimeOverview={showtimeOverviews.cinemas.items}
-              //     />
-              //   </div>
-              // )} */}
             </div>
 
             <div className="flex items-center justify-baseline gap-5">
               <TfiCommentAlt size={25} />
-              <h2 className="text-3xl font-bold text-white">Bình luận</h2>
+              <h2 className="text-3xl font-bold text-white">Đánh giá phim</h2>
               {/* Tabs */}
-              <div className="grid grid-cols-2 gap-0 px-1 py-1 border border-zinc-300 rounded-md overflow-hidden">
+              {/* <div className="grid grid-cols-2 gap-0 px-1 py-1 border border-zinc-300 rounded-md overflow-hidden">
                 <button
                   className={`py-1 px-2 text-xs text-center ${
                     activeTab !== "comment"
@@ -289,15 +268,13 @@ const MovieDetail = ({ movie }: MovieProp) => {
                 >
                   Đánh giá
                 </button>
-              </div>
+              </div> */}
             </div>
 
             {/* Content */}
             <div>
-              {activeTab === "comment" && (
-                <Comment />
-              )}
-              {activeTab === "review" && <p>Nội dung tab Đánh giá...</p>}
+              {activeTab === "comment" && <Comment />}
+              {/* {activeTab === "review" && <p>Nội dung tab Đánh giá...</p>} */}
             </div>
           </div>
         </div>

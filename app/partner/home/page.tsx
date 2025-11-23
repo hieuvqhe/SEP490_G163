@@ -21,14 +21,12 @@ import Page from "./contents/home/dashboard/page";
 import SeatLayout from "./contents/seat/SeatLayout";
 import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 import ManageMovies from "./contents/movies/ManageMovies";
-import CinemaInfo from "./contents/Cinema/CinemaInfo/CinemaInfo";
-import ScreenManagement from "./contents/Cinema/ScreenManagement/ScreenManagement";
-import ShowtimeManagement from "./contents/Cinema/ShowtimeManagement/ShowtimeManagement";
-import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement/SeatTypeManagement";
-import ComboManagement from "./contents/Cinema/ComboManagement";
-import ContractList from "./contents/Contract/ContractList";
-
-
+import CinemaInfo from "./contents/cinema/CinemaInfo/CinemaInfo";
+import ScreenManagement from "./contents/cinema/ScreenManagement/ScreenManagement";
+import ShowtimeManagement from "./contents/cinema/ShowtimeManagement/ShowtimeManagement";
+import SeatTypeManagement from "./contents/cinema/SeatTypeManagement/SeatTypeManagement";
+import ComboManagement from "./contents/cinema/ComboManagement";
+import ContractList from "./contents/contract/ContractList";
 
 const PartnerHomepage = () => {
   const activeTab = usePartnerHomeStore((state) => state.activeTab);
@@ -38,9 +36,6 @@ const PartnerHomepage = () => {
     switch (activeTab) {
       case "home":
         return <Page />;
-
-      // case "theaters":
-      //   return <TheaterInfo />;
 
       case "cinema":
         return <CinemaInfo />;
@@ -62,20 +57,10 @@ const PartnerHomepage = () => {
 
       case "contract-list":
         return <ContractList />;
-      
+
       case "combo":
         return <ComboManagement />;
-      // case "showtimes":
-      //   return <Showtimes />;
-
-      // case "bookings":
-      //   return <Bookings />;
-
-      case "contracts-upload":
-        // return <ContractUpload />;
-
-      //   case "screen":
-      //     return <Screen />;
+      
 
       default:
         return (

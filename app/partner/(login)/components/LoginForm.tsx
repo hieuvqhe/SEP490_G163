@@ -146,7 +146,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       onClick={handleBackdropClick}
     >
       <div className="relative w-full max-w-md mx-4">
-        <div className="bg-zinc-800/80 backdrop-blur-md rounded-3xl [box-shadow:var(--shadow-m)] p-8 ">
+        <div className="bg-zinc-800/80 backdrop-blur-md rounded-3xl [box-shadow:var(--shadow-m-inner)] p-8 ">
           {/* Close Button */}
           <button
             onClick={() => setLoginForm(false)}
@@ -244,7 +244,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             <button
               type="submit"
               disabled={loginMutation.isPending}
-              className={`w-full h-12 bg-zinc-700/70 [box-shadow:var(--shadow-m)] text-zinc-50 font-semibold rounded-full shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] ${
+              className={`w-full h-12 bg-zinc-700/70 [box-shadow:var(--shadow-m-inner)] text-zinc-50 font-semibold rounded-full shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] ${
                 loginMutation.isPending ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >

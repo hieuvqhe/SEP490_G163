@@ -2,11 +2,9 @@
 
 import React, { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { LuSendHorizontal } from "react-icons/lu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/authStore";
-import { Checkbox } from "@/components/ui/checkbox";
 import LoginModal from "@/components/LoginModal";
 import { useCreateReview, useMovieReviews } from "@/apis/movie.reviews.api";
 import { TfiCommentAlt } from "react-icons/tfi";
@@ -132,9 +130,9 @@ const Comment = () => {
           )}
         </div>
         <div className="w-full bg-zinc-800 px-2 py-2 border border-white/10 rounded-xl">
-          <div className="w-full relative">
+          <div className="w-full relative select-none">
             <Textarea
-              className="w-full h-[16vh] bg-black rounded-xl border-none"
+              className="w-full h-[16vh] bg-black select-none rounded-xl border-none"
               placeholder="Viết bình luận"
               maxLength={1000}
               value={comment}
@@ -147,16 +145,18 @@ const Comment = () => {
           <div className="flex justify-between items-center px-3 pt-4">
             <div className="flex flex-col items-baseline gap-3">
               <RateStar setRatingStar={setRatingStar} />
-              <div className="flex items-center gap-3">
-                <Checkbox className="" id="terms" />
+              {/* <div className="flex items-center gap-3">
+                <Checkbox className="select-none cursor-pointer" id="terms" />
                 <Label htmlFor="terms" className="select-none cursor-pointer">
                   Tiết lộ ?
                 </Label>
-              </div>
+              </div> */}
             </div>
             <div
               className={`flex items-center justify-center gap-3 ${
-                user ? "cursor-pointer" : "text-white/70 disabled"
+                user || comment.length === 0
+                  ? "cursor-pointer hover:opacity-70 transition-opacity duration-200"
+                  : "text-white/70 disabled"
               }`}
               onClick={handleCreateNewReview}
             >

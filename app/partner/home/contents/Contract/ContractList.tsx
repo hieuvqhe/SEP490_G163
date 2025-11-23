@@ -22,6 +22,8 @@ import { Search } from "lucide-react";
 import { useGetPartnersContract } from "@/hooks/usePartner";
 import Skeleton from "@mui/material/Skeleton";
 import { CustomPagination } from "@/components/custom/CustomPagination";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import ContractDetails from "./ContractDetails";
 
 export default function ContractList() {
   const [search, setSearch] = useState<string>("");
@@ -54,9 +56,9 @@ export default function ContractList() {
       <div className="flex flex-col h-full justify-around">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-semibold">Quản lý hợp đồng của tôi</h1>
-          <Button className="rounded-xl bg-emerald-600 hover:bg-emerald-500">
+          {/* <Button className="rounded-xl bg-emerald-600 hover:bg-emerald-500">
             + Tạo hợp đồng mới
-          </Button>
+          </Button> */}
         </div>
         <div className="flex flex-col items-baseline gap-3">
           {/* Bộ lọc */}
@@ -154,9 +156,16 @@ export default function ContractList() {
                     </div>
 
                     <CardFooter className="mt-4 flex justify-between p-0">
-                      <Button variant="ghost" size="sm">
-                        Xem chi tiết
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger>
+                          <Button variant="ghost" size="sm">
+                            Xem chi tiết
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="!max-w-[80vw] h-[90vh] bg-zinc-950">
+                          <ContractDetails />
+                        </DialogContent>
+                      </Dialog>
                       <Button variant="outline" size="sm">
                         Tải PDF
                       </Button>

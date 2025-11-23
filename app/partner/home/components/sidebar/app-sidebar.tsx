@@ -110,10 +110,7 @@ export function AppSidebar({ setActiveTab: legacySetActiveTab, ...rest }: AppSid
         url: "#",
         icon: Newspaper,
         items: [
-          {
-            title: "Hợp Đồng Mẫu",
-            url: "sample-contracts",
-          },
+          
           {
             title: "Hợp Đồng Của Tôi",
             url: "contract-list",

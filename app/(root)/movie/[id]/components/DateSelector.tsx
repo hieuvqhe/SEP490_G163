@@ -59,7 +59,7 @@ const DateSelector = ({ setDate }: DateSelectorProps) => {
                     "active:scale-95",
                     isSelected
                       ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
-                      : "bg-card hover:bg-muted/50 border border-border/50",
+                      : "bg-card hover:bg-muted/50 [box-shadow:var(--shadow-m-inner)] backdrop-blur-xl",
                     isToday && !isSelected && ""
                   )}
                 >

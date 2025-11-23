@@ -15,8 +15,18 @@ import {
 } from "@/components/ui/dialog";
 import CombosDialog from "../CombosDialog";
 import { IoChevronBackOutline } from "react-icons/io5";
-import { RealtimeSeat, useSeatRealtime } from "@/hooks/useRealTimeSeatStream";
+// import { RealtimeSeat, useSeatRealtime } from "@/hooks/useRealTimeSeatStream";
 import { Spinner } from "@/components/ui/spinner";
+import { useShowtimeSeat } from "@/hooks/useShowtimeSeatHub";
+
+interface RealtimeSeat {
+  SeatId: number;
+  RowCode: string;
+  SeatNumber: number;
+  SeatTypeId: number;
+  Status: "AVAILABLE" | "LOCKED" | "SOLD" | string;
+  LockedUntil: string | null;
+}
 
 interface SeatType {
   seatTypeId: number;
@@ -50,9 +60,16 @@ const SeatMap = ({
 
   const showtimeId = sessionDetailRes?.result?.showtimeId;
 
-  const { seats: realtimeSeats } = useSeatRealtime(
-    showtimeId ? Number(showtimeId) : 0
-  );
+  // const { seats: realtimeSeats } = useSeatRealtime(
+  //   showtimeId ? Number(showtimeId) : 0
+  // );
+
+  const {
+    seatMap: realtimeSeats,
+    isConnected,
+    lockSeat,
+    releaseSeat,
+  } = useShowtimeSeat(showtimeId ?? 0);
 
   const [selectedSeats, setSelectedSeats] = useState<
     { seatId: number; seatTitle: string }[]
@@ -271,7 +288,7 @@ const SeatMap = ({
     return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
   }, [realtimeSeats]);
 
-  const safeBasePrice = basePrice ?? 0;
+  // const safeBasePrice = basePrice ?? 0;
 
   const totalPrice = useMemo(() => {
     return selectedSeats.reduce((total, sSeat) => {
@@ -455,6 +472,9 @@ ${
     transition-all duration-200 [&>button]:hidden"
     >
       <DialogTitle className="sr-only">Seat Selection</DialogTitle>
+      {/* <span className={isConnected ? "text-green-600" : "text-red-600"}>
+        {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
+      </span> */}
       <div className="flex flex-col h-full bg-zinc-900 rounded-xl">
         {/* Header */}
         <div className="relative flex items-center justify-center gap-4 p-4 bg-zinc-800 border-b border-zinc-700 rounded-xl">

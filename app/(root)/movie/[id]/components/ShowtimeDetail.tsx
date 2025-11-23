@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import SeatLayout from "./SeatLayout";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -45,9 +45,14 @@ interface ShowtimeOverviews {
 interface ShowtimeDetailReq {
   brandCode: string;
   showtimeOverview: ShowtimeOverviews[];
+  setOutDateShowtime: Dispatch<SetStateAction<boolean>>;
 }
 
-const ShowtimeDetail = ({ brandCode, showtimeOverview }: ShowtimeDetailReq) => {
+const ShowtimeDetail = ({
+  brandCode,
+  showtimeOverview,
+  setOutDateShowtime,
+}: ShowtimeDetailReq) => {
   const showTimeByBrandCode = showtimeOverview.filter(
     (item) => item.brandCode === brandCode
   );
@@ -55,7 +60,7 @@ const ShowtimeDetail = ({ brandCode, showtimeOverview }: ShowtimeDetailReq) => {
   return (
     <div className="w-full space-y-6">
       {showTimeByBrandCode.map((showtime) => (
-        <ShowtimeDetailCard key={showtime.cinemaId} cinema={showtime} />
+        <ShowtimeDetailCard key={showtime.cinemaId} cinema={showtime} setOutDateShowtime={setOutDateShowtime} />
       ))}
     </div>
   );
@@ -63,9 +68,10 @@ const ShowtimeDetail = ({ brandCode, showtimeOverview }: ShowtimeDetailReq) => {
 
 interface ShowtimeDetailCardProps {
   cinema: ShowtimeOverviews;
+  setOutDateShowtime: Dispatch<SetStateAction<boolean>>;
 }
 
-const ShowtimeDetailCard = ({ cinema }: ShowtimeDetailCardProps) => {
+const ShowtimeDetailCard = ({ cinema, setOutDateShowtime }: ShowtimeDetailCardProps) => {
   const [lastShowtimeId, setLastShowtimeId] = useState<number>();
   const [seatLayoutContent, setSeatLayoutContent] = useState<boolean>(false);
   const [currentSessionId, setcurrentSessionId] = useState<string>();
@@ -74,7 +80,7 @@ const ShowtimeDetailCard = ({ cinema }: ShowtimeDetailCardProps) => {
   const createSessionMutate = useCreateBookingSession();
   const getSessionDetailQuery = useGetBookingSessionDetail(
     currentSessionId ?? "",
-    Boolean(currentSessionId) // Chỉ chạy khi có sessionId
+    Boolean(currentSessionId) 
   );
 
   useEffect(() => {
@@ -196,6 +202,7 @@ const ShowtimeDetailCard = ({ cinema }: ShowtimeDetailCardProps) => {
           });
 
           if (showtimeFilter.length === 0) {
+            setOutDateShowtime(true);
             return <div key={screen.screenId} className=""></div>;
           }
 

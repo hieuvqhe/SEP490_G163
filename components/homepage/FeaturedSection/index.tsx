@@ -48,19 +48,30 @@ const FeaturedSection = () => {
 
   // Update allMovies when new movies are fetched
   useEffect(() => {
-    if (movies.length > 0) {
-      if (page === 1) {
-        // First page - replace all movies
-        setAllMovies(movies);
-      } else {
-        // Subsequent pages - append to existing movies
-        setAllMovies((prev) => [...prev, ...movies]);
-      }
+    if (!movies.length) return;
+
+    if (searchQuery.trim()) {
+      // Khi search => KHÔNG append, luôn replace
+      setAllMovies(movies);
+      return;
     }
-  }, [movies, page]);
+
+    // Không search => xử lý load more như bình thường
+    if (page === 1) {
+      setAllMovies(movies);
+    } else {
+      setAllMovies((prev) => {
+        const newMovies = movies.filter(
+          (m) => !prev.some((p) => p.movieId === m.movieId)
+        );
+        return [...prev, ...newMovies];
+      });
+    }
+  }, [movies, page, searchQuery]);
 
   const handleSearch = useCallback((input: string) => {
     setSearchQuery(input);
+    setPage(1);
   }, []);
 
   const handleSetActiveTitle = useCallback((title: string) => {
@@ -143,10 +154,10 @@ const FeaturedSection = () => {
           ))}
         </div>
       ) : filteredMovies.length > 0 ? (
-        <>
+        <div>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8 mt-8">
-            {filteredMovies.map((movie) => (
-              <MovieCard key={movie.movieId || movie.title} movie={movie} />
+            {filteredMovies.map((movie, index) => (
+              <MovieCard key={movie.movieId || movie.title} movie={movie} index={index} />
             ))}
           </div>
 
@@ -168,7 +179,7 @@ const FeaturedSection = () => {
               </Button>
             </div>
           )}
-        </>
+        </div>
       ) : (
         <div className="text-center py-20">
           <p className="text-gray-400 text-lg">

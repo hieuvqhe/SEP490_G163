@@ -1,21 +1,21 @@
 "use client";
 
 import { Movie } from "@/types/movie.type";
-import { Badge } from "../ui/badge";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+
 type MovieCardProps = {
   movie: Movie;
+  index: number;
 };
 
-const MovieCard = ({ movie }: MovieCardProps) => {
+const MovieCard = ({ movie, index }: MovieCardProps) => {
   const router = useRouter();
 
   const handleClick = (movie: Movie) => {
-    console.log(`/movie/${movie.movieId}`);
-
     router.push(`/movie/${movie.movieId}`);
   };
+
   return (
     <div
       className="relative rounded-xl w-full cursor-pointer group"
@@ -30,14 +30,9 @@ const MovieCard = ({ movie }: MovieCardProps) => {
           className="object-cover border border-zinc-800 rounded-xl group-hover:opacity-60 transition-all duration-500"
         />
 
-        {/* Badge độ tuổi */}
-        <div className="absolute top-2 right-2">
-          <Badge
-            className="bg-red-600 text-white text-xs px-2 py-1 rounded-md shadow-md"
-            variant="default"
-          >
-            {movie.averageRating}
-          </Badge>
+        {/* Number badge - TOP */}
+        <div className="absolute -top-3 -right-3 z-20 bg-gradient-to-br from-red-500/40 to-red-600/40 border-2 border-white/20 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm group-hover:scale-110 transition-transform duration-300">
+          #{index + 1}
         </div>
       </div>
 
@@ -51,4 +46,5 @@ const MovieCard = ({ movie }: MovieCardProps) => {
     </div>
   );
 };
+
 export default MovieCard;
