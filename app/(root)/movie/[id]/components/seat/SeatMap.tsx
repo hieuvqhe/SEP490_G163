@@ -146,7 +146,9 @@ const SeatMap = ({
           },
           onError: (error) => {
             showToast(error.message, "", "warning");
-            setSeatLayoutContent!(false);
+            setSelectedSeats((prev) =>
+              prev.filter((s) => s.seatId !== lockSeat.SeatId)
+            );
             console.error("Không lock được ghế:", error);
             setIsMutating(false);
           },
@@ -230,7 +232,7 @@ const SeatMap = ({
         return prev.filter((sSeat) => sSeat.seatId !== seat.SeatId);
       } else {
         if (prev.length >= MAX_SEATS) {
-          alert(`Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`);
+          // alert(`Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`);
           return prev;
         }
         const newSeats = prev.filter((sSeat) => sSeat.seatId !== seat.SeatId);
@@ -414,44 +416,54 @@ const SeatMap = ({
       const isSelected = selectedSeats.some((s) => s.seatId === seat.SeatId);
       const seatDisplayTitle = `${rowCode}${index}`;
 
+      const isLockedAndSelected = isSeatLocked && isSelected;
+
       elements.push(
         <button
           key={seat.SeatId}
           onClick={() => toggleSeat(seat, seatDisplayTitle)}
           disabled={isMutating}
           className={`
-w-12 h-12 rounded-lg text-white opacity-90 transition-all flex items-center justify-center text-xs font-bold
+      w-12 h-12 rounded-lg text-white opacity-90 transition-all flex items-center justify-center text-xs font-bold
 
-${
-  isSelected
-    ? "scale-105 ring-2 ring-amber-400 hover:scale-110 cursor-pointer"
-    : ""
-}
+      ${
+        isLockedAndSelected
+          ? "ring-2 ring-white scale-105 hover:scale-110 cursor-pointer"
+          : ""
+      }
 
-/* Disabled seat */
-${
-  !isSelected && isSeatDisabled
-    ? "bg-zinc-900 cursor-default pointer-events-none"
-    : ""
-}
+      ${
+        isSelected && !isLockedAndSelected
+          ? "scale-105 ring-2 ring-amber-400 hover:scale-110 cursor-pointer"
+          : ""
+      }
 
-/* Locked by others */
-${
-  !isSelected && isSeatLocked
-    ? "bg-red-900 cursor-default pointer-events-none"
-    : ""
-}
+      /* Disabled seat */
+      ${
+        !isSelected && isSeatDisabled
+          ? "bg-zinc-900 cursor-default pointer-events-none"
+          : ""
+      }
 
-/* Normal seat */
-${
-  !isSelected && !isSeatDisabled && !isSeatLocked
-    ? "hover:scale-110 cursor-pointer"
-    : ""
-}
-`}
+      /* Locked by others (chưa chọn) */
+      ${
+        !isSelected && !isLockedAndSelected && isSeatLocked
+          ? "bg-red-900 cursor-default pointer-events-none"
+          : ""
+      }
+
+      /* Normal seat */
+      ${
+        !isSelected && !isSeatDisabled && !isSeatLocked
+          ? "hover:scale-110 cursor-pointer"
+          : ""
+      }
+    `}
           style={{
             backgroundColor: isSeatDisabled
               ? undefined
+              : isLockedAndSelected
+              ? "#007bff" // màu xanh khi vừa locked vừa selected
               : isSeatLocked || isSelected
               ? "#7f1d1d"
               : color,
