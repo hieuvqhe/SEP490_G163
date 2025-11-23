@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { Showtime } from "./ShowtimeDetail";
 import { useGetShowtimeSeat } from "@/apis/user.catalog.api";
 import SeatMap from "./seat/SeatMap";
@@ -7,9 +7,10 @@ import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 interface SeatLayoutReq {
   showtime: Showtime;
   sessionId: string;
+  setSeatLayoutContent?: Dispatch<SetStateAction<boolean>>
 }
 
-const SeatLayout = ({ showtime, sessionId }: SeatLayoutReq) => {
+const SeatLayout = ({ showtime, sessionId, setSeatLayoutContent }: SeatLayoutReq) => {
   const { data: showtimeSeatRes, isLoading } = useGetShowtimeSeat(
     showtime.showtimeId
   );
@@ -39,6 +40,7 @@ const SeatLayout = ({ showtime, sessionId }: SeatLayoutReq) => {
           onPurchase={(selectedSeats) => {
             console.log("Purchasing seats:", selectedSeats);
           }}
+          setSeatLayoutContent={setSeatLayoutContent}
         />
       )}
     </DialogContent>

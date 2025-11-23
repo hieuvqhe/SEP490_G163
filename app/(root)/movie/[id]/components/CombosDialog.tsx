@@ -18,7 +18,6 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import CheckoutDetail from "./CheckoutDetail";
-import { Spinner } from "@/components/ui/spinner";
 import { useCreatePayOS } from "@/apis/user.payment.api";
 
 interface CombosDialogReq {
@@ -56,6 +55,7 @@ const CombosDialog = ({ sessionId, selectedSeats }: CombosDialogReq) => {
   const [loadingSpin, setLoadingSpin] = useState<boolean>(false);
   const [previewSession, setPreviewSession] = useState<PostPricingPreview>();
   const [qrCode, setQrCode] = useState<string>();
+  const [curentOrderId, setCurentOrderId] = useState<string>();
 
   if (combosLoading) return null;
 
@@ -100,6 +100,7 @@ const CombosDialog = ({ sessionId, selectedSeats }: CombosDialogReq) => {
 
   const handleCreatePayment = (orderId: string) => {
     console.log(orderId);
+    setCurentOrderId(orderId);
     createPaymentMutate.mutate(
       {
         orderId: orderId ?? "",
@@ -274,6 +275,7 @@ const CombosDialog = ({ sessionId, selectedSeats }: CombosDialogReq) => {
             </DialogTrigger>
             {checkoutDialog && (
               <CheckoutDetail
+                curentOrderId={curentOrderId ?? ""}
                 sessionId={sessionId}
                 selectedCombos={currentCombos}
                 selectedSeats={selectedSeats}

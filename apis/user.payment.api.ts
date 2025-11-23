@@ -97,6 +97,19 @@ interface CreatePayOSRes {
   };
 }
 
+interface CheckPayOSRes {
+  message: string;
+  result: {
+    orderId: string;
+    status: string;
+    paymentLink: string;
+    qrCode: string;
+    paidAt: string;
+    expiresAt: string;
+    providerRef: string;
+  };
+}
+
 class PaymentManagement {
   private BASE_URL = "/api/payments/payos";
 
@@ -134,9 +147,21 @@ class PaymentManagement {
   };
 
   // 4. Kiểm tra & cập nhật trạng thái Order sau khi thanh toán
-  checkPayOSOrder = async (orderId: string) => {
+  checkPayOSOrder = async (orderId: string): Promise<CheckPayOSRes> => {
     try {
       const res = await paymentApi.post(`${this.BASE_URL}/check/${orderId}`);
+      return res.data;
+    } catch (error) {
+      throw handlePaymentError(error);
+    }
+  };
+
+  // 5. Đánh dấu một order đã hết hạn
+  setExpiredOrder = async (orderId: string) => {
+    try {
+      const res = await paymentApi.post(
+        `${BASE_URL}/api/orders/${orderId}/expire`
+      );
       return res.data;
     } catch (error) {
       throw handlePaymentError(error);
@@ -171,5 +196,11 @@ export const usePayOSStatus = (orderId?: string, enable = false) => {
 export const useCheckPayOSOrder = () => {
   return useMutation({
     mutationFn: paymentManagement.checkPayOSOrder,
+  });
+};
+
+export const useSetExpiredOrder = () => {
+  return useMutation({
+    mutationFn: paymentManagement.setExpiredOrder,
   });
 };

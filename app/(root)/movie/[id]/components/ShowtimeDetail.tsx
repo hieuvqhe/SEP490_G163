@@ -7,6 +7,7 @@ import SeatLayout from "./SeatLayout";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   useCreateBookingSession,
+  useDeleteBookingSession,
   useGetBookingSessionDetail,
   useSeatActions,
 } from "@/apis/user.booking-session.api";
@@ -48,6 +49,8 @@ interface ShowtimeDetailReq {
   setOutDateShowtime: Dispatch<SetStateAction<boolean>>;
 }
 
+const LS_KEY = "booking-session";
+
 const ShowtimeDetail = ({
   brandCode,
   showtimeOverview,
@@ -60,7 +63,11 @@ const ShowtimeDetail = ({
   return (
     <div className="w-full space-y-6">
       {showTimeByBrandCode.map((showtime) => (
-        <ShowtimeDetailCard key={showtime.cinemaId} cinema={showtime} setOutDateShowtime={setOutDateShowtime} />
+        <ShowtimeDetailCard
+          key={showtime.cinemaId}
+          cinema={showtime}
+          setOutDateShowtime={setOutDateShowtime}
+        />
       ))}
     </div>
   );
@@ -71,103 +78,94 @@ interface ShowtimeDetailCardProps {
   setOutDateShowtime: Dispatch<SetStateAction<boolean>>;
 }
 
-const ShowtimeDetailCard = ({ cinema, setOutDateShowtime }: ShowtimeDetailCardProps) => {
-  const [lastShowtimeId, setLastShowtimeId] = useState<number>();
+const ShowtimeDetailCard = ({
+  cinema,
+  setOutDateShowtime,
+}: ShowtimeDetailCardProps) => {
   const [seatLayoutContent, setSeatLayoutContent] = useState<boolean>(false);
-  const [currentSessionId, setcurrentSessionId] = useState<string>();
-  const [sessionStillOnTime, setSessionStillOnTime] = useState<boolean>(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [sessionStillOnTime, setSessionStillOnTime] = useState(false);
+  const [showtimeId, setShowtimeId] = useState<number>(0);
 
+  const deleteSessionMutate = useDeleteBookingSession();
   const createSessionMutate = useCreateBookingSession();
   const getSessionDetailQuery = useGetBookingSessionDetail(
     currentSessionId ?? "",
-    Boolean(currentSessionId) 
+    Boolean(currentSessionId)
   );
 
+  useEffect(() => {
+    const saved = localStorage.getItem(LS_KEY);
+    if (!saved) return;
+
+    const parsed = JSON.parse(saved); // { id, expiresAt, showtimeId }
+
+    if (parsed.showtimeId !== showtimeId) {
+      localStorage.removeItem(LS_KEY);
+      return;
+    }
+
+    if (Date.now() < new Date(parsed.expiresAt).getTime()) {
+      setCurrentSessionId(parsed.id);
+      setSessionStillOnTime(true);
+    } else {
+      // Hết hạn → xóa session cũ
+      deleteSessionMutate.mutate(parsed.id);
+      localStorage.removeItem(LS_KEY);
+    }
+  }, [showtimeId]);
+
+  // ---- Theo dõi expiresAt từ server ----
   useEffect(() => {
     const expiresAt = getSessionDetailQuery.data?.result.expiresAt;
     if (!expiresAt) return;
 
     const end = new Date(expiresAt).getTime();
-    const now = Date.now();
+    setSessionStillOnTime(Date.now() < end);
 
-    setSessionStillOnTime(now < end);
+    // Lưu lại vào localStorage
+    localStorage.setItem(
+      LS_KEY,
+      JSON.stringify({
+        id: currentSessionId,
+        expiresAt,
+        showtimeId,
+      })
+    );
   }, [currentSessionId, getSessionDetailQuery.data]);
 
   // Tạo session booking mới nhưng dựa trên showtimeID, chỉ tạo session mới khi có showtimeID mới
   const handleCreateNewSession = (showtimeId: number) => {
-    console.log(showtimeId);
-    if (showtimeId === lastShowtimeId && !sessionStillOnTime) {
-      console.log("session da duoc tao: " + currentSessionId);
-      return;
-    }
+    setShowtimeId(showtimeId); // rất quan trọng
 
-    setLastShowtimeId(showtimeId);
+    if (currentSessionId && sessionStillOnTime) {
+      setSeatLayoutContent(true);
+      return;
+    } // Session còn hạn → không tạo mới
 
     createSessionMutate.mutate(showtimeId, {
       onSuccess: (res) => {
+        const newId = res.result.bookingSessionId;
+        const newExpires = res.result.expiresAt;
+
+        setCurrentSessionId(newId);
+        setSessionStillOnTime(true);
         setSeatLayoutContent(true);
-        setcurrentSessionId(res.result.bookingSessionId);
-        console.log(
-          "Create new session success: " + res.result.bookingSessionId
+
+        localStorage.setItem(
+          LS_KEY,
+          JSON.stringify({
+            id: newId,
+            expiresAt: newExpires,
+            showtimeId,
+          })
         );
       },
       onError: (err) => {
-        setSeatLayoutContent(false);
-        console.error("Failed to create session:", err);
+        console.error("Create new session failed", err);
       },
     });
   };
-
-  const mutateSeatActions = useSeatActions();
-
-  const handleReleaseSeats = () => {
-    console.log(currentSessionId);
-    console.log(
-      "SEATS KHI GỌI handleReleaseSeats:",
-      getSessionDetailQuery.data?.result.items.seats
-    );
-
-    const seats = getSessionDetailQuery.data?.result.items.seats;
-
-    mutateSeatActions.release.mutate(
-      {
-        selectedSeat: seats ?? [],
-        sessionId: currentSessionId ?? "",
-      },
-      {
-        onSuccess: () => console.log("release toàn bộ ghế thành công"),
-        onError: (error) => console.log("Không release được ghế: ", error),
-      }
-    );
-  };
-
-  // const releaseOnUnload = () => {
-  //   try {
-  //     const seats = getSessionDetailQuery.data?.result.items.seats ?? [];
-
-  //     if (!currentSessionId || seats.length === 0) {
-  //       return; // Không có gì để release
-  //     }
-
-  //     const payload = JSON.stringify({
-  //       seatIds: seats, // 👈 API của bạn yêu cầu seatIds
-  //     });
-
-  //     const url = `${BASE_URL}/${currentSessionId}/seats`;
-
-  //     navigator.sendBeacon(
-  //       url,
-  //       new Blob([payload], { type: "application/json" })
-  //     );
-  //   } catch (err) {
-  //     console.log("Không thể release ghế khi unload:", err);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   window.addEventListener("beforeunload", releaseOnUnload);
-  //   return () => window.removeEventListener("beforeunload", releaseOnUnload);
-  // }, [currentSessionId, getSessionDetailQuery.data]);
 
   return (
     <div className="w-full bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col gap-5 hover:bg-white/10 transition-all duration-200">
@@ -217,15 +215,7 @@ const ShowtimeDetailCard = ({ cinema, setOutDateShowtime }: ShowtimeDetailCardPr
 
               <div className="flex flex-wrap gap-3">
                 {showtimeFilter.map((st) => (
-                  <Dialog
-                    onOpenChange={(open) => {
-                      if (!open) {
-                        console.log("Dialog đã bị tắt");
-                        handleReleaseSeats();
-                      }
-                    }}
-                    key={st.showtimeId}
-                  >
+                  <Dialog key={st.showtimeId}>
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
@@ -244,6 +234,7 @@ const ShowtimeDetailCard = ({ cinema, setOutDateShowtime }: ShowtimeDetailCardPr
                       <SeatLayout
                         showtime={st}
                         sessionId={currentSessionId ?? ""}
+                        setSeatLayoutContent={setSeatLayoutContent}
                       />
                     )}
                   </Dialog>

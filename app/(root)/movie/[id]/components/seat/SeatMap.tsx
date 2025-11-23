@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, Dispatch, SetStateAction } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
   useGetBookingSessionDetail,
@@ -18,6 +18,7 @@ import { IoChevronBackOutline } from "react-icons/io5";
 // import { RealtimeSeat, useSeatRealtime } from "@/hooks/useRealTimeSeatStream";
 import { Spinner } from "@/components/ui/spinner";
 import { useShowtimeSeat } from "@/hooks/useShowtimeSeatHub";
+import { useToast } from "@/components/ToastProvider";
 
 interface RealtimeSeat {
   SeatId: number;
@@ -43,6 +44,7 @@ interface SeatMapProps {
   basePrice?: number;
   sessionId?: string;
   onPurchase?: (selectedSeats: number[]) => void;
+  setSeatLayoutContent?: Dispatch<SetStateAction<boolean>>;
 }
 
 const SeatMap = ({
@@ -52,6 +54,7 @@ const SeatMap = ({
   basePrice,
   sessionId,
   onPurchase,
+  setSeatLayoutContent,
 }: SeatMapProps) => {
   const { data: sessionDetailRes } = useGetBookingSessionDetail(
     sessionId ?? "",
@@ -59,10 +62,13 @@ const SeatMap = ({
   );
 
   const showtimeId = sessionDetailRes?.result?.showtimeId;
+  const { showToast } = useToast();
 
   // const { seats: realtimeSeats } = useSeatRealtime(
   //   showtimeId ? Number(showtimeId) : 0
   // );
+
+  console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
 
   const {
     seatMap: realtimeSeats,
@@ -119,6 +125,8 @@ const SeatMap = ({
             setIsMutating(false);
           },
           onError: (error) => {
+            showToast(error.message, "", "warning");
+            setSeatLayoutContent!(false);
             console.error("Không release được ghế:", error);
             setIsMutating(false);
           },
@@ -137,6 +145,8 @@ const SeatMap = ({
             setIsMutating(false);
           },
           onError: (error) => {
+            showToast(error.message, "", "warning");
+            setSeatLayoutContent!(false);
             console.error("Không lock được ghế:", error);
             setIsMutating(false);
           },
@@ -170,6 +180,8 @@ const SeatMap = ({
             setIsMutating(false);
           },
           onError: (err) => {
+            showToast(err.message, "", "warning");
+            setSeatLayoutContent!(false);
             console.error("Không release được ghế:", err);
             setIsMutating(false);
           },
@@ -187,6 +199,8 @@ const SeatMap = ({
             setIsMutating(false);
           },
           onError: (err) => {
+            showToast(err.message, "", "warning");
+            setSeatLayoutContent!(false);
             console.error("Không lock được ghế:", err);
             setIsMutating(false);
           },
@@ -408,10 +422,9 @@ const SeatMap = ({
           className={`
 w-12 h-12 rounded-lg text-white opacity-90 transition-all flex items-center justify-center text-xs font-bold
 
-/* Selected seat (your own locked seat) */
 ${
   isSelected
-    ? "scale-105 ring ring-amber-400 hover:scale-110 cursor-pointer"
+    ? "scale-105 ring-2 ring-amber-400 hover:scale-110 cursor-pointer"
     : ""
 }
 
@@ -456,14 +469,20 @@ ${
     return elements;
   };
 
-  // if (realtimeSeats.length === 0) {
-  //   return (
-  //     <div className="flex w-full items-center justify-center gap-3 h-[10vh] bg-zinc-900 rounded-xl">
-  //       <Spinner />
-  //       <p>Đang tải sơ đồ rạp...</p>
-  //     </div>
-  //   );
-  // }
+  const handleReleaseSeats = () => {
+    const seats = selectedSeats.map((s) => s.seatId);
+
+    mutateSeatActions.release.mutate(
+      {
+        selectedSeat: seats ?? [],
+        sessionId: sessionId ?? "",
+      },
+      {
+        onSuccess: () => console.log("release toàn bộ ghế thành công"),
+        onError: (error) => console.log("Không release được ghế: ", error),
+      }
+    );
+  };
 
   return (
     <DialogContent
@@ -474,15 +493,13 @@ ${
       onEscapeKeyDown={(e) => e.preventDefault()}
     >
       <DialogTitle className="sr-only">Seat Selection</DialogTitle>
-      {/* <span className={isConnected ? "text-green-600" : "text-red-600"}>
-        {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
-      </span> */}
       <div className="flex flex-col h-full bg-zinc-900 rounded-xl">
         {/* Header */}
         <div className="relative flex items-center justify-center gap-4 p-4 bg-zinc-800 border-b border-zinc-700 rounded-xl">
           <h2 className="text-xl font-bold text-white">Buy Movie Tickets</h2>
           <DialogClose className="absolute left-1">
             <IoChevronBackOutline
+              onClick={handleReleaseSeats}
               className="cursor-pointer hover:scale-125 duration-150 transition-all"
               size={20}
             />
