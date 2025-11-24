@@ -101,6 +101,67 @@ export interface RejectPartnerResponse {
   };
 }
 
+export interface GetTopCustomersParams {
+  topLimit?: number;
+  fromDate?: string;
+  toDate?: string;
+  partnerId?: number;
+  cinemaId?: number;
+  customerEmail?: string;
+  customerName?: string;
+  page?: number;
+  pageSize?: number;
+  sortOrder?: "asc" | "desc";
+  sortBy?: "booking_count" | "total_spent";
+  topByBookingCountSortOrder?: "asc" | "desc";
+  topByTotalSpentSortOrder?: "asc" | "desc";
+}
+
+export interface CustomerBookingInfo {
+  customerId: number;
+  userId: number;
+  fullname: string;
+  username: string;
+  email: string;
+  phone: string | null;
+  avatarUrl: string | null;
+  totalBookings: number;
+  totalSpent: number;
+  totalTicketsPurchased: number;
+  averageOrderValue: number;
+  lastBookingDate: string;
+  firstBookingDate: string;
+}
+
+export interface CustomersPagination {
+  currentPage: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
+}
+
+export interface GetTopCustomersResponse {
+  message: string;
+  result: {
+    topCustomersByBookingCount: CustomerBookingInfo[];
+    topCustomersByTotalSpent: CustomerBookingInfo[];
+    fullCustomerList: {
+      customers: CustomerBookingInfo[];
+      pagination: CustomersPagination;
+    };
+    statistics: {
+      maxBookings: number;
+      minBookings: number;
+      averageBookings: number;
+      customerWithMostBookings: CustomerBookingInfo;
+      customerWithLeastBookings: CustomerBookingInfo;
+    };
+    totalCustomers: number;
+  };
+}
+
 class ManagerRegisterService {
   // Backend exposes manager routes under `${BASE_URL}/manager` (no extra `/api` prefix)
   private baseURL = `${BASE_URL}/manager`;
@@ -181,6 +242,52 @@ class ManagerRegisterService {
       throw error;
     }
   }
+
+  async getTopCustomers(params: GetTopCustomersParams, accessToken: string): Promise<GetTopCustomersResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.topLimit !== undefined) queryParams.append("topLimit", params.topLimit.toString());
+      if (params.fromDate) {
+        // Remove timezone info (Z) from ISO string
+        const fromDateWithoutZ = params.fromDate.replace(/Z$/, "");
+        queryParams.append("fromDate", fromDateWithoutZ);
+      }
+      if (params.toDate) {
+        // Remove timezone info (Z) from ISO string
+        const toDateWithoutZ = params.toDate.replace(/Z$/, "");
+        queryParams.append("toDate", toDateWithoutZ);
+      }
+      if (params.partnerId !== undefined) queryParams.append("partnerId", params.partnerId.toString());
+      if (params.cinemaId !== undefined) queryParams.append("cinemaId", params.cinemaId.toString());
+      if (params.customerEmail) queryParams.append("customerEmail", params.customerEmail);
+      if (params.customerName) queryParams.append("customerName", params.customerName);
+      if (params.page !== undefined) queryParams.append("page", params.page.toString());
+      if (params.pageSize !== undefined) queryParams.append("pageSize", params.pageSize.toString());
+      if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
+      if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+      if (params.topByBookingCountSortOrder) queryParams.append("topByBookingCountSortOrder", params.topByBookingCountSortOrder);
+      if (params.topByTotalSpentSortOrder) queryParams.append("topByTotalSpentSortOrder", params.topByTotalSpentSortOrder);
+      
+      const url = `${this.baseURL}/customers/successful-bookings${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw result as ManagerRegisterApiError;
+      }
+      return result;
+    } catch (error: any) {
+      if (error.name === "TypeError") {
+        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerRegisterApiError;
+      }
+      throw error;
+    }
+  }
 }
 
 export const managerRegisterService = new ManagerRegisterService();
@@ -218,5 +325,15 @@ export const useRejectPartner = () => {
       queryClient.invalidateQueries({ queryKey: ["manager-pending-partners"] });
       queryClient.invalidateQueries({ queryKey: ["manager-pending-partners", partnerId] });
     },
+  });
+};
+
+export const useGetTopCustomers = (params: GetTopCustomersParams, accessToken?: string) => {
+  return useQuery({
+    queryKey: ["manager-top-customers", params],
+    queryFn: () => managerRegisterService.getTopCustomers(params, accessToken!),
+    enabled: !!accessToken,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };

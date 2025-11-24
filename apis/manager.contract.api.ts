@@ -327,7 +327,7 @@ class ManagerContractService {
     try {
       const url = `${this.baseURL}/contracts`;
       const response = await fetch(url, {
-        method: "PUT",
+        method: "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",

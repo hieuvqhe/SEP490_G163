@@ -137,28 +137,42 @@ export interface Contract {
   contractId: number;
   contractNumber: string;
   title: string;
+  description?: string;
   contractType: "partnership" | "service" | "other"; // có thể mở rộng
+  termsAndConditions?: string;
   startDate: string; // ISO date string (vd: "2024-02-01")
   endDate: string;
   commissionRate: number;
   minimumRevenue: number;
   status: "active" | "inactive" | "terminated" | "pending"; // enum-like union
   isLocked: boolean;
-  isActive: boolean;
+  isActive?: boolean;
+  contractHash?: string;
   partnerSignatureUrl: string;
   managerSignature: string;
   signedAt: string | null; // nếu chưa ký
   partnerSignedAt: string | null;
   managerSignedAt: string | null;
+  lockedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   partnerId: number;
   partnerName: string;
+  partnerAddress?: string;
+  partnerTaxCode?: string;
+  partnerRepresentative?: string;
+  partnerPosition?: string;
   partnerEmail: string;
   partnerPhone: string;
   managerId: number;
   managerName: string;
+  managerPosition?: string;
   managerEmail: string;
+  companyName?: string;
+  companyAddress?: string;
+  companyTaxCode?: string;
+  createdBy?: number;
+  createdByName?: string;
 }
 
 export interface GetContractsResponse {
