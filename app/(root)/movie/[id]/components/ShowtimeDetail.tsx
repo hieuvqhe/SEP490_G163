@@ -213,9 +213,15 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
 
           // const showtimeFilter = screen.showtimes.map((item) => item);
 
-          // if (showtimeFilter.length === 0) {
-          //   return <div key={screen.screenId}></div>;
-          // }
+          if (showtimeFilter.length === 0) {
+            return (
+              <div className="flex items-center" key={screen.screenId}>
+                <p className="text-sm text-gray-400">
+                  Các suất chiếu đã hết hạn - Quý khách vui lòng chọn ngày khác.
+                </p>
+              </div>
+            );
+          }
 
           return (
             <div key={screen.screenId} className="flex flex-col gap-2">

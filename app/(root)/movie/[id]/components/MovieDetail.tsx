@@ -223,13 +223,12 @@ const MovieDetail = ({ movie }: MovieProp) => {
             >
               {/* Add showtimes or other content here */}
               <DateSelector setDate={setDateSelectorValue} />
-              {/* {showtimeOverviewLoading ? (
+              {showtimeOverviewLoading ? (
                 <div className="flex w-full items-center justify-center">
                   <Spinner className="size-8" />
                 </div>
               ) : !showtimeOverviews?.brands ||
-                showtimeOverviews?.brands.length === 0 ||
-                outDateShowtime ? (
+                showtimeOverviews?.brands.length === 0  ? (
                 <div className="w-full flex flex-col gap-4 h-[30vh] items-center justify-center">
                   <CiFolderOff size={100} />
                   <div className="flex flex-col gap-3 items-center justify-center">
@@ -255,9 +254,9 @@ const MovieDetail = ({ movie }: MovieProp) => {
                     />
                   )}
                 </div>
-              )} */}
+              )}
 
-              {showtimeOverviewLoading ? (
+              {/* {showtimeOverviewLoading ? (
                 <Spinner />
               ) : (
                 <div className="w-full flex flex-col gap-10">
@@ -273,7 +272,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
                     />
                   )}
                 </div>
-              )}
+              )} */}
             </div>
 
             <div className="flex items-center justify-baseline gap-5">
