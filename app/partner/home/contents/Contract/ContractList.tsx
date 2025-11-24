@@ -22,7 +22,8 @@ import { Search } from "lucide-react";
 import { useGetPartnersContract } from "@/hooks/usePartner";
 import Skeleton from "@mui/material/Skeleton";
 import { CustomPagination } from "@/components/custom/CustomPagination";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import ContractDetails from "./ContractDetails";
 
 export default function ContractList() {
@@ -157,18 +158,23 @@ export default function ContractList() {
 
                     <CardFooter className="mt-4 flex justify-between p-0">
                       <Dialog>
-                        <DialogTrigger>
+                        <DialogTrigger asChild>
                           <Button variant="ghost" size="sm">
                             Xem chi tiết
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="!max-w-[80vw] h-[90vh] bg-zinc-950">
-                          <ContractDetails />
+                          <VisuallyHidden>
+                            <DialogTitle>Chi tiết hợp đồng</DialogTitle>
+                          </VisuallyHidden>
+                          <ContractDetails contractId={contract.contractId} />
                         </DialogContent>
                       </Dialog>
-                      <Button variant="outline" size="sm">
-                        Tải PDF
-                      </Button>
+                      {!contract.isLocked && (
+                        <Button variant="outline" size="sm">
+                          Tải PDF
+                        </Button>
+                      )}
                     </CardFooter>
                   </Card>
                 ))

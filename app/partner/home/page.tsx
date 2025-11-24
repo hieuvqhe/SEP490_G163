@@ -21,12 +21,12 @@ import Page from "./contents/home/dashboard/page";
 import SeatLayout from "./contents/seat/SeatLayout";
 import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 import ManageMovies from "./contents/movies/ManageMovies";
-import CinemaInfo from "./contents/cinema/CinemaInfo/CinemaInfo";
-import ScreenManagement from "./contents/cinema/ScreenManagement/ScreenManagement";
-import ShowtimeManagement from "./contents/cinema/ShowtimeManagement/ShowtimeManagement";
-import SeatTypeManagement from "./contents/cinema/SeatTypeManagement/SeatTypeManagement";
-import ComboManagement from "./contents/cinema/ComboManagement";
-import ContractList from "./contents/contract/ContractList";
+import CinemaInfo from "./contents/Cinema/CinemaInfo/CinemaInfo";
+import ScreenManagement from "./contents/Cinema/ScreenManagement/ScreenManagement";
+import ShowtimeManagement from "./contents/Cinema/ShowtimeManagement/ShowtimeManagement";
+import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement/SeatTypeManagement";
+import ComboManagement from "./contents/Cinema/ComboManagement";
+import ContractList from "./contents/Contract/ContractList";
 
 const PartnerHomepage = () => {
   const activeTab = usePartnerHomeStore((state) => state.activeTab);
