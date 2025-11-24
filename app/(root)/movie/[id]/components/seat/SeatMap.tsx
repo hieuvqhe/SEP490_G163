@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, Dispatch, SetStateAction } from "react";
+import React, {
+  useState,
+  useMemo,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+} from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
   useGetBookingSessionDetail,
@@ -45,7 +51,11 @@ interface SeatMapProps {
   sessionId?: string;
   onPurchase?: (selectedSeats: number[]) => void;
   setSeatLayoutContent?: Dispatch<SetStateAction<boolean>>;
+  seatLayoutContent?: boolean;
+  showtimeId?: number;
 }
+
+const LS_KEY = "booking-session";
 
 const SeatMap = ({
   seatTypes,
@@ -55,21 +65,13 @@ const SeatMap = ({
   sessionId,
   onPurchase,
   setSeatLayoutContent,
+  showtimeId
 }: SeatMapProps) => {
-  const { data: sessionDetailRes } = useGetBookingSessionDetail(
-    sessionId ?? "",
-    true
-  );
-
-  const showtimeId = sessionDetailRes?.result?.showtimeId;
-  const { showToast } = useToast();
-
-  // const { seats: realtimeSeats } = useSeatRealtime(
-  //   showtimeId ? Number(showtimeId) : 0
-  // );
+  
 
   console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
 
+  const { showToast } = useToast();
   const {
     seatMap: realtimeSeats,
     isConnected,
@@ -641,6 +643,7 @@ const SeatMap = ({
                 <CombosDialog
                   sessionId={sessionId}
                   selectedSeats={selectedSeats}
+                  showtimeId={showtimeId}
                 />
               )}
             </Dialog>

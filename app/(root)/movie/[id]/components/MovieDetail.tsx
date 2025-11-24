@@ -55,6 +55,22 @@ const MovieDetail = ({ movie }: MovieProp) => {
   const [activeTab, setActiveTab] = useState<"comment" | "review">("comment");
   const [outDateShowtime, setOutDateShowtime] = useState<boolean>(false);
 
+  // const [outDateShowtime, setOutDateShowtime] = useState(false);
+
+  const handleOutDate = (id: number) => {
+    setOutDateShowtime(true); // hoặc logic khác
+  };
+
+  // console.log(`Date selector: ${dateSelectorValue}`);
+  // console.log(
+  //   `Theater avaiable: ${showtimeOverviews?.cinemas.items.map(
+  //     (i) => i.cinemaName
+  //   )}`
+  // );
+
+  // console.log(showtimeOverviews?.brands);
+  // console.log(showtimeOverviews?.brands.length);
+
   return (
     <div className="relative min-h-screen w-full bg-black">
       {/* Background Image with Gradient Overlay */}
@@ -207,7 +223,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
             >
               {/* Add showtimes or other content here */}
               <DateSelector setDate={setDateSelectorValue} />
-              {showtimeOverviewLoading ? (
+              {/* {showtimeOverviewLoading ? (
                 <div className="flex w-full items-center justify-center">
                   <Spinner className="size-8" />
                 </div>
@@ -235,7 +251,25 @@ const MovieDetail = ({ movie }: MovieProp) => {
                     <ShowtimeDetail
                       brandCode={brandCodeSelect}
                       showtimeOverview={showtimeOverviews.cinemas.items}
-                      setOutDateShowtime={setOutDateShowtime}
+                      onOutDate={handleOutDate}
+                    />
+                  )}
+                </div>
+              )} */}
+
+              {showtimeOverviewLoading ? (
+                <Spinner />
+              ) : (
+                <div className="w-full flex flex-col gap-10">
+                  <TheaterSelector
+                    brands={showtimeOverviews?.brands}
+                    onSelect={setBrandCodeSelect}
+                  />
+                  {showtimeOverviews && brandCodeSelect && (
+                    <ShowtimeDetail
+                      brandCode={brandCodeSelect}
+                      showtimeOverview={showtimeOverviews.cinemas.items}
+                      onOutDate={handleOutDate}
                     />
                   )}
                 </div>
@@ -245,35 +279,11 @@ const MovieDetail = ({ movie }: MovieProp) => {
             <div className="flex items-center justify-baseline gap-5">
               <TfiCommentAlt size={25} />
               <h2 className="text-3xl font-bold text-white">Đánh giá phim</h2>
-              {/* Tabs */}
-              {/* <div className="grid grid-cols-2 gap-0 px-1 py-1 border border-zinc-300 rounded-md overflow-hidden">
-                <button
-                  className={`py-1 px-2 text-xs text-center ${
-                    activeTab !== "comment"
-                      ? " text-white"
-                      : "bg-white/90 rounded-xs text-zinc-600"
-                  }`}
-                  onClick={() => setActiveTab("comment")}
-                >
-                  Bình luận
-                </button>
-
-                <button
-                  className={`py-1 px-2 text-xs text-center ${
-                    activeTab !== "review"
-                      ? " text-white"
-                      : " bg-white/90 rounded-xs text-zinc-800"
-                  }`}
-                  onClick={() => setActiveTab("review")}
-                >
-                  Đánh giá
-                </button>
-              </div> */}
             </div>
 
             {/* Content */}
             <div>
-              {activeTab === "comment" && <Comment />}
+              {activeTab === "comment" && <Comment movieId={movie.movieId} />}
               {/* {activeTab === "review" && <p>Nội dung tab Đánh giá...</p>} */}
             </div>
           </div>

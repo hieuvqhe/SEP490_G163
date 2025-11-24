@@ -9,9 +9,14 @@ import LoginModal from "@/components/LoginModal";
 import { useCreateReview, useMovieReviews } from "@/apis/movie.reviews.api";
 import { TfiCommentAlt } from "react-icons/tfi";
 import RateStar from "./RateStar";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ToastProvider";
 
-const Comment = () => {
+interface CommentProps {
+  movieId?: number;
+}
+
+const Comment = ({ movieId }: CommentProps) => {
+  const { showToast } = useToast();
   const { user } = useAuthStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const handleLoginSuccess = (data: {
@@ -63,9 +68,8 @@ const Comment = () => {
 
   const [page, setPage] = useState<number>(1);
 
-  const movieId = Number(localStorage.getItem("movieId"));
   const { data: movieReviewRes } = useMovieReviews({
-    movieId: movieId,
+    movieId: movieId ?? 0,
     params: {
       limit: 5,
       page: page,
@@ -74,30 +78,27 @@ const Comment = () => {
   });
   const movieReviewList = movieReviewRes?.result.items;
 
-  const { toast } = useToast();
-
   const handleCreateNewReview = () => {
+    if (!user || comment.length === 0) return;
     createReviewMutate.mutate(
       {
-        movieId: movieId,
+        movieId: movieId ?? 0,
         body: {
           comment: comment,
           rating_star: ratingStar,
         },
       },
       {
-        onSuccess: (res) =>
-          toast({
-            variant: "destructive",
-            title: res.message,
-            description: res.message,
-          }),
-        onError: (res) =>
-          // toast({
-          //   title: "Xảy ra lỗi!",
-          //   description: res.message,
-          // }),
-          console.log(res.message),
+        onSuccess: (res) => {
+          showToast(res.message, "", "success");
+        },
+        onError: (error) => {
+          if (error.message === "Lỗi xác thực dữ liệu") {
+            showToast("Bạn hãy thêm sao đã nhé ✨", "", "warning");
+          } else {
+            showToast(error.message, "", "error");
+          }
+        },
       }
     );
   };

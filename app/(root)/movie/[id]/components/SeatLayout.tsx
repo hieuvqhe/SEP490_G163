@@ -8,9 +8,10 @@ interface SeatLayoutReq {
   showtime: Showtime;
   sessionId: string;
   setSeatLayoutContent?: Dispatch<SetStateAction<boolean>>
+  seatLayoutContent?: boolean;
 }
 
-const SeatLayout = ({ showtime, sessionId, setSeatLayoutContent }: SeatLayoutReq) => {
+const SeatLayout = ({ showtime, sessionId, setSeatLayoutContent, seatLayoutContent }: SeatLayoutReq) => {
   const { data: showtimeSeatRes, isLoading } = useGetShowtimeSeat(
     showtime.showtimeId
   );
@@ -41,6 +42,8 @@ const SeatLayout = ({ showtime, sessionId, setSeatLayoutContent }: SeatLayoutReq
             console.log("Purchasing seats:", selectedSeats);
           }}
           setSeatLayoutContent={setSeatLayoutContent}
+          seatLayoutContent={seatLayoutContent}
+          showtimeId={showtime.showtimeId}
         />
       )}
     </DialogContent>

@@ -46,7 +46,7 @@ interface ShowtimeOverviews {
 interface ShowtimeDetailReq {
   brandCode: string;
   showtimeOverview: ShowtimeOverviews[];
-  setOutDateShowtime: Dispatch<SetStateAction<boolean>>;
+  onOutDate: (cinemaId: number) => void;
 }
 
 const LS_KEY = "booking-session";
@@ -54,7 +54,7 @@ const LS_KEY = "booking-session";
 const ShowtimeDetail = ({
   brandCode,
   showtimeOverview,
-  setOutDateShowtime,
+  onOutDate,
 }: ShowtimeDetailReq) => {
   const showTimeByBrandCode = showtimeOverview.filter(
     (item) => item.brandCode === brandCode
@@ -66,7 +66,7 @@ const ShowtimeDetail = ({
         <ShowtimeDetailCard
           key={showtime.cinemaId}
           cinema={showtime}
-          setOutDateShowtime={setOutDateShowtime}
+          onOutDate={onOutDate}
         />
       ))}
     </div>
@@ -75,13 +75,10 @@ const ShowtimeDetail = ({
 
 interface ShowtimeDetailCardProps {
   cinema: ShowtimeOverviews;
-  setOutDateShowtime: Dispatch<SetStateAction<boolean>>;
+  onOutDate: (cinemaId: number) => void;
 }
 
-const ShowtimeDetailCard = ({
-  cinema,
-  setOutDateShowtime,
-}: ShowtimeDetailCardProps) => {
+const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
   const [seatLayoutContent, setSeatLayoutContent] = useState<boolean>(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionStillOnTime, setSessionStillOnTime] = useState(false);
@@ -167,6 +164,21 @@ const ShowtimeDetailCard = ({
     });
   };
 
+  const isOutDate = cinema.screens.every((screen) => {
+    const now = Date.now();
+    const showtimeFilter = screen.showtimes.filter((item) => {
+      const start = new Date(item.startTime).getTime();
+      return start >= now;
+    });
+    return showtimeFilter.length === 0;
+  });
+
+  useEffect(() => {
+    if (isOutDate) {
+      onOutDate(cinema.cinemaId);
+    }
+  }, [isOutDate]);
+
   return (
     <div className="w-full bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col gap-5 hover:bg-white/10 transition-all duration-200">
       {/* Header */}
@@ -199,10 +211,11 @@ const ShowtimeDetailCard = ({
             return start >= now;
           });
 
-          if (showtimeFilter.length === 0) {
-            setOutDateShowtime(true);
-            return <div key={screen.screenId} className=""></div>;
-          }
+          // const showtimeFilter = screen.showtimes.map((item) => item);
+
+          // if (showtimeFilter.length === 0) {
+          //   return <div key={screen.screenId}></div>;
+          // }
 
           return (
             <div key={screen.screenId} className="flex flex-col gap-2">
@@ -234,6 +247,7 @@ const ShowtimeDetailCard = ({
                       <SeatLayout
                         showtime={st}
                         sessionId={currentSessionId ?? ""}
+                        seatLayoutContent={seatLayoutContent}
                         setSeatLayoutContent={setSeatLayoutContent}
                       />
                     )}

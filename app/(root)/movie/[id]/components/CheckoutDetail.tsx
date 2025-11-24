@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/dialog";
 import React, { useState } from "react";
 import QRCode from "react-qr-code";
-import { useGetMovieById } from "@/apis/movie.api";
 import {
   useCheckPayOSOrder,
   useSetExpiredOrder,
@@ -15,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
+import { useGetPartnerShowtimeById } from "@/apis/partner.showtime.api";
 
 interface ComboCount {
   serviceId: number;
@@ -38,27 +38,29 @@ interface CheckOutProps {
   totalPrice?: number;
   previewSession?: PostPricingPreview;
   curentOrderId: string;
+  showtimeId?: number;
 }
 
 const CheckoutDetail = ({
-  sessionId,
   selectedCombos,
   selectedSeats,
   qrCode,
   previewSession,
   curentOrderId,
+  showtimeId,
 }: CheckOutProps) => {
-  console.log("curentOrderId: " + curentOrderId);
+  console.log(`showtimeId: ${showtimeId}`);
+
   const { showToast } = useToast();
-
-  const movieId = Number(localStorage.getItem("movieId"));
-
-  const { data: movieInfoRes } = useGetMovieById(movieId);
-  const movieInfo = movieInfoRes?.result;
   const [voucherCode, setVoucherCode] = useState<string>("");
 
   const expiredOrderMutate = useSetExpiredOrder();
   const checkPayOSOrderMutate = useCheckPayOSOrder();
+
+  const { data: getPartnerShowtimeRes } = useGetPartnerShowtimeById(
+    showtimeId ?? 0
+  );
+  const showtimeInfo = getPartnerShowtimeRes?.result;
 
   const handleSetExpiredOrder = () => {
     expiredOrderMutate.mutate(curentOrderId, {
@@ -81,7 +83,7 @@ const CheckoutDetail = ({
         switch (res.result.status) {
           case "EXPIRED":
             console.log("Quy trình thanh toán hết hạn!");
-            redirect(`/movie/${movieId}`);
+            redirect(`/movie/${showtimeInfo?.movieId}`);
           case "PENDING":
             showToast("Đang kiểm tra trạng thái");
             break;
@@ -97,6 +99,33 @@ const CheckoutDetail = ({
       },
     });
   };
+
+  const extractTime = (datetime?: string) => {
+    if (!datetime) return "";
+    const parts = datetime.split("T");
+    if (parts.length < 2) return "";
+    return parts[1].slice(0, 5);
+  };
+
+  const extractDate = (datetime?: string) => {
+    if (!datetime) return "";
+    const parts = datetime.split("T");
+    if (parts.length === 0) return "";
+    const [year, month, day] = parts[0].split("-");
+    if (!year || !month || !day) return "";
+    return `${day}/${month}/${year}`;
+  };
+
+  // if (getPartnerShowtimeLoad) {
+  //   return (
+  //     <DialogContent
+  //       onInteractOutside={(e) => e.preventDefault()}
+  //       className="!max-w-4xl p-0 overflow-hidden bg-white text-zinc-800 border border-zinc-300 rounded-xl shadow-xl [&>button]:hidden"
+  //     >
+  //       <Spinner />;
+  //     </DialogContent>
+  //   );
+  // }
 
   return (
     <DialogContent
@@ -115,7 +144,7 @@ const CheckoutDetail = ({
             </span> */}
 
             <h2 className="text-2xl font-bold leading-snug">
-              {movieInfo?.title ?? "Tên phim"}
+              {showtimeInfo?.movie?.title ?? "Tên phim"}
             </h2>
           </div>
 
@@ -125,13 +154,16 @@ const CheckoutDetail = ({
               <span className="text-zinc-500 text-xs">THỜI GIAN</span>
               <span className="font-semibold">
                 {/* {previewSession?.timeStart} ~ {previewSession?.timeEnd} */}
-                11:12 ~ 14:00
+                {extractTime(showtimeInfo?.startTime ?? "")} ~{" "}
+                {extractTime(showtimeInfo?.endTime ?? "")}
               </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-zinc-500 text-xs">NGÀY CHIẾU</span>
               {/* <span className="font-semibold">{previewSession?.date}</span> */}
-              <span className="font-semibold">11-28-2025</span>
+              <span className="font-semibold">
+                {extractDate(showtimeInfo?.startTime ?? "")}
+              </span>
             </div>
           </div>
 
@@ -139,10 +171,10 @@ const CheckoutDetail = ({
           <div>
             <div className="text-zinc-500 text-xs mb-1">RẠP</div>
             {/* <div className="font-semibold">{previewSession?.cinemaName}</div> */}
-            <div className="font-semibold">CGV Hòa Lạc</div>
+            <div className="font-semibold">{showtimeInfo?.cinema?.name}</div>
             <div className="text-sm text-zinc-500">
-              {/* {previewSession?.cinemaAddress} */}
-              Thanh Hoa
+              {showtimeInfo?.cinema?.city}, {showtimeInfo?.cinema?.district},{" "}
+              {showtimeInfo?.cinema?.address}
             </div>
           </div>
 
@@ -151,13 +183,13 @@ const CheckoutDetail = ({
             <div>
               <div className="text-zinc-500 text-xs mb-1">PHÒNG CHIẾU</div>
               {/* <div className="font-semibold">{previewSession?.roomName}</div> */}
-              IMAX
+              {showtimeInfo?.screen?.name}
             </div>
             <div>
               <div className="text-zinc-500 text-xs mb-1">ĐỊNH DẠNG</div>
               <div className="font-semibold">
                 {/* {previewSession?.format ?? "2D"} */}
-                2D
+                {showtimeInfo?.screen?.soundSystem}
               </div>
             </div>
           </div>

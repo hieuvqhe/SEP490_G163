@@ -23,9 +23,26 @@ import { useCreatePayOS } from "@/apis/user.payment.api";
 interface CombosDialogReq {
   sessionId?: string;
   selectedSeats?: { seatId: number; seatTitle: string }[];
+  showtimeId?: number;
 }
 
-const CombosDialog = ({ sessionId, selectedSeats }: CombosDialogReq) => {
+type ComboCount = {
+  serviceId: number;
+  quantity: number;
+  servicesTitle: string;
+};
+
+interface PostPricingPreview {
+  appliedVoucherCode: string | null; // tùy API có thể null
+  total: number;
+}
+
+const CombosDialog = ({
+  sessionId,
+  selectedSeats,
+  showtimeId,
+}: CombosDialogReq) => {
+  console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
   const { data: getBookingComboRes, isLoading: combosLoading } =
     useGetBookingSessionCombos(sessionId ?? "", true);
 
@@ -37,17 +54,6 @@ const CombosDialog = ({ sessionId, selectedSeats }: CombosDialogReq) => {
   const combos = getBookingComboRes?.result.combos ?? [];
   const currency = getBookingComboRes?.result.currency ?? "";
   const maxCurrent = getBookingComboRes?.result.selectionLimit ?? 8;
-
-  type ComboCount = {
-    serviceId: number;
-    quantity: number;
-    servicesTitle: string;
-  };
-
-  interface PostPricingPreview {
-    appliedVoucherCode: string | null; // tùy API có thể null
-    total: number;
-  }
 
   // Mỗi combo có số lượng riêng → dùng object { comboCode: count }
   const [counts, setCounts] = useState<ComboCount[]>([]);
@@ -132,8 +138,8 @@ const CombosDialog = ({ sessionId, selectedSeats }: CombosDialogReq) => {
       },
       {
         onSuccess: (res) => handleCreatePayment(res.result.orderId),
-        onError: () => {
-          console.log(`handleGetPreview failed`);
+        onError: (res) => {
+          console.log(`handleGetPreview failed: ${res.message}`);
         },
       }
     );
@@ -281,6 +287,7 @@ const CombosDialog = ({ sessionId, selectedSeats }: CombosDialogReq) => {
                 selectedSeats={selectedSeats}
                 previewSession={previewSession}
                 qrCode={qrCode}
+                showtimeId={showtimeId}
               />
             )}
           </Dialog>
