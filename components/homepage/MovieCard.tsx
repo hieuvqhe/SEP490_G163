@@ -27,6 +27,7 @@ const MovieCard = ({ movie, index }: MovieCardProps) => {
           src={movie.posterUrl}
           alt={movie.title}
           fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover border border-zinc-800 rounded-xl group-hover:opacity-60 transition-all duration-500"
         />
 

@@ -435,6 +435,15 @@ body {
     display: none; /* Safari and Chrome */
   }
 
+  /* Show scrollbar on hover */
+  .scrollbar-default {
+    -ms-overflow-style: auto;
+    scrollbar-width: thin;
+  }
+  .scrollbar-default::-webkit-scrollbar {
+    display: block;
+  }
+
   /* Line clamp utility */
   .line-clamp-2 {
     display: -webkit-box;

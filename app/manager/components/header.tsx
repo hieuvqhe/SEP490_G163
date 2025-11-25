@@ -70,6 +70,19 @@ export default function ManagerHeader({ onMenuClick, user, onLogout }: ManagerHe
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     React.useState<null | HTMLElement>(null);
+  const [isScrolled, setIsScrolled] = React.useState(false);
+
+  // Track scroll position
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial position
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -137,8 +150,14 @@ export default function ManagerHeader({ onMenuClick, user, onLogout }: ManagerHe
 
   return (
     <motion.header
-      className="border-b px-4 py-3 relative overflow-hidden"
-      style={{ backgroundColor: '#211832' }}
+      className={`fixed top-0 left-0 right-0 z-50 border-b px-4 py-3 transition-all duration-300 ${
+        isScrolled 
+          ? 'backdrop-blur-md border-white/10' 
+          : 'border-transparent'
+      }`}
+      style={{ 
+        backgroundColor: isScrolled ? 'rgba(33, 24, 50, 0.95)' : 'transparent',
+      }}
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}

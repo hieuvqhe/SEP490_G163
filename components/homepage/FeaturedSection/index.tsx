@@ -6,9 +6,8 @@ import { movieCategoryQuickAccess } from "@/constants";
 import { ChevronDown, SearchIcon } from "lucide-react";
 import { useGetFullMovies } from "@/hooks/useMovie";
 import { Movie } from "@/types/movie.type";
-import MovieCard from "../MovieCard";
+import MovieEnhancedCarousel from "./MovieEnhancedCarousel";
 import MovieCardSkeleton from "../MovieCardSkeleton";
-import { Button } from "@/components/ui/button";
 
 type MovieStatus = "now_showing" | "coming_soon" | "ended";
 
@@ -19,9 +18,9 @@ const FeaturedSection = () => {
   const [activeTitle, setActiveTitle] = useState("Đang Chiếu");
 
   const { data: movieResponse, isLoading } = useGetFullMovies({
-    limit: 4,
+    limit: 30,
     sort_order: "desc",
-    sort_by: "created_at",
+    sort_by: "average_rating",
     page: page,
     status: status,
     search: searchQuery,
@@ -34,40 +33,20 @@ const FeaturedSection = () => {
     () => movieResponse?.result.movies ?? [],
     [movieResponse?.result.movies]
   );
-  const [allMovies, setAllMovies] = useState<Movie[]>([]);
 
-  // Filter movies based on search query
+  // Filter movies directly from API response
   const filteredMovies = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return allMovies;
-    }
-    return allMovies.filter((movie) =>
-      movie.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [allMovies, searchQuery]);
-
-  // Update allMovies when new movies are fetched
-  useEffect(() => {
-    if (!movies.length) return;
-
+    let filtered = movies;
+    
+    // Filter by search query
     if (searchQuery.trim()) {
-      // Khi search => KHÔNG append, luôn replace
-      setAllMovies(movies);
-      return;
+      filtered = filtered.filter((movie) =>
+        movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
-
-    // Không search => xử lý load more như bình thường
-    if (page === 1) {
-      setAllMovies(movies);
-    } else {
-      setAllMovies((prev) => {
-        const newMovies = movies.filter(
-          (m) => !prev.some((p) => p.movieId === m.movieId)
-        );
-        return [...prev, ...newMovies];
-      });
-    }
-  }, [movies, page, searchQuery]);
+    
+    return filtered;
+  }, [movies, searchQuery]);
 
   const handleSearch = useCallback((input: string) => {
     setSearchQuery(input);
@@ -77,7 +56,6 @@ const FeaturedSection = () => {
   const handleSetActiveTitle = useCallback((title: string) => {
     setPage(1);
     setSearchQuery("");
-    setAllMovies([]);
 
     const statusMap: Record<string, MovieStatus> = {
       "Đang Chiếu": "now_showing",
@@ -89,10 +67,6 @@ const FeaturedSection = () => {
       setStatus(newStatus);
       setActiveTitle(title);
     }
-  }, []);
-
-  const handleLoadMore = useCallback(() => {
-    setPage((prev) => prev + 1);
   }, []);
 
   return (
@@ -146,39 +120,18 @@ const FeaturedSection = () => {
         </div>
       </header>
 
-      {/* Movie Grid */}
+      {/* Movie Carousel */}
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mt-8">
-          {[...Array(3)].map((_, index) => (
-            <MovieCardSkeleton key={index} />
+        <div className="flex gap-4 md:gap-6 overflow-x-auto mt-8 pb-4 scrollbar-hide">
+          {[...Array(15)].map((_, index) => (
+            <div key={index} className="min-w-[200px] md:min-w-[250px]">
+              <MovieCardSkeleton />
+            </div>
           ))}
         </div>
       ) : filteredMovies.length > 0 ? (
-        <div>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8 mt-8">
-            {filteredMovies.map((movie, index) => (
-              <MovieCard key={movie.movieId || movie.title} movie={movie} index={index} />
-            ))}
-          </div>
-
-          {/* Load More Button */}
-          {!searchQuery && (
-            <div className="flex items-center w-full my-12 md:my-20">
-              <div className="flex-grow border-t border-zinc-200" />
-              <Button
-                disabled={isMaxMovie || isLoading}
-                onClick={handleLoadMore}
-                variant={"ghost"}
-                className="ml-4"
-              >
-                {isLoading
-                  ? "Loading..."
-                  : isMaxMovie
-                  ? "No more movies"
-                  : "Show more"}
-              </Button>
-            </div>
-          )}
+        <div className="mt-8">
+          <MovieEnhancedCarousel movies={filteredMovies} />
         </div>
       ) : (
         <div className="text-center py-20">

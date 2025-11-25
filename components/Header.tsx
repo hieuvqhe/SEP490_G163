@@ -30,8 +30,21 @@ const Header = () => {
   const [showEmailVerificationModal, setShowEmailVerificationModal] =
     useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
   const { user, accessToken, isLoading, isHydrated, clearAuth } =
     useAuthStore();
+
+  // Track scroll position for header background
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial position
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Handle case when there's no data in localStorage
   useEffect(() => {
@@ -132,9 +145,13 @@ const Header = () => {
         className={`fixed top-0 left-0 right-0 z-50 
     flex items-center justify-between
     mx-5 mt-3 px-8 py-3
-    bg-zinc-800/80 rounded-full
+    rounded-full
     [box-shadow:var(--shadow-m-inner)]
-    backdrop-blur-xl transition-all duration-300`}
+    backdrop-blur-xl transition-all duration-500
+    ${isScrolled 
+      ? 'bg-zinc-800/90 border border-white/10' 
+      : 'bg-transparent border border-transparent'
+    }`}
       >
         {/* Left Section: Logo + Search */}
         <div className="flex items-center gap-8">

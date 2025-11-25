@@ -73,6 +73,7 @@ export interface GetTopRateMoviesResponse {
       title: string;
       genre: string;
       posterUrl: string;
+      bannerUrl: string;
       premiereDate: Date;
       endDate: Date;
       status: "comming-soon" | "now-showing" | "end";
