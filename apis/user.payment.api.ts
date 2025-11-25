@@ -8,7 +8,7 @@ export const createPaymentRequest = () => {
   return axios.create({
     baseURL: BASE_URL,
     headers: {
-      // Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
   });

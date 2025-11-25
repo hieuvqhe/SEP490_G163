@@ -16,7 +16,7 @@ interface TheaterSelectorProps {
 }
 
 const TheaterSelector = ({ brands, onSelect }: TheaterSelectorProps) => {
-  console.log(brands?.[0]?.code ?? "CGV");
+  // console.log(brands?.[0]?.code ?? "CGV");
 
   const [selectedCode, setSelectedCode] = useState("");
 

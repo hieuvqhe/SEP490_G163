@@ -55,8 +55,6 @@ interface SeatMapProps {
   showtimeId?: number;
 }
 
-const LS_KEY = "booking-session";
-
 const SeatMap = ({
   seatTypes,
   cinemaName,
@@ -65,11 +63,10 @@ const SeatMap = ({
   sessionId,
   onPurchase,
   setSeatLayoutContent,
-  showtimeId
+  showtimeId,
 }: SeatMapProps) => {
-  
-
-  console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
+  // console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
+  console.log(`showtimeId: ${showtimeId}`);
 
   const { showToast } = useToast();
   const {
@@ -218,6 +215,7 @@ const SeatMap = ({
     if (
       !type ||
       type.code === "DISABLE"
+      // || type.code === "SOLD"
       //   type.code === "BROKEN" ||
       //   seat.Status !== "AVAILABLE"
     )
@@ -227,7 +225,7 @@ const SeatMap = ({
       (sSeat) => seat.SeatId === sSeat.seatId
     );
 
-    console.log(seat);
+    // console.log(seat);
 
     setSelectedSeats((prev) => {
       if (existing) {
@@ -357,10 +355,13 @@ const SeatMap = ({
       const type = seatTypes?.find((t) => t.seatTypeId === seat.SeatTypeId);
 
       const isSeatDisabled = type?.code === "DISABLE";
-      // type?.code === "BROKEN" ||
-      // seat.Status !== "AVAILABLE";
-
       const isSeatLocked = seat.Status === "LOCKED";
+      const isSeatSoled = seat.Status === "SOLD";
+
+      const color = seatTypeColor[seat.SeatTypeId] || "#ccc";
+      const isSelected = selectedSeats.some((s) => s.seatId === seat.SeatId);
+      const seatDisplayTitle = `${rowCode}${index}`;
+      const isLockedAndSelected = isSeatLocked && isSelected;
 
       // handle couple
       if (type?.code === "COUPLE" && i + 1 < rowSeats.length) {
@@ -395,6 +396,38 @@ const SeatMap = ({
                   ? "bg-zinc-900 cursor-not-allowed"
                   : "hover:scale-105 cursor-pointer"
               }
+              ${
+                isLockedAndSelected
+                  ? "ring-2 ring-white scale-105 hover:scale-110 cursor-pointer"
+                  : ""
+              }
+
+      ${
+        isSelected && !isLockedAndSelected
+          ? "scale-105 ring-2 ring-amber-400 hover:scale-110 cursor-pointer"
+          : ""
+      }
+
+      /* Disabled seat */
+      ${
+        !isSelected && isSeatDisabled
+          ? "bg-zinc-900 cursor-default pointer-events-none"
+          : ""
+      }
+
+      /* Locked by others (chưa chọn) */
+      ${
+        (!isSelected && !isLockedAndSelected && isSeatLocked) || isSeatSoled
+          ? "bg-red-900 cursor-default pointer-events-none"
+          : ""
+      }
+
+      /* Normal seat */
+      ${
+        !isSelected && !isSeatDisabled && !isSeatLocked
+          ? "hover:scale-110 cursor-pointer"
+          : ""
+      }
             `}
               style={{
                 backgroundColor: isCoupleDisabled ? undefined : color,
@@ -414,12 +447,6 @@ const SeatMap = ({
       }
 
       // normal seat
-      const color = seatTypeColor[seat.SeatTypeId] || "#ccc";
-      const isSelected = selectedSeats.some((s) => s.seatId === seat.SeatId);
-      const seatDisplayTitle = `${rowCode}${index}`;
-
-      const isLockedAndSelected = isSeatLocked && isSelected;
-
       elements.push(
         <button
           key={seat.SeatId}
@@ -449,7 +476,7 @@ const SeatMap = ({
 
       /* Locked by others (chưa chọn) */
       ${
-        !isSelected && !isLockedAndSelected && isSeatLocked
+        (!isSelected && !isLockedAndSelected && isSeatLocked) || isSeatSoled
           ? "bg-red-900 cursor-default pointer-events-none"
           : ""
       }
@@ -466,7 +493,7 @@ const SeatMap = ({
               ? undefined
               : isLockedAndSelected
               ? "#007bff" // màu xanh khi vừa locked vừa selected
-              : isSeatLocked || isSelected
+              : isSeatLocked || isSeatSoled
               ? "#7f1d1d"
               : color,
           }}
@@ -497,6 +524,27 @@ const SeatMap = ({
       }
     );
   };
+
+  const seatTypeTitle = useMemo(() => {
+    const map: Record<number, string> = {};
+    seatTypes?.forEach((type) => {
+      map[type.seatTypeId] = type.name;
+    });
+    return map;
+  }, [seatTypes]);
+
+  const uniqueSeatTypes = Array.from(
+    new Map(realtimeSeats.map((seat) => [seat.SeatTypeId, seat])).values()
+  );
+
+  const seatFilterDisable = uniqueSeatTypes.filter(
+    (seat) => seat.SeatTypeId !== 7
+  ); // assuming 7 is the ID for DISABLE seat type
+
+  const actionLegendTitle = [
+    { title: "Ghế đã bán", color: "#7f1d1d" },
+    { title: "Ghế đang chọn", color: "#007bff" },
+  ];
 
   return (
     <DialogContent
@@ -564,13 +612,24 @@ const SeatMap = ({
 
           {/* Legend */}
           <div className="px-3 py-2 flex flex-wrap gap-2 justify-center">
-            {seatTypes?.map((type) => (
-              <div key={type.seatTypeId} className="flex items-center gap-2">
+            {seatFilterDisable?.map((seat) => (
+              <div key={seat.SeatId} className="flex items-center gap-2">
                 <div
                   className="w-3 h-3 rounded"
-                  style={{ backgroundColor: type.color }}
+                  style={{ backgroundColor: seatTypeColor[seat.SeatTypeId] }}
                 />
-                <span className="text-xs text-gray-300">{type.name}</span>
+                <span className="text-xs text-gray-300">
+                  {seatTypeTitle[seat.SeatTypeId]}
+                </span>
+              </div>
+            ))}
+            {actionLegendTitle.map((item) => (
+              <div key={item.title} className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-xs text-gray-300">{item.title}</span>
               </div>
             ))}
           </div>

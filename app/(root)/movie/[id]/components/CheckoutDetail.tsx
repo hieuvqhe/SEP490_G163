@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
 import { useGetPartnerShowtimeById } from "@/apis/partner.showtime.api";
+import { useGetShowtimeById } from "@/apis/user.catalog.api";
 
 interface ComboCount {
   serviceId: number;
@@ -50,6 +51,7 @@ const CheckoutDetail = ({
   showtimeId,
 }: CheckOutProps) => {
   console.log(`showtimeId: ${showtimeId}`);
+  console.log(`curentOrderId: ${curentOrderId}`);
 
   const { showToast } = useToast();
   const [voucherCode, setVoucherCode] = useState<string>("");
@@ -57,9 +59,7 @@ const CheckoutDetail = ({
   const expiredOrderMutate = useSetExpiredOrder();
   const checkPayOSOrderMutate = useCheckPayOSOrder();
 
-  const { data: getPartnerShowtimeRes } = useGetPartnerShowtimeById(
-    showtimeId ?? 0
-  );
+  const { data: getPartnerShowtimeRes } = useGetShowtimeById(showtimeId ?? 0);
   const showtimeInfo = getPartnerShowtimeRes?.result;
 
   const handleSetExpiredOrder = () => {
@@ -87,7 +87,7 @@ const CheckoutDetail = ({
           case "PENDING":
             showToast("Đang kiểm tra trạng thái");
             break;
-          case "SUCCESS":
+          case "PAID":
             showToast("Thanh toán thành công", "", "warning");
             break;
           default:

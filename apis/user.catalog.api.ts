@@ -1,11 +1,18 @@
 import { BASE_URL } from "@/constants";
+import { getAccessToken } from "@/store/authStore";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import {
+  GetPartnerShowtimeByIdResponse,
+  PartnerShowtimeApiError,
+} from "./partner.showtime.api";
 
 export const createPublicRequest = () => {
+  const token = getAccessToken();
   return axios.create({
     baseURL: BASE_URL,
     headers: {
+      Authorization: token ? `Bearer ${token}` : "",
       "Content-Type": "application/json",
     },
   });
@@ -207,9 +214,37 @@ class ShowtimeManagement {
       throw handleShowtimeOverviewError(error);
     }
   };
+
+  async getShowtimeById(
+    showtimeId: number
+  ): Promise<GetPartnerShowtimeByIdResponse> {
+    if (!showtimeId || showtimeId <= 0) {
+      throw new PartnerShowtimeApiError("Vui lòng chọn suất chiếu hợp lệ.");
+    }
+
+    try {
+      const client = createPublicRequest();
+      const response = await client.get<GetPartnerShowtimeByIdResponse>(
+        `${BASE_URL}/api/cinema/showtimes/${showtimeId}`
+      );
+      return response.data;
+    } catch (error) {
+      throw handleShowtimeOverviewError(error);
+    }
+  }
 }
 
 export const showtimeManagementServices = new ShowtimeManagement();
+
+export const useGetShowtimeById = (showtimeId?: number) => {
+  return useQuery({
+    queryKey: ["catalog-showtime", showtimeId],
+    queryFn: () => showtimeManagementServices.getShowtimeById(showtimeId!),
+    enabled: typeof showtimeId === "number" && showtimeId > 0,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+};
 
 export const useGetShowtimesOverview = (params?: ShowtimeOverviewParams) => {
   return useQuery<GetShowtimeOverviewRes>({
@@ -226,4 +261,3 @@ export const useGetShowtimeSeat = (showtimeId: number) => {
     placeholderData: keepPreviousData,
   });
 };
-
