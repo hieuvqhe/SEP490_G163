@@ -69,6 +69,114 @@ const SeatMap = ({
   console.log(`showtimeId: ${showtimeId}`);
 
   const { showToast } = useToast();
+
+  // ==================== GAP VALIDATION LOGIC ====================
+  
+  // Helper: Tìm các khoảng trống liên tiếp
+  const findGaps = (blockState: boolean[]) => {
+    const gaps: { length: number; isEdge: boolean }[] = [];
+    let currentGap = 0;
+
+    for (let i = 0; i < blockState.length; i++) {
+      const isOccupied = blockState[i];
+
+      if (!isOccupied) {
+        currentGap++;
+      } else {
+        if (currentGap > 0) {
+          // Kết thúc 1 gap, lưu lại
+          gaps.push({
+            length: currentGap,
+            isEdge: i - currentGap === 0, // Gap chạm lề trái
+          });
+          currentGap = 0;
+        }
+      }
+    }
+
+    // Check gap cuối cùng (lề phải)
+    if (currentGap > 0) {
+      gaps.push({
+        length: currentGap,
+        isEdge: true, // Gap chạm lề phải
+      });
+    }
+
+    return gaps;
+  };
+
+  // Parse seats into blocks (separated by Z0/DISABLE seats)
+  const parseToBlocks = (rowSeats: RealtimeSeat[]) => {
+    const blocks: RealtimeSeat[][] = [];
+    let currentBlock: RealtimeSeat[] = [];
+
+    rowSeats.forEach((seat) => {
+      const type = seatTypes?.find((t) => t.seatTypeId === seat.SeatTypeId);
+      
+      // Z0 hoặc DISABLE là điểm ngăn cách blocks
+      if (type?.code === "DISABLE") {
+        if (currentBlock.length > 0) {
+          blocks.push(currentBlock);
+          currentBlock = [];
+        }
+      } else {
+        currentBlock.push(seat);
+      }
+    });
+
+    // Đẩy block cuối cùng
+    if (currentBlock.length > 0) {
+      blocks.push(currentBlock);
+    }
+
+    return blocks;
+  };
+
+  // Main validation function
+  const validateSeatSelection = (
+    rowSeats: RealtimeSeat[],
+    selectingSeats: { seatId: number; seatTitle: string }[]
+  ): { isValid: boolean; msg?: string } => {
+    const blocks = parseToBlocks(rowSeats);
+
+    for (const block of blocks) {
+      // Map trạng thái cho block
+      const blockState = block.map((seat) => {
+        const isSelected = selectingSeats.some((s) => s.seatId === seat.SeatId);
+        const isSoldOrBusy = seat.Status === "SOLD" || seat.Status === "LOCKED";
+        return isSelected || isSoldOrBusy; // true = Occupied
+      });
+
+      // Tính các khoảng trống
+      const gaps = findGaps(blockState);
+      const totalEmptySeats = blockState.filter((occupied) => !occupied).length;
+
+      // Validate từng gap
+      for (const gap of gaps) {
+        if (gap.length === 1) {
+          if (gap.isEdge) {
+            // Rule 2: Lề chỉ được trống 1 nếu đó là ghế trống duy nhất
+            if (totalEmptySeats !== 1) {
+              return {
+                isValid: false,
+                msg: "Không được để trống 1 ghế ở đầu/cuối hàng",
+              };
+            }
+          } else {
+            // Rule 1: Ở giữa tuyệt đối không được trống 1
+            return {
+              isValid: false,
+              msg: "Không được để trống 1 ghế ở giữa",
+            };
+          }
+        }
+      }
+    }
+
+    return { isValid: true };
+  };
+
+  // ==================== END GAP VALIDATION LOGIC ====================
   const {
     seatMap: realtimeSeats,
     isConnected,
@@ -225,21 +333,30 @@ const SeatMap = ({
       (sSeat) => seat.SeatId === sSeat.seatId
     );
 
-    // console.log(seat);
+    // Tìm row của ghế này
+    const rowSeats = realtimeSeats.filter((s) => s.RowCode === seat.RowCode);
 
-    setSelectedSeats((prev) => {
-      if (existing) {
-        return prev.filter((sSeat) => sSeat.seatId !== seat.SeatId);
-      } else {
-        if (prev.length >= MAX_SEATS) {
-          // alert(`Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`);
-          return prev;
-        }
-        const newSeats = prev.filter((sSeat) => sSeat.seatId !== seat.SeatId);
-        return [...newSeats, { seatId: seat.SeatId, seatTitle }];
+    // Simulate selection mới
+    let newSelectedSeats: { seatId: number; seatTitle: string }[];
+    if (existing) {
+      newSelectedSeats = selectedSeats.filter((sSeat) => sSeat.seatId !== seat.SeatId);
+    } else {
+      if (selectedSeats.length >= MAX_SEATS) {
+        showToast("Thông báo", `Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`, "warning");
+        return;
       }
-    });
+      newSelectedSeats = [...selectedSeats, { seatId: seat.SeatId, seatTitle }];
+    }
 
+    // Validate gap rules
+    const validation = validateSeatSelection(rowSeats, newSelectedSeats);
+    if (!validation.isValid) {
+      showToast("Không thể chọn ghế", validation.msg || "Vi phạm quy tắc chọn ghế", "warning");
+      return;
+    }
+
+    // Nếu hợp lệ, cập nhật state
+    setSelectedSeats(newSelectedSeats);
     handleLockReleaseSeat({ isSeatExist: existing, lockSeat: seat });
   };
 
@@ -252,25 +369,28 @@ const SeatMap = ({
 
     const isBothSelected = hasSeat1 && hasSeat2;
 
-    setSelectedSeats((prev) => {
-      // Nếu đang selected cả đôi -> unselect cả đôi
-      if (isBothSelected) {
-        return prev.filter(
-          (s) => s.seatId !== seat1.SeatId && s.seatId !== seat2.SeatId
-        );
-      }
+    // Tìm row của ghế này
+    const rowSeats = realtimeSeats.filter((s) => s.RowCode === seat1.RowCode);
 
-      // Chưa chọn đủ -> chọn cả đôi
-      const newPrev = prev.filter(
+    // Simulate selection mới
+    let newSelectedSeats: { seatId: number; seatTitle: string }[];
+    if (isBothSelected) {
+      // Unselect cả đôi
+      newSelectedSeats = selectedSeats.filter(
+        (s) => s.seatId !== seat1.SeatId && s.seatId !== seat2.SeatId
+      );
+    } else {
+      // Chọn cả đôi
+      const newPrev = selectedSeats.filter(
         (s) => s.seatId !== seat1.SeatId && s.seatId !== seat2.SeatId
       );
 
       if (newPrev.length + 2 > MAX_SEATS) {
-        alert(`Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`);
-        return prev;
+        showToast("Thông báo", `Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`, "warning");
+        return;
       }
 
-      return [
+      newSelectedSeats = [
         ...newPrev,
         {
           seatId: seat1.SeatId,
@@ -281,7 +401,17 @@ const SeatMap = ({
           seatTitle: `${seat2.RowCode}${seat2.SeatNumber}`,
         },
       ];
-    });
+    }
+
+    // Validate gap rules
+    const validation = validateSeatSelection(rowSeats, newSelectedSeats);
+    if (!validation.isValid) {
+      showToast("Không thể chọn ghế", validation.msg || "Vi phạm quy tắc chọn ghế", "warning");
+      return;
+    }
+
+    // Nếu hợp lệ, cập nhật state
+    setSelectedSeats(newSelectedSeats);
 
     // Call lock / release
     handleLockReleaseCoupleSeat({
