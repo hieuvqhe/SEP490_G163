@@ -28,6 +28,7 @@ export interface PendingPartner {
   taxRegistrationCertificateUrl: string;
   identityCardUrl: string;
   theaterPhotosUrl: string;
+  additionalDocumentsUrl?: string;
 }
 
 export interface PendingPartnersPagination {

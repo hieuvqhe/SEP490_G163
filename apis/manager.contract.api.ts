@@ -30,6 +30,7 @@ export interface Contract {
   partnerPhone: string | null;
   managerId: number;
   managerName: string;
+  partnerSignatureUrl?: string;
 }
 
 export interface ContractsPagination {
@@ -371,7 +372,7 @@ class ManagerContractService {
     try {
       const url = `${this.baseURL}/contracts/${contractId}/send-pdf`;
       const response = await fetch(url, {
-        method: "POST",
+        method: "PUT",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",

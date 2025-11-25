@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, Loader2, Lock, RefreshCcw, Send } from 'lucide-react';
+import { Eye, Lock, RefreshCcw, Send, FileText, Loader2 } from 'lucide-react';
 
 import {
   useGetContracts,
@@ -16,6 +16,7 @@ import { useToast } from '@/components/ToastProvider';
 import ContractDetailModal from './ContractDetailModal';
 import SendContractModal from './SendContractModal';
 import ConfirmActivationModal from './ConfirmActivationModal';
+import SignedContractModal from './SignedContractModal';
 
 const tableVariants = {
   hidden: { opacity: 0, y: 12 },
@@ -131,6 +132,7 @@ const ContractManagement = () => {
   const [selectedContractId, setSelectedContractId] = useState<number | null>(null);
   const [sendContractId, setSendContractId] = useState<number | null>(null);
   const [activationContractId, setActivationContractId] = useState<number | null>(null);
+  const [signedContractToView, setSignedContractToView] = useState<Contract | null>(null);
 
   const queryParams = useMemo(() => ({ page: 1, limit: 10 }), []);
 
@@ -210,6 +212,18 @@ const ContractManagement = () => {
     );
   };
 
+  const handleViewSignedContract = (contract: Contract) => {
+    if (!contract.partnerSignatureUrl) {
+      showToast('Không tìm thấy file hợp đồng đã ký', undefined, 'warning');
+      return;
+    }
+    setSignedContractToView(contract);
+  };
+
+  const handleCloseSignedContractModal = () => {
+    setSignedContractToView(null);
+  };
+
   return (
     <motion.div
       className="space-y-6"
@@ -273,6 +287,11 @@ const ContractManagement = () => {
                 {contracts.map((contract) => {
                   const statusBadge = getStatusBadge(contract.status);
                   const operationalStatus = getOperationalStatus(contract);
+                  
+                  // Debug: Log contract info
+                  const shouldShowSignedButton = 
+                    (contract.status === 'pending' || contract.status === 'active' || contract.status === 'expired') 
+                    && !!contract.partnerSignatureUrl;
 
                   return (
                     <tr key={contract.contractId} className="transition hover:bg-white/10">
@@ -302,30 +321,40 @@ const ContractManagement = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2 text-xs">
+                        <div className="flex items-center justify-end gap-1.5 text-xs">
                           <button
                             onClick={() => handleViewDetails(contract.contractId)}
-                            className="flex w-32 items-center justify-center gap-2 rounded-lg bg-blue-500/20 px-3 py-2 font-semibold text-blue-200 transition hover:bg-blue-500/30"
+                            className="flex items-center justify-center gap-1.5 rounded-lg bg-blue-500/20 px-2.5 py-1.5 font-medium text-blue-200 transition hover:bg-blue-500/30 whitespace-nowrap"
                           >
-                            <Eye size={14} />
-                            Xem chi tiết
+                            <Eye size={13} />
+                            <span className="hidden xl:inline">Xem mẫu</span>
                           </button>
+                          {shouldShowSignedButton && (
+                            <button
+                              onClick={() => handleViewSignedContract(contract)}
+                              className="flex items-center justify-center gap-1.5 rounded-lg bg-purple-500/20 px-2.5 py-1.5 font-medium text-purple-200 transition hover:bg-purple-500/30 whitespace-nowrap"
+                              title="Xem hợp đồng đã ký"
+                            >
+                              <FileText size={13} />
+                              <span className="hidden xl:inline">HĐ đã ký</span>
+                            </button>
+                          )}
                           {contract.status === 'draft' && (
                             <button
                               onClick={() => handleOpenSendModal(contract.contractId)}
-                              className="flex w-32 items-center justify-center gap-2 rounded-lg bg-orange-500/20 px-3 py-2 font-semibold text-orange-200 transition hover:bg-orange-500/30"
+                              className="flex items-center justify-center gap-1.5 rounded-lg bg-orange-500/20 px-2.5 py-1.5 font-medium text-orange-200 transition hover:bg-orange-500/30 whitespace-nowrap"
                             >
-                              <Send size={14} />
-                              Gửi HĐ
+                              <Send size={13} />
+                              <span className="hidden xl:inline">Gửi HĐ</span>
                             </button>
                           )}
                           {contract.status === 'pending' && (
                             <button
                               onClick={() => handleActivateContract(contract.contractId)}
-                              className="flex w-32 items-center justify-center gap-2 rounded-lg bg-emerald-500/20 px-3 py-2 font-semibold text-emerald-200 transition hover:bg-emerald-500/30"
+                              className="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500/20 px-2.5 py-1.5 font-medium text-emerald-200 transition hover:bg-emerald-500/30 whitespace-nowrap"
                             >
-                              <Lock size={14} />
-                              Kích hoạt
+                              <Lock size={13} />
+                              <span className="hidden xl:inline">Kích hoạt</span>
                             </button>
                           )}
                         </div>
@@ -368,6 +397,17 @@ const ContractManagement = () => {
             onCancel={handleCloseActivationModal}
             onConfirm={handleConfirmActivate}
             isProcessing={activateContractMutation.isPending}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {signedContractToView !== null && (
+          <SignedContractModal
+            contractId={signedContractToView.contractId}
+            contractTitle={signedContractToView.title || signedContractToView.contractNumber}
+            partnerSignatureUrl={signedContractToView.partnerSignatureUrl!}
+            onClose={handleCloseSignedContractModal}
           />
         )}
       </AnimatePresence>

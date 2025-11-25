@@ -209,7 +209,7 @@ export interface ContractQueryParams {
 export interface PartnerUpdateRequest extends PartnerCreateRequest {}
 
 export interface UploadSignaturesRequest {
-  signatureImageUrl: string;
+  signedContractPdfUrl: string;
   notes: string;
 }
 

@@ -49,6 +49,11 @@ export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps
     .map((url) => url.trim())
     .filter((url) => url.length > 0);
 
+  const additionalDocumentUrls = partner.additionalDocumentsUrl
+    ?.split(";")
+    .map((url) => url.trim())
+    .filter((url) => url.length > 0);
+
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur"
@@ -244,6 +249,38 @@ export const PartnerDetailModal = ({ partner, onClose }: PartnerDetailModalProps
                           <img
                             src={url}
                             alt={`Hình ảnh rạp chiếu của đối tác ${index + 1}`}
+                            className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 font-body">
+                            Nhấp để xem kích thước lớn
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {additionalDocumentUrls && additionalDocumentUrls.length > 0 && (
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white backdrop-blur-lg col-span-full">
+                  <div className="mb-3 flex items-center gap-3">
+                    <FileText size={20} className="text-cyan-400" />
+                    <p className="font-body text-sm font-medium text-white">Tài liệu bổ sung</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {additionalDocumentUrls.map((url, index) => (
+                      <a
+                        key={`${url}-${index}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group block"
+                      >
+                        <div className="relative overflow-hidden rounded-lg border border-white/10 bg-black/40">
+                          <img
+                            src={url}
+                            alt={`Tài liệu bổ sung ${index + 1}`}
                             className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 font-body">
