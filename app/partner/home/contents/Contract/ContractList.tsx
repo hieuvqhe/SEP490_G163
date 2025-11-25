@@ -163,7 +163,11 @@ export default function ContractList() {
                             Xem chi tiết
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="!max-w-[80vw] h-[90vh] bg-zinc-950">
+                        <DialogContent 
+                          className="!max-w-[80vw] h-[90vh] bg-zinc-950"
+                          onInteractOutside={(e) => e.preventDefault()}
+                          onEscapeKeyDown={(e) => e.preventDefault()}
+                        >
                           <VisuallyHidden>
                             <DialogTitle>Chi tiết hợp đồng</DialogTitle>
                           </VisuallyHidden>

@@ -3,6 +3,9 @@ import {
   handleShowtimeOverviewError,
 } from "./user.catalog.api";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { BASE_URL } from "@/constants";
+import { getAccessToken } from "@/store/authStore";
+import axios from "axios";
 
 interface BookingSessionRes {
   message: string;
@@ -236,7 +239,19 @@ interface CreateCheckoutRes {
   };
 }
 
-const userApi = createPublicRequest();
+// Tạo axios instance với Authorization header
+const createAuthenticatedRequest = () => {
+  const token = getAccessToken();
+  return axios.create({
+    baseURL: BASE_URL,
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+const userApi = createAuthenticatedRequest();
 
 class BookingSessionsManagement {
   private BASE_URL = "/api/booking/sessions";

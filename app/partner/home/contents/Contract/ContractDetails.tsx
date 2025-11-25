@@ -63,7 +63,7 @@ const ContractDetails = ({ contractId }: ContractDetailsProps) => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       active: { label: "Hiệu lực", color: "border-emerald-500 text-emerald-400" },
-      inactive: { label: "Hết hạn", color: "border-yellow-500 text-yellow-400" },
+      inactive: { label: "Chưa ký", color: "border-yellow-500 text-yellow-400" },
       pending: { label: "Chờ ký", color: "border-blue-500 text-blue-400" },
       terminated: { label: "Đã hủy", color: "border-red-500 text-red-400" },
     };
@@ -294,7 +294,7 @@ const ContractDetails = ({ contractId }: ContractDetailsProps) => {
         <p>Tạo bởi: {contract.createdByName} - {formatDate(contract.createdAt)}</p>
         <p>Cập nhật lần cuối: {formatDate(contract.updatedAt)}</p>
         {contract.contractHash && (
-          <p className="font-mono">Hash: {contract.contractHash}</p>
+          <p className="font-mono"></p>
         )}
       </div>
     </div>

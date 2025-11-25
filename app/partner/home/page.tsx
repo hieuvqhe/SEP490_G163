@@ -27,6 +27,7 @@ import ShowtimeManagement from "./contents/Cinema/ShowtimeManagement/ShowtimeMan
 import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement/SeatTypeManagement";
 import ComboManagement from "./contents/Cinema/ComboManagement";
 import ContractList from "./contents/Contract/ContractList";
+import EmployeeManagement from "./contents/Decentralization/EmployeeManagement";
 
 const PartnerHomepage = () => {
   const activeTab = usePartnerHomeStore((state) => state.activeTab);
@@ -60,6 +61,9 @@ const PartnerHomepage = () => {
 
       case "combo":
         return <ComboManagement />;
+
+      case "employees":
+        return <EmployeeManagement />;
       
 
       default:
