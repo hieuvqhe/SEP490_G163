@@ -293,9 +293,9 @@ export function SectionCards() {
       </div>
 
       {/* Charts Row - Row 2 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
         {/* Revenue Trend Card */}
-        <StatCard delay={0.4} className="@5xl/main:col-span-2">
+        <StatCard delay={0.4} className="h-full">
           <CardHeader>
             <CardDescription className="text-zinc-400 flex items-center gap-2">
               <TrendingUpIcon className="size-4 text-orange-400" />
@@ -308,7 +308,7 @@ export function SectionCards() {
           <CardContent>
             {timeStatistics.revenueTrend.length > 0 ? (
               <SimpleBarChart
-                items={timeStatistics.revenueTrend.map((t) => ({
+                items={timeStatistics.revenueTrend.slice(-7).map((t) => ({
                   value: t.revenue,
                   label: new Date(t.date).toLocaleDateString("vi-VN", {
                     day: "2-digit",
@@ -331,6 +331,7 @@ export function SectionCards() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.45 }}
+          className="h-full"
         >
           <WeeklyRevenueTracker
             spending={(() => {
@@ -364,14 +365,14 @@ export function SectionCards() {
         </motion.div>
 
         {/* Service Revenue Donut */}
-        <StatCard delay={0.5}>
+        <StatCard delay={0.5} className="h-full">
           <CardHeader>
             <CardDescription className="text-zinc-400 flex items-center gap-2">
               <ShoppingCart className="size-4 text-pink-400" />
               Doanh Thu Dịch Vụ
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center">
+          <CardContent className="flex flex-col items-center justify-center flex-1">
             <DonutChart
               value={serviceStatistics.serviceRevenuePercentage}
               max={100}
@@ -401,7 +402,7 @@ export function SectionCards() {
       {/* Cinema & Movie Stats - Row 3 */}
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2">
         {/* Top Cinemas */}
-        <StatCard delay={0.6}>
+        <StatCard delay={0.6} className="h-full">
           <CardHeader>
             <CardDescription className="text-zinc-400 flex items-center gap-2">
               <Building2 className="size-4 text-cyan-400" />
@@ -452,7 +453,7 @@ export function SectionCards() {
         </StatCard>
 
         {/* Top Movies */}
-        <StatCard delay={0.7}>
+        <StatCard delay={0.7} className="h-full">
           <CardHeader>
             <CardDescription className="text-zinc-400 flex items-center gap-2">
               <Film className="size-4 text-red-400" />
@@ -687,7 +688,7 @@ export function SectionCards() {
       {/* Showtime & Seat Stats - Row 6 */}
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2">
         {/* Showtime Stats */}
-        <StatCard delay={1.3}>
+        <StatCard delay={1.3} className="h-full">
           <CardHeader>
             <CardDescription className="text-zinc-400 flex items-center gap-2">
               <Calendar className="size-4 text-teal-400" />
@@ -747,7 +748,7 @@ export function SectionCards() {
         </StatCard>
 
         {/* Seat Type Stats */}
-        <StatCard delay={1.4}>
+        <StatCard delay={1.4} className="h-full">
           <CardHeader>
             <CardDescription className="text-zinc-400 flex items-center gap-2">
               <Armchair className="size-4 text-rose-400" />

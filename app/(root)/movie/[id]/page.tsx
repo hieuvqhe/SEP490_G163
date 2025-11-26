@@ -4,9 +4,9 @@ import MovieDetail from "./components/MovieDetail";
 export default async function MovieDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = (await params) as { id: string };
+  const { id } = await params;
   if (!id) return null;
 
   const movieId = Number(id);

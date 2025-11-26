@@ -229,6 +229,59 @@ export interface GetBookingStatisticsParams {
   pageSize?: number;
 }
 
+// ==================== STAFF PERFORMANCE INTERFACES ====================
+
+export interface StaffPerformanceItem {
+  employeeId: number;
+  employeeName: string;
+  email: string;
+  roleType: "Staff" | "Marketing" | "Cashier";
+  hireDate: string;
+  isActive: boolean;
+  totalBookings: number;
+  totalRevenue: number;
+  averageBookingValue: number;
+  cinemaCount: number;
+  cinemaIds: number[];
+  cinemaNames: string[];
+  totalTicketsSold: number;
+  rank: number;
+}
+
+export interface StaffPerformanceSummary {
+  totalStaff: number;
+  totalBookings: number;
+  totalRevenue: number;
+  averageRevenuePerStaff: number;
+  bestPerformer: StaffPerformanceItem | null;
+}
+
+export interface StaffPerformanceResult {
+  staffPerformance: StaffPerformanceItem[];
+  summary: StaffPerformanceSummary;
+}
+
+export interface GetStaffPerformanceResponse {
+  message: string;
+  result: StaffPerformanceResult;
+}
+
+export interface GetStaffPerformanceDetailResponse {
+  message: string;
+  result: StaffPerformanceItem;
+}
+
+export interface GetStaffPerformanceParams {
+  fromDate?: string;
+  toDate?: string;
+  topLimit?: number;
+}
+
+export interface GetStaffPerformanceDetailParams {
+  fromDate?: string;
+  toDate?: string;
+}
+
 // ==================== ERROR HANDLING ====================
 
 export class PartnerStatisticApiError extends Error {
@@ -312,6 +365,48 @@ class PartnerStatisticService {
       throw handlePartnerStatisticError(error, "Đã xảy ra lỗi hệ thống khi lấy thống kê đơn hàng.");
     }
   }
+
+  async getStaffPerformance(
+    params: GetStaffPerformanceParams = {}
+  ): Promise<GetStaffPerformanceResponse> {
+    try {
+      const client = createPartnerStatisticRequest();
+      const queryParams = new URLSearchParams();
+
+      if (params.fromDate) queryParams.append("fromDate", params.fromDate);
+      if (params.toDate) queryParams.append("toDate", params.toDate);
+      if (params.topLimit !== undefined) queryParams.append("topLimit", params.topLimit.toString());
+
+      const endpoint = `${this.partnerBasePath}/statistics/staff-performance${
+        queryParams.toString() ? `?${queryParams.toString()}` : ""
+      }`;
+      const response = await client.get<GetStaffPerformanceResponse>(endpoint);
+      return response.data;
+    } catch (error) {
+      throw handlePartnerStatisticError(error, "Đã xảy ra lỗi hệ thống khi lấy thống kê hiệu suất nhân viên.");
+    }
+  }
+
+  async getStaffPerformanceDetail(
+    employeeId: number,
+    params: GetStaffPerformanceDetailParams = {}
+  ): Promise<GetStaffPerformanceDetailResponse> {
+    try {
+      const client = createPartnerStatisticRequest();
+      const queryParams = new URLSearchParams();
+
+      if (params.fromDate) queryParams.append("fromDate", params.fromDate);
+      if (params.toDate) queryParams.append("toDate", params.toDate);
+
+      const endpoint = `${this.partnerBasePath}/statistics/staff-performance/${employeeId}${
+        queryParams.toString() ? `?${queryParams.toString()}` : ""
+      }`;
+      const response = await client.get<GetStaffPerformanceDetailResponse>(endpoint);
+      return response.data;
+    } catch (error) {
+      throw handlePartnerStatisticError(error, "Đã xảy ra lỗi hệ thống khi lấy thống kê chi tiết nhân viên.");
+    }
+  }
 }
 
 export const partnerStatisticService = new PartnerStatisticService();
@@ -346,5 +441,53 @@ export const useInvalidateBookingStatistics = () => {
     } else {
       queryClient.invalidateQueries({ queryKey: ["partner-booking-statistics"] });
     }
+  };
+};
+
+// ==================== STAFF PERFORMANCE HOOKS ====================
+
+export const useGetStaffPerformance = (params: GetStaffPerformanceParams = {}) => {
+  return useQuery({
+    queryKey: ["partner-staff-performance", params],
+    queryFn: () => partnerStatisticService.getStaffPerformance(params),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+};
+
+export const useGetStaffPerformanceDetail = (
+  employeeId: number | undefined,
+  params: GetStaffPerformanceDetailParams = {}
+) => {
+  return useQuery({
+    queryKey: ["partner-staff-performance-detail", employeeId, params],
+    queryFn: () => partnerStatisticService.getStaffPerformanceDetail(employeeId!, params),
+    enabled: !!employeeId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+};
+
+export const usePrefetchStaffPerformance = () => {
+  const queryClient = useQueryClient();
+
+  return (params: GetStaffPerformanceParams = {}) =>
+    queryClient.prefetchQuery({
+      queryKey: ["partner-staff-performance", params],
+      queryFn: () => partnerStatisticService.getStaffPerformance(params),
+    });
+};
+
+export const useInvalidateStaffPerformance = () => {
+  const queryClient = useQueryClient();
+
+  return (params?: GetStaffPerformanceParams) => {
+    if (params !== undefined) {
+      queryClient.invalidateQueries({ queryKey: ["partner-staff-performance", params] });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["partner-staff-performance"] });
+    }
+    // Also invalidate detail queries
+    queryClient.invalidateQueries({ queryKey: ["partner-staff-performance-detail"] });
   };
 };

@@ -23,7 +23,7 @@ const initialSeatLayoutContext: SeatLayoutContextState = {
 };
 
 export const usePartnerHomeStore = create<PartnerHomeState>((set) => ({
-  activeTab: "overview",
+  activeTab: "home",
   setActiveTab: (tab) =>
     set((state) => ({
       activeTab: tab,

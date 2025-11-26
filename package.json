@@ -6,7 +6,7 @@
     "dev": "next dev",
     "start": "next start",
     "lint": "eslint",
-    "build": "next build --turbopack"
+    "build": "next build"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
