@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Bot, Newspaper, SquareTerminal, Tickets } from "lucide-react";
+import {
+  Bot,
+  LucideIcon,
+  Newspaper,
+  SquareTerminal,
+  Tickets,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -21,7 +27,10 @@ export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   setActiveTab?: (tab: string) => void;
 }
 
-export function AppSidebar({ setActiveTab: legacySetActiveTab, ...rest }: AppSidebarProps) {
+export function AppSidebar({
+  setActiveTab: legacySetActiveTab,
+  ...rest
+}: AppSidebarProps) {
   const { user, accessToken, isLoading, isHydrated, clearAuth, logout } =
     useAuthStore();
   const setStoreActiveTab = usePartnerHomeStore((state) => state.setActiveTab);
@@ -46,83 +55,120 @@ export function AppSidebar({ setActiveTab: legacySetActiveTab, ...rest }: AppSid
     },
   });
 
-  const data = {
-    user: {
-      name: user?.fullname ?? "Đối Tác",
-      email: user?.email ?? "doitac@gmail.com",
-      avatar: user?.avatarUrl ?? "/avatars/default-avatar.jpg",
-    },
-    navMain: [
-      {
-        title: "Rạp Chiếu",
-        url: "#",
-        icon: SquareTerminal,
-        isActive: true,
-        items: [
-          {
-            title: "Tổng quan Rạp",
-            url: "cinema",
-          },
-          {
-            title: "Phòng Chiếu",
-            url: "screen",
-          },
-          {
-            title: "Loại Ghế",
-            url: "seat-type",
-          },
-          {
-            title: "Sơ Đồ Rạp",
-            url: "seating-chart",
-          },
-          {
-            title: "Suất Chiếu",
-            url: "showtimes",
-          },
-          {
-            title: "Phim Chiếu",
-            url: "movies",
-          },
-          {
-            title: "Combo",
-            url: "combo",
-          },
-        ],
-      },
-      {
-        title: "Quản Lý",
-        url: "#",
-        icon: Bot,
-        items: [
-          {
-            title: "Nhân Viên",
-            url: "employees",
-          },
-          {
-            title: "Giao Dịch",
-            url: "transactions",
-          },
-        ],
-      },
+  interface NavItem {
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+    isActive?: boolean;
+    items?: NavItem[];
+  }
 
-      {
-        title: "Hợp Đồng",
-        url: "#",
-        icon: Newspaper,
-        items: [
-          
-          {
-            title: "Hợp Đồng Của Tôi",
-            url: "contract-list",
-          },
-          {
-            title: "Đăng Tải Hợp Đồng",
-            url: "contracts-upload",
-          },
-        ],
-      },
-    ],
+  interface UserNavigation {
+    user: {
+      name: string;
+      email: string;
+      avatar: string;
+    };
+    navMain: NavItem[];
+  }
+
+  const baseNavMain: NavItem[] = [
+    {
+      title: "Rạp Chiếu",
+      url: "#",
+      icon: SquareTerminal,
+      isActive: true,
+      items: [
+        { title: "Tổng quan Rạp", url: "cinema" },
+        { title: "Phòng Chiếu", url: "screen" },
+        { title: "Loại Ghế", url: "seat-type" },
+        { title: "Sơ Đồ Rạp", url: "seating-chart" },
+        { title: "Suất Chiếu", url: "showtimes" },
+        { title: "Phim Chiếu", url: "movies" },
+        { title: "Combo", url: "combo" },
+      ],
+    },
+    {
+      title: "Quản Lý",
+      url: "#",
+      icon: Bot,
+      items: [
+        { title: "Nhân Viên", url: "employees" },
+        { title: "Giao Dịch", url: "transactions" },
+      ],
+    },
+    {
+      title: "Hợp Đồng",
+      url: "#",
+      icon: Newspaper,
+      items: [
+        { title: "Hợp Đồng Của Tôi", url: "contract-list" },
+        { title: "Đăng Tải Hợp Đồng", url: "contracts-upload" },
+      ],
+    },
+  ];
+
+  const data: UserNavigation = {
+    user: user,
+    navMain: [],
   };
+
+  switch (user?.role) {
+    case "Partner":
+      data.navMain = baseNavMain;
+      break;
+
+    case "Staff":
+      data.navMain = [
+        {
+          title: "Rạp Chiếu",
+          url: "#",
+          icon: SquareTerminal,
+          isActive: true,
+          items: [
+            { title: "Tổng quan Rạp", url: "cinema" },
+            { title: "Phòng Chiếu", url: "screen" },
+            { title: "Loại Ghế", url: "seat-type" },
+            { title: "Sơ Đồ Rạp", url: "seating-chart" },
+            { title: "Suất Chiếu", url: "showtimes" },
+            { title: "Phim Chiếu", url: "movies" },
+            { title: "Combo", url: "combo" },
+          ],
+        },
+      ];
+      break;
+
+    case "Cashier":
+      data.navMain = [
+        {
+          title: "Giao Dịch",
+          url: "#",
+          icon: Bot,
+          items: [
+            { title: "Bán Vé", url: "sell-tickets" },
+            { title: "Lịch Sử Thanh Toán", url: "payments" },
+          ],
+        },
+      ];
+      break;
+
+    case "Marketing":
+      data.navMain = [
+        {
+          title: "Marketing",
+          url: "#",
+          icon: SquareTerminal,
+          items: [
+            { title: "Chiến Dịch", url: "campaigns" },
+            { title: "Mã Giảm Giá", url: "vouchers" },
+          ],
+        },
+      ];
+      break;
+
+    default:
+      data.navMain = [];
+  }
 
   const handleSetActiveTab = (tab: string) => {
     legacySetActiveTab?.(tab);

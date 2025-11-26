@@ -56,7 +56,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     onSuccess: (data) => {
       const role = data.result?.role?.toLowerCase?.();
 
-      if (role !== "partner") {
+      if (role === "User") {
         const message = "Bạn không có quyền truy cập trang này";
         showToast("Không có quyền", message, "error");
         setGeneralError(message);

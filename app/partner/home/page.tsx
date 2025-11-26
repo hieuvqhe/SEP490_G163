@@ -21,12 +21,12 @@ import Page from "./contents/home/dashboard/page";
 import SeatLayout from "./contents/seat/SeatLayout";
 import { usePartnerHomeStore } from "@/store/partnerHomeStore";
 import ManageMovies from "./contents/movies/ManageMovies";
-import CinemaInfo from "./contents/Cinema/CinemaInfo/CinemaInfo";
-import ScreenManagement from "./contents/Cinema/ScreenManagement/ScreenManagement";
-import ShowtimeManagement from "./contents/Cinema/ShowtimeManagement/ShowtimeManagement";
-import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement/SeatTypeManagement";
-import ComboManagement from "./contents/Cinema/ComboManagement";
-import ContractList from "./contents/Contract/ContractList";
+import CinemaInfo from "./contents/cinema/CinemaInfo/CinemaInfo";
+import ScreenManagement from "./contents/cinema/ScreenManagement/ScreenManagement";
+import ShowtimeManagement from "./contents/cinema/ShowtimeManagement/ShowtimeManagement";
+import SeatTypeManagement from "./contents/cinema/SeatTypeManagement/SeatTypeManagement";
+import ComboManagement from "./contents/cinema/ComboManagement";
+import ContractList from "./contents/contract/ContractList";
 import EmployeeManagement from "./contents/Decentralization/EmployeeManagement";
 
 const PartnerHomepage = () => {
@@ -108,13 +108,13 @@ const PartnerHomepage = () => {
                     className=" text-zinc-200 hover:text-zinc-200/80 transition-colors duration-200"
                     href="#"
                   >
-                    Building Your Application
+                    Quản Lý Rạp Chiếu Của Bạn
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
+                {/* <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
                   <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
+                </BreadcrumbItem> */}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

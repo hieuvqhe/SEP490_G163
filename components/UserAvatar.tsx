@@ -292,20 +292,12 @@ const UserAvatar = () => {
           Hồ sơ cá nhân
         </Link>
         <Link
-          href="/settings"
-          className="text-zinc-700 dark:text-zinc-300 group flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150"
-          role="menuitem"
-        >
-          <Settings className="mr-3 h-4 w-4 text-zinc-500" />
-          Cài đặt
-        </Link>
-        <Link
           href="/billing"
           className="text-zinc-700 dark:text-zinc-300 group flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150"
           role="menuitem"
         >
           <CreditCard className="mr-3 h-4 w-4 text-zinc-500" />
-          Thanh toán & Gói dịch vụ
+          Vé đã mua
         </Link>
       </div>
       <DropdownMenuSeparator />

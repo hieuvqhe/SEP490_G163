@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
-import { useGetPartnerShowtimeById } from "@/apis/partner.showtime.api";
 import { useGetShowtimeById } from "@/apis/user.catalog.api";
 
 interface ComboCount {
@@ -88,8 +87,12 @@ const CheckoutDetail = ({
             showToast("Đang kiểm tra trạng thái");
             break;
           case "PAID":
-            showToast("Thanh toán thành công", "", "warning");
-            break;
+            showToast(
+              "Thanh toán thành công",
+              "Vé sẽ được gửi về email của bạn!",
+              "warning"
+            );
+            redirect("/");
           default:
             break;
         }

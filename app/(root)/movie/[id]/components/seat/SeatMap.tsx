@@ -1,16 +1,10 @@
 "use client";
 
-import React, {
-  useState,
-  useMemo,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-} from "react";
+import React, { useState, useMemo, Dispatch, SetStateAction } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
-  useGetBookingSessionDetail,
   useSeatActions,
+  useValidateSelectionSeats,
 } from "@/apis/user.booking-session.api";
 import {
   Dialog,
@@ -72,12 +66,14 @@ const SeatMap = ({
   const { showToast } = useToast();
 
   // ==================== GAP VALIDATION LOGIC ====================
-  
+
   // Helper: Lấy số ghế dạng Number (Bắt buộc phải parse ra số)
   const getSeatNum = (seat: RealtimeSeat | { seatTitle: string }) => {
     const title = "SeatNumber" in seat ? seat.SeatNumber : seat.seatTitle; // Handle both types
     // Dùng Regex lấy phần số: "A12" -> 12, "05" -> 5
-    return typeof title === 'number' ? title : parseInt(String(title).replace(/\D/g, '')) || 0;
+    return typeof title === "number"
+      ? title
+      : parseInt(String(title).replace(/\D/g, "")) || 0;
   };
 
   // Helper: Sort ghế chuẩn xác (Kết hợp Column Index và Số ghế)
@@ -132,7 +128,7 @@ const SeatMap = ({
 
     rowSeats.forEach((seat) => {
       const type = seatTypes?.find((t) => t.seatTypeId === seat.SeatTypeId);
-      
+
       // Z0 hoặc DISABLE là điểm ngăn cách blocks
       if (type?.code === "DISABLE") {
         if (currentBlock.length > 0) {
@@ -204,35 +200,46 @@ const SeatMap = ({
     currentSelectedSeats: { seatId: number; seatTitle: string }[],
     rowSeats: RealtimeSeat[]
   ): { canDeselect: boolean; msg?: string } => {
-    
     // FIX 1: Sort dữ liệu đầu vào ngay lập tức
     const sortedRowSeats = sortSeats(rowSeats);
 
     // ---------------------------------------------------------
     // BƯỚC 1: CHECK LIỀN KỀ (Không được đục lỗ ở giữa)
     // ---------------------------------------------------------
-    
+
     // Lấy các ghế đang chọn thuộc hàng này
     const sameRowSelectedSeats = currentSelectedSeats
       .map((s) => sortedRowSeats.find((rs) => rs.SeatId === s.seatId))
-      .filter((s): s is RealtimeSeat => s !== undefined && s.RowCode === seatToRemove.RowCode);
+      .filter(
+        (s): s is RealtimeSeat =>
+          s !== undefined && s.RowCode === seatToRemove.RowCode
+      );
 
     // Tìm nhóm ghế liền kề (Cluster) chứa ghế muốn bỏ
     // Ví dụ chọn: [A1, A2] ... [A5, A6, A7]. Bỏ A6. Nhóm là [A5, A6, A7]
-    const findConnectedCluster = (allSelected: RealtimeSeat[], target: RealtimeSeat) => {
+    const findConnectedCluster = (
+      allSelected: RealtimeSeat[],
+      target: RealtimeSeat
+    ) => {
       const sortedSel = sortSeats(allSelected);
-      const targetIdx = sortedSel.findIndex(s => s.SeatId === target.SeatId);
-      
+      const targetIdx = sortedSel.findIndex((s) => s.SeatId === target.SeatId);
+
       if (targetIdx === -1) return [];
 
       // Loang sang trái
       let left = targetIdx;
-      while (left > 0 && getSeatNum(sortedSel[left]) - getSeatNum(sortedSel[left - 1]) === 1) {
+      while (
+        left > 0 &&
+        getSeatNum(sortedSel[left]) - getSeatNum(sortedSel[left - 1]) === 1
+      ) {
         left--;
       }
       // Loang sang phải
       let right = targetIdx;
-      while (right < sortedSel.length - 1 && getSeatNum(sortedSel[right + 1]) - getSeatNum(sortedSel[right]) === 1) {
+      while (
+        right < sortedSel.length - 1 &&
+        getSeatNum(sortedSel[right + 1]) - getSeatNum(sortedSel[right]) === 1
+      ) {
         right++;
       }
       return sortedSel.slice(left, right + 1);
@@ -256,7 +263,7 @@ const SeatMap = ({
     // ---------------------------------------------------------
     // BƯỚC 2: CHECK HỆ QUẢ (Dùng logic validate chung)
     // ---------------------------------------------------------
-    
+
     // Giả lập trạng thái SAU KHI bỏ ghế
     const tempSelectedSeats = currentSelectedSeats.filter(
       (s) => s.seatId !== seatToRemove.SeatId
@@ -268,10 +275,10 @@ const SeatMap = ({
     if (!validation.isValid) {
       // Tùy chỉnh thông báo lỗi cho dễ hiểu hơn với người dùng
       if (validation.msg?.includes("đầu/cuối")) {
-          return {
-              canDeselect: false,
-              msg: "Không được bỏ ghế này vì sẽ tạo ra ghế trống đơn lẻ ở đầu/cuối hàng."
-          }
+        return {
+          canDeselect: false,
+          msg: "Không được bỏ ghế này vì sẽ tạo ra ghế trống đơn lẻ ở đầu/cuối hàng.",
+        };
       }
       return { canDeselect: false, msg: validation.msg };
     }
@@ -282,9 +289,9 @@ const SeatMap = ({
   // ==================== END GAP VALIDATION LOGIC ====================
   const {
     seatMap: realtimeSeats,
-    isConnected,
-    lockSeat,
-    releaseSeat,
+    // isConnected,
+    // lockSeat,
+    // releaseSeat,
   } = useShowtimeSeat(showtimeId ?? 0);
 
   const [selectedSeats, setSelectedSeats] = useState<
@@ -359,6 +366,7 @@ const SeatMap = ({
             setSelectedSeats((prev) =>
               prev.filter((s) => s.seatId !== lockSeat.SeatId)
             );
+            setSeatLayoutContent!(false);
             console.error("Không lock được ghế:", error);
             setIsMutating(false);
           },
@@ -441,27 +449,41 @@ const SeatMap = ({
 
     // Simulate selection mới
     let newSelectedSeats: { seatId: number; seatTitle: string }[];
-    
+
     if (existing) {
       // DESELECT: Kiểm tra xem có thể bỏ ghế này không
       const deselectCheck = checkCanDeselect(seat, selectedSeats, rowSeats);
       if (!deselectCheck.canDeselect) {
-        showToast("Không thể bỏ ghế", deselectCheck.msg || "Vi phạm quy tắc bỏ ghế", "warning");
+        showToast(
+          "Không thể bỏ ghế",
+          deselectCheck.msg || "Vi phạm quy tắc bỏ ghế",
+          "warning"
+        );
         return;
       }
-      newSelectedSeats = selectedSeats.filter((sSeat) => sSeat.seatId !== seat.SeatId);
+      newSelectedSeats = selectedSeats.filter(
+        (sSeat) => sSeat.seatId !== seat.SeatId
+      );
     } else {
       // SELECT: Kiểm tra max seats
       if (selectedSeats.length >= MAX_SEATS) {
-        showToast("Thông báo", `Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`, "warning");
+        showToast(
+          "Thông báo",
+          `Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`,
+          "warning"
+        );
         return;
       }
       newSelectedSeats = [...selectedSeats, { seatId: seat.SeatId, seatTitle }];
-      
+
       // Validate gap rules khi chọn ghế mới
       const validation = validateSeatSelection(rowSeats, newSelectedSeats);
       if (!validation.isValid) {
-        showToast("Không thể chọn ghế", validation.msg || "Vi phạm quy tắc chọn ghế", "warning");
+        showToast(
+          "Không thể chọn ghế",
+          validation.msg || "Vi phạm quy tắc chọn ghế",
+          "warning"
+        );
         return;
       }
     }
@@ -485,22 +507,30 @@ const SeatMap = ({
 
     // Simulate selection mới
     let newSelectedSeats: { seatId: number; seatTitle: string }[];
-    
+
     if (isBothSelected) {
       // DESELECT: Kiểm tra cả 2 ghế có thể bỏ không
       const deselectCheck1 = checkCanDeselect(seat1, selectedSeats, rowSeats);
       const deselectCheck2 = checkCanDeselect(seat2, selectedSeats, rowSeats);
-      
+
       // Nếu một trong hai không được phép bỏ, báo lỗi
       if (!deselectCheck1.canDeselect) {
-        showToast("Không thể bỏ ghế đôi", deselectCheck1.msg || "Vi phạm quy tắc bỏ ghế", "warning");
+        showToast(
+          "Không thể bỏ ghế đôi",
+          deselectCheck1.msg || "Vi phạm quy tắc bỏ ghế",
+          "warning"
+        );
         return;
       }
       if (!deselectCheck2.canDeselect) {
-        showToast("Không thể bỏ ghế đôi", deselectCheck2.msg || "Vi phạm quy tắc bỏ ghế", "warning");
+        showToast(
+          "Không thể bỏ ghế đôi",
+          deselectCheck2.msg || "Vi phạm quy tắc bỏ ghế",
+          "warning"
+        );
         return;
       }
-      
+
       // Unselect cả đôi
       newSelectedSeats = selectedSeats.filter(
         (s) => s.seatId !== seat1.SeatId && s.seatId !== seat2.SeatId
@@ -512,7 +542,11 @@ const SeatMap = ({
       );
 
       if (newPrev.length + 2 > MAX_SEATS) {
-        showToast("Thông báo", `Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`, "warning");
+        showToast(
+          "Thông báo",
+          `Bạn chỉ có thể chọn tối đa ${MAX_SEATS} ghế`,
+          "warning"
+        );
         return;
       }
 
@@ -527,11 +561,15 @@ const SeatMap = ({
           seatTitle: `${seat2.RowCode}${seat2.SeatNumber}`,
         },
       ];
-      
+
       // Validate gap rules khi chọn ghế mới
       const validation = validateSeatSelection(rowSeats, newSelectedSeats);
       if (!validation.isValid) {
-        showToast("Không thể chọn ghế", validation.msg || "Vi phạm quy tắc chọn ghế", "warning");
+        showToast(
+          "Không thể chọn ghế",
+          validation.msg || "Vi phạm quy tắc chọn ghế",
+          "warning"
+        );
         return;
       }
     }
@@ -583,22 +621,33 @@ const SeatMap = ({
 
   const [combosDialog, setCombosDialog] = useState<boolean>(false);
 
+  const validateSeatsMutation = useValidateSelectionSeats();
+
   const handlePurchase = () => {
     if (selectedSeats.length === 0) {
-      alert("Vui lòng chọn ít nhất một ghế");
+      showToast("Vui lòng chọn ít nhất 1 ghế", "warning");
       return;
     }
-    if (onPurchase) {
-      const newSelectedSeats = selectedSeats.map((item) => item.seatId);
-      onPurchase(newSelectedSeats);
-      setCombosDialog(true);
-    } else {
-      alert(
-        `Xác nhận mua ${
-          selectedSeats.length
-        } vé với tổng giá: ${totalPrice.toLocaleString("vi-VN")}đ`
-      );
-    }
+
+    validateSeatsMutation.mutate(sessionId ?? "", {
+      onSuccess: (res) => {
+        if (res.result.errors.length === 0) {
+          if (onPurchase) {
+            const newSelectedSeats = selectedSeats.map((item) => item.seatId);
+            onPurchase(newSelectedSeats);
+            setCombosDialog(true);
+          }
+        } else {
+          showToast(
+            `${
+              res.result.errors[0].message
+            }: ${res.result.errors[0].affectedSeats.map((i) => i)}`,
+            "warning"
+          );
+          return;
+        }
+      },
+    });
   };
 
   const renderSeats = (rowCode: string, rowSeats: RealtimeSeat[]) => {

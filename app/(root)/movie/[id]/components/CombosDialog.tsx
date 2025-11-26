@@ -19,6 +19,8 @@ import Image from "next/image";
 import { useState } from "react";
 import CheckoutDetail from "./CheckoutDetail";
 import { useCreatePayOS } from "@/apis/user.payment.api";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ToastProvider";
 
 interface CombosDialogReq {
   sessionId?: string;
@@ -42,7 +44,9 @@ const CombosDialog = ({
   selectedSeats,
   showtimeId,
 }: CombosDialogReq) => {
-  console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
+  // console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
+  const { user } = useAuthStore();
+  const { showToast } = useToast();
   const { data: getBookingComboRes, isLoading: combosLoading } =
     useGetBookingSessionCombos(sessionId ?? "", true);
 

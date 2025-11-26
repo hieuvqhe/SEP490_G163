@@ -2,15 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SeatLayout from "./SeatLayout";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   useCreateBookingSession,
   useDeleteBookingSession,
   useGetBookingSessionDetail,
-  useSeatActions,
 } from "@/apis/user.booking-session.api";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ToastProvider";
 
 export interface Showtime {
   showtimeId: number;
@@ -79,6 +80,8 @@ interface ShowtimeDetailCardProps {
 }
 
 const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
+  const { showToast } = useToast();
+  const { user } = useAuthStore();
   const [seatLayoutContent, setSeatLayoutContent] = useState<boolean>(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionStillOnTime, setSessionStillOnTime] = useState(false);
@@ -133,35 +136,39 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
 
   // Tạo session booking mới nhưng dựa trên showtimeID, chỉ tạo session mới khi có showtimeID mới
   const handleCreateNewSession = (showtimeId: number) => {
-    setShowtimeId(showtimeId); // rất quan trọng
+    if (user) {
+      setShowtimeId(showtimeId); // rất quan trọng
 
-    if (currentSessionId && sessionStillOnTime) {
-      setSeatLayoutContent(true);
-      return;
-    } // Session còn hạn → không tạo mới
-
-    createSessionMutate.mutate(showtimeId, {
-      onSuccess: (res) => {
-        const newId = res.result.bookingSessionId;
-        const newExpires = res.result.expiresAt;
-
-        setCurrentSessionId(newId);
-        setSessionStillOnTime(true);
+      if (currentSessionId && sessionStillOnTime) {
         setSeatLayoutContent(true);
+        return;
+      } // Session còn hạn → không tạo mới
 
-        localStorage.setItem(
-          LS_KEY,
-          JSON.stringify({
-            id: newId,
-            expiresAt: newExpires,
-            showtimeId,
-          })
-        );
-      },
-      onError: (err) => {
-        console.error("Create new session failed", err);
-      },
-    });
+      createSessionMutate.mutate(showtimeId, {
+        onSuccess: (res) => {
+          const newId = res.result.bookingSessionId;
+          const newExpires = res.result.expiresAt;
+
+          setCurrentSessionId(newId);
+          setSessionStillOnTime(true);
+          setSeatLayoutContent(true);
+
+          localStorage.setItem(
+            LS_KEY,
+            JSON.stringify({
+              id: newId,
+              expiresAt: newExpires,
+              showtimeId,
+            })
+          );
+        },
+        onError: (err) => {
+          console.error("Create new session failed", err);
+        },
+      });
+    } else {
+      showToast("Bạn cần đăng nhập để thực hiện tính năng này", "", "warning");
+    }
   };
 
   const isOutDate = cinema.screens.every((screen) => {
@@ -211,18 +218,6 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
             return start >= now;
           });
 
-          // const showtimeFilter = screen.showtimes.map((item) => item);
-
-          if (showtimeFilter.length === 0) {
-            return (
-              <div className="flex items-center" key={screen.screenId}>
-                <p className="text-sm text-gray-400">
-                  Các suất chiếu đã hết hạn - Quý khách vui lòng chọn ngày khác.
-                </p>
-              </div>
-            );
-          }
-
           return (
             <div key={screen.screenId} className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -233,32 +228,42 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                {showtimeFilter.map((st) => (
-                  <Dialog key={st.showtimeId}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        disabled={st.isSoldOut}
-                        className={`text-sm rounded-lg w-[10vw] px-4 py-2 ${
-                          st.isSoldOut
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:bg-primary hover:text-white"
-                        }`}
-                        onClick={() => handleCreateNewSession(st.showtimeId)}
-                      >
-                        {formatTime(st.startTime)} ~ {formatTime(st.endTime)}
-                      </Button>
-                    </DialogTrigger>
-                    {seatLayoutContent && (
-                      <SeatLayout
-                        showtime={st}
-                        sessionId={currentSessionId ?? ""}
-                        seatLayoutContent={seatLayoutContent}
-                        setSeatLayoutContent={setSeatLayoutContent}
-                      />
-                    )}
-                  </Dialog>
-                ))}
+                {showtimeFilter.length === 0 ? (
+                  <div className="flex items-center">
+                    <p className="text-sm text-gray-400">
+                      Các suất chiếu đã hết hạn - Quý khách vui lòng chọn ngày
+                      khác.
+                    </p>
+                  </div>
+                ) : (
+                  showtimeFilter.map((st) => (
+                    <Dialog key={st.showtimeId}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          disabled={st.isSoldOut}
+                          className={`text-sm rounded-lg w-[10vw] px-4 py-2 ${
+                            st.isSoldOut
+                              ? "opacity-50 cursor-not-allowed"
+                              : "hover:bg-primary hover:text-white"
+                          }`}
+                          onClick={() => handleCreateNewSession(st.showtimeId)}
+                        >
+                          {formatTime(st.startTime)} ~ {formatTime(st.endTime)}
+                        </Button>
+                      </DialogTrigger>
+
+                      {seatLayoutContent && (
+                        <SeatLayout
+                          showtime={st}
+                          sessionId={currentSessionId ?? ""}
+                          seatLayoutContent={seatLayoutContent}
+                          setSeatLayoutContent={setSeatLayoutContent}
+                        />
+                      )}
+                    </Dialog>
+                  ))
+                )}
               </div>
             </div>
           );

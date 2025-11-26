@@ -36,7 +36,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/admin/:path*",
-    "/partner/:path*",
+    // "/partner/:path*",
     "/manager/:path*",
   ],
 };

@@ -6,8 +6,6 @@ import NewsletterSection from "./components/NewsLetter";
 
 import LoginForm from "./components/LoginForm";
 import Navbar from "./components/Navbar";
-import FileUpload from "./components/FileUpload";
-import CloudinaryUpload from "./components/CloudinaryUpload";
 import { useRouter } from "next/navigation";
 import { LoginResponse } from "@/services/authService";
 
@@ -30,7 +28,7 @@ const Page = () => {
       return;
     }
 
-    if (role !== "partner") {
+    if (role === "User") {
       router.push("/");
       return;
     }

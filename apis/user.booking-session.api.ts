@@ -1,8 +1,5 @@
 import { getAccessToken } from "@/store/authStore";
-import {
-  createPublicRequest,
-  handleShowtimeOverviewError,
-} from "./user.catalog.api";
+import { handleShowtimeOverviewError } from "./user.catalog.api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { BASE_URL } from "@/constants";
@@ -239,6 +236,23 @@ interface CreateCheckoutRes {
   };
 }
 
+interface ValidateSelectionSeatsRes {
+  message: string;
+  result: {
+    bookingSessionId: string;
+    showtimeId: 0;
+    isValid: true;
+    message: string;
+    currentSeatIds: number[];
+    errors: {
+      rule: string;
+      message: string;
+      row: string;
+      affectedSeats: string[];
+    }[];
+  };
+}
+
 // Tạo axios instance với Authorization header
 const createAuthenticatedRequest = () => {
   const token = getAccessToken();
@@ -414,6 +428,19 @@ class BookingSessionsManagement {
       const response = await userApi.post(
         `${this.BASE_URL}/${id}/checkout`,
         body
+      );
+      return response.data;
+    } catch (error) {
+      throw handleShowtimeOverviewError(error);
+    }
+  };
+
+  validateSelectionSeats = async (
+    id: string
+  ): Promise<ValidateSelectionSeatsRes> => {
+    try {
+      const response = await userApi.post(
+        `${this.BASE_URL}/${id}/seats/validate`
       );
       return response.data;
     } catch (error) {
@@ -626,4 +653,11 @@ export const useSeatActions = () => {
   const replace = useReplaceSeats();
 
   return { lock, release, replace };
+};
+
+export const useValidateSelectionSeats = () => {
+  return useMutation({
+    mutationFn: (id: string) =>
+      bookingSessionServices.validateSelectionSeats(id),
+  });
 };
