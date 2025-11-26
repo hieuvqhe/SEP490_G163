@@ -90,7 +90,7 @@ export function CarouselDemo() {
     window.addEventListener("keydown", handleKeyDown);
     const interval = setInterval(() => {
       handleNext();
-    }, 7500);
+    }, 60000);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);

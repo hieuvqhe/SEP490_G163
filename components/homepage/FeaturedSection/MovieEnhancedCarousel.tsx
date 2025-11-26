@@ -8,10 +8,23 @@ interface MovieEnhancedCarouselProps {
   movies: Movie[];
 }
 
+// Track drag state globally for the carousel
+const dragState = {
+  isDragging: false,
+  startX: 0,
+  startY: 0,
+};
+
 const MovieCard = ({ movie }: { movie: Movie }) => {
   const router = useRouter();
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    // Prevent navigation if user was dragging
+    if (dragState.isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     router.push(`/movie/${movie.movieId}`);
   };
 
@@ -93,6 +106,25 @@ export default function MovieEnhancedCarousel({
               left: dragConstraint - 32,
             }}
             dragElastic={0.15}
+            onDragStart={(e, info) => {
+              dragState.isDragging = false;
+              dragState.startX = info.point.x;
+              dragState.startY = info.point.y;
+            }}
+            onDrag={(e, info) => {
+              const dx = Math.abs(info.point.x - dragState.startX);
+              const dy = Math.abs(info.point.y - dragState.startY);
+              // If moved more than 5px, consider it a drag
+              if (dx > 5 || dy > 5) {
+                dragState.isDragging = true;
+              }
+            }}
+            onDragEnd={() => {
+              // Reset drag state after a short delay to allow click event to check it
+              setTimeout(() => {
+                dragState.isDragging = false;
+              }, 100);
+            }}
           >
             {movies.map((movie) => (
               <MovieCard key={movie.movieId} movie={movie} />
