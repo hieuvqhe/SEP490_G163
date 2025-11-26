@@ -1,13 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  Bot,
-  LucideIcon,
-  Newspaper,
-  SquareTerminal,
-  Tickets,
-} from "lucide-react";
+import { Bot, LucideIcon, Newspaper, SquareTerminal } from "lucide-react";
 
 import {
   Sidebar,
@@ -55,6 +49,12 @@ export function AppSidebar({
     },
   });
 
+  interface UserInfo {
+    fullname: string;
+    email: string;
+    image?: string;
+  }
+
   interface NavItem {
     title: string;
     url: string;
@@ -64,11 +64,7 @@ export function AppSidebar({
   }
 
   interface UserNavigation {
-    user: {
-      name: string;
-      email: string;
-      avatar: string;
-    };
+    user: UserInfo | null;
     navMain: NavItem[];
   }
 
@@ -189,7 +185,18 @@ export function AppSidebar({
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter className="bg-zinc-800">
-        <NavUser user={data.user} logout={logout} />
+        <NavUser
+          user={
+            data.user
+              ? {
+                  name: data.user.fullname,
+                  email: data.user.email,
+                  avatar: data.user.image ?? "",
+                }
+              : null
+          }
+          logout={logout}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

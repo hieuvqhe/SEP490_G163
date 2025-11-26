@@ -13,7 +13,12 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-const Sidebar = ({ activeSection, setActiveSection }) => {
+interface SidebarProps {
+  activeSection: string;
+  setActiveSection: (section: string) => void;
+}
+
+const Sidebar = ({ activeSection, setActiveSection }: SidebarProps) => {
   const [openMobile, setOpenMobile] = useState(false);
 
   const menuItems = [
