@@ -89,37 +89,35 @@ const Header = () => {
     console.log("Login successful:", data);
     setShowLoginModal(false);
 
-    // Tokens đã được set trong useLogin hook
-    // Redirect ngay lập tức dựa trên role từ response
     const role = data.result.role;
-    console.log("Redirecting with role from response:", role);
 
-    if (!role) {
-      window.location.href = "/";
-      return;
+    // Chỉ redirect nếu là admin/partner/manager/cashier
+    // User thường sẽ ở lại trang hiện tại
+    if (role) {
+      const roleLower = role.toLowerCase();
+      
+      switch (roleLower) {
+        case "admin":
+          window.location.href = "/admin";
+          break;
+        case "partner":
+          window.location.href = "/partner";
+          break;
+        case "manager":
+          window.location.href = "/manager";
+          break;
+        case "cashier":
+          window.location.href = "/cashier";
+          break;
+        case "user":
+        default:
+          // Ở lại trang hiện tại, chỉ reload để cập nhật state
+          window.location.reload();
+          break;
+      }
+    } else {
+      window.location.reload();
     }
-
-    const roleLower = role.toLowerCase();
-    let targetPath = "/";
-
-    switch (roleLower) {
-      case "admin":
-        targetPath = "/admin";
-        break;
-      case "partner":
-        targetPath = "/partner";
-        break;
-      case "manager":
-        targetPath = "/manager";
-        break;
-      case "user":
-      default:
-        targetPath = "/";
-        break;
-    }
-
-    console.log("Redirecting to:", targetPath);
-    window.location.href = targetPath;
   };
 
   const switchToLogin = () => {

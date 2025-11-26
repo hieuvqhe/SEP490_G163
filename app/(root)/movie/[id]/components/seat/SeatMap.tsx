@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, Dispatch, SetStateAction } from "react";
+import React, { useState, useMemo, Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
   useSeatActions,
@@ -19,6 +19,7 @@ import { IoChevronBackOutline } from "react-icons/io5";
 import { Spinner } from "@/components/ui/spinner";
 import { useShowtimeSeat } from "@/hooks/useShowtimeSeatHub";
 import { useToast } from "@/components/ToastProvider";
+import { useRouter } from "next/navigation";
 
 interface RealtimeSeat {
   SeatId: number;
@@ -64,6 +65,18 @@ const SeatMap = ({
   console.log(`showtimeId: ${showtimeId}`);
 
   const { showToast } = useToast();
+  const router = useRouter();
+
+  // ==================== COUNTDOWN TIMER STATE ====================
+  const SESSION_DURATION = 10 * 60; // 10 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(SESSION_DURATION);
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
+
+  const formatTime = useCallback((seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }, []);
 
   // ==================== GAP VALIDATION LOGIC ====================
 
@@ -303,6 +316,41 @@ const SeatMap = ({
   const MAX_SEATS = 8;
   const mutateSeatActions = useSeatActions();
 
+  // ==================== COUNTDOWN TIMER EFFECT ====================
+  useEffect(() => {
+    if (timeLeft <= 0 && !isSessionExpired) {
+      setIsSessionExpired(true);
+      showToast(
+        "Hết thời gian giữ ghế",
+        "Phiên chọn ghế đã hết hạn. Vui lòng thử lại.",
+        "warning"
+      );
+      // Release all seats before redirecting
+      const seats = selectedSeats.map((s) => s.seatId);
+      if (seats.length > 0) {
+        mutateSeatActions.release.mutate(
+          {
+            selectedSeat: seats,
+            sessionId: sessionId ?? "",
+          },
+          {
+            onSuccess: () => console.log("Release seats on session expired"),
+            onError: (error) => console.log("Failed to release seats:", error),
+          }
+        );
+      }
+      router.push("/");
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, isSessionExpired, selectedSeats, sessionId, router, showToast, mutateSeatActions]);
+  // ==================== END COUNTDOWN TIMER EFFECT ====================
+
   const seatTypeColor = useMemo(() => {
     const map: Record<number, string> = {};
     seatTypes?.forEach((type) => {
@@ -451,16 +499,16 @@ const SeatMap = ({
     let newSelectedSeats: { seatId: number; seatTitle: string }[];
 
     if (existing) {
-      // DESELECT: Kiểm tra xem có thể bỏ ghế này không
-      const deselectCheck = checkCanDeselect(seat, selectedSeats, rowSeats);
-      if (!deselectCheck.canDeselect) {
-        showToast(
-          "Không thể bỏ ghế",
-          deselectCheck.msg || "Vi phạm quy tắc bỏ ghế",
-          "warning"
-        );
-        return;
-      }
+      // DESELECT: Tạm thời bỏ qua validation gap logic
+      // const deselectCheck = checkCanDeselect(seat, selectedSeats, rowSeats);
+      // if (!deselectCheck.canDeselect) {
+      //   showToast(
+      //     "Không thể bỏ ghế",
+      //     deselectCheck.msg || "Vi phạm quy tắc bỏ ghế",
+      //     "warning"
+      //   );
+      //   return;
+      // }
       newSelectedSeats = selectedSeats.filter(
         (sSeat) => sSeat.seatId !== seat.SeatId
       );
@@ -476,16 +524,16 @@ const SeatMap = ({
       }
       newSelectedSeats = [...selectedSeats, { seatId: seat.SeatId, seatTitle }];
 
-      // Validate gap rules khi chọn ghế mới
-      const validation = validateSeatSelection(rowSeats, newSelectedSeats);
-      if (!validation.isValid) {
-        showToast(
-          "Không thể chọn ghế",
-          validation.msg || "Vi phạm quy tắc chọn ghế",
-          "warning"
-        );
-        return;
-      }
+      // Tạm thời bỏ qua validation gap rules khi chọn ghế mới
+      // const validation = validateSeatSelection(rowSeats, newSelectedSeats);
+      // if (!validation.isValid) {
+      //   showToast(
+      //     "Không thể chọn ghế",
+      //     validation.msg || "Vi phạm quy tắc chọn ghế",
+      //     "warning"
+      //   );
+      //   return;
+      // }
     }
 
     // Nếu hợp lệ, cập nhật state
@@ -509,27 +557,27 @@ const SeatMap = ({
     let newSelectedSeats: { seatId: number; seatTitle: string }[];
 
     if (isBothSelected) {
-      // DESELECT: Kiểm tra cả 2 ghế có thể bỏ không
-      const deselectCheck1 = checkCanDeselect(seat1, selectedSeats, rowSeats);
-      const deselectCheck2 = checkCanDeselect(seat2, selectedSeats, rowSeats);
+      // DESELECT: Tạm thời bỏ qua validation gap logic cho ghế đôi
+      // const deselectCheck1 = checkCanDeselect(seat1, selectedSeats, rowSeats);
+      // const deselectCheck2 = checkCanDeselect(seat2, selectedSeats, rowSeats);
 
-      // Nếu một trong hai không được phép bỏ, báo lỗi
-      if (!deselectCheck1.canDeselect) {
-        showToast(
-          "Không thể bỏ ghế đôi",
-          deselectCheck1.msg || "Vi phạm quy tắc bỏ ghế",
-          "warning"
-        );
-        return;
-      }
-      if (!deselectCheck2.canDeselect) {
-        showToast(
-          "Không thể bỏ ghế đôi",
-          deselectCheck2.msg || "Vi phạm quy tắc bỏ ghế",
-          "warning"
-        );
-        return;
-      }
+      // // Nếu một trong hai không được phép bỏ, báo lỗi
+      // if (!deselectCheck1.canDeselect) {
+      //   showToast(
+      //     "Không thể bỏ ghế đôi",
+      //     deselectCheck1.msg || "Vi phạm quy tắc bỏ ghế",
+      //     "warning"
+      //   );
+      //   return;
+      // }
+      // if (!deselectCheck2.canDeselect) {
+      //   showToast(
+      //     "Không thể bỏ ghế đôi",
+      //     deselectCheck2.msg || "Vi phạm quy tắc bỏ ghế",
+      //     "warning"
+      //   );
+      //   return;
+      // }
 
       // Unselect cả đôi
       newSelectedSeats = selectedSeats.filter(
@@ -562,16 +610,16 @@ const SeatMap = ({
         },
       ];
 
-      // Validate gap rules khi chọn ghế mới
-      const validation = validateSeatSelection(rowSeats, newSelectedSeats);
-      if (!validation.isValid) {
-        showToast(
-          "Không thể chọn ghế",
-          validation.msg || "Vi phạm quy tắc chọn ghế",
-          "warning"
-        );
-        return;
-      }
+      // Tạm thời bỏ qua validation gap rules khi chọn ghế đôi
+      // const validation = validateSeatSelection(rowSeats, newSelectedSeats);
+      // if (!validation.isValid) {
+      //   showToast(
+      //     "Không thể chọn ghế",
+      //     validation.msg || "Vi phạm quy tắc chọn ghế",
+      //     "warning"
+      //   );
+      //   return;
+      // }
     }
 
     // Nếu hợp lệ, cập nhật state
@@ -679,8 +727,12 @@ const SeatMap = ({
           nextType?.code === "COUPLE" &&
           nextSeat.SeatNumber === seat.SeatNumber + 1
         ) {
-          const isCoupleDisabled =
-            isSeatDisabled || nextSeat.Status !== "AVAILABLE";
+          const isCoupleBooked = 
+            seat.Status === "SOLD" || 
+            nextSeat.Status === "SOLD" ||
+            (seat.Status === "LOCKED" && !selectedSeats.some(s => s.seatId === seat.SeatId)) ||
+            (nextSeat.Status === "LOCKED" && !selectedSeats.some(s => s.seatId === nextSeat.SeatId));
+          const isCoupleDisabled = isSeatDisabled || isCoupleBooked;
           const color = seatTypeColor[seat.SeatTypeId] || "#ccc";
           const isSelected =
             selectedSeats.some((sSeat) => seat.SeatId === sSeat.seatId) &&
@@ -693,118 +745,65 @@ const SeatMap = ({
             <button
               key={`${seat.SeatId}-${nextSeat.SeatId}`}
               onClick={() => toggleCoupleSeat(seat, nextSeat)}
-              disabled={isMutating}
-              className={`w-26 h-12 rounded-lg text-white/80 transition-all flex items-center justify-center text-xs font-bold
-              ${isSelected ? "ring-2 ring-yellow-400 scale-105" : ""}
-              ${
-                isCoupleDisabled
-                  ? "bg-zinc-900 cursor-not-allowed"
-                  : "hover:scale-105 cursor-pointer"
-              }
-              ${
-                isLockedAndSelected
-                  ? "ring-2 ring-white scale-105 hover:scale-110 cursor-pointer"
-                  : ""
-              }
-
-      ${
-        isSelected && !isLockedAndSelected
-          ? "scale-105 ring-2 ring-amber-400 hover:scale-110 cursor-pointer"
-          : ""
-      }
-
-      /* Disabled seat */
-      ${
-        !isSelected && isSeatDisabled
-          ? "bg-zinc-900 cursor-default pointer-events-none"
-          : ""
-      }
-
-      /* Locked by others (chưa chọn) */
-      ${
-        (!isSelected && !isLockedAndSelected && isSeatLocked) || isSeatSoled
-          ? "bg-red-900 cursor-default pointer-events-none"
-          : ""
-      }
-
-      /* Normal seat */
-      ${
-        !isSelected && !isSeatDisabled && !isSeatLocked
-          ? "hover:scale-110 cursor-pointer"
-          : ""
-      }
-            `}
+              disabled={isMutating || isCoupleBooked}
+              className={`
+                w-26 h-12 rounded-lg text-white transition-all flex items-center justify-center text-xs font-bold relative
+                ${isSelected ? "couple-seat-selected" : ""}
+                ${isCoupleBooked && !isSelected ? "couple-seat-booked" : ""}
+                ${!isSelected && !isCoupleBooked && !isSeatDisabled ? "hover:scale-110 hover:brightness-110 cursor-pointer" : ""}
+                ${isSeatDisabled ? "bg-zinc-900 cursor-default pointer-events-none" : ""}
+              `}
               style={{
-                backgroundColor: isCoupleDisabled ? undefined : color,
+                backgroundColor: isSelected 
+                  ? undefined // CSS class handles this
+                  : isCoupleBooked 
+                    ? undefined // CSS class handles this
+                    : isSeatDisabled 
+                      ? undefined 
+                      : color,
               }}
               title={`${rowCode}${seat.SeatNumber} - ${rowCode}${nextSeat.SeatNumber} - ${type?.name}`}
             >
-              {!isCoupleDisabled
+              {!isSeatDisabled && !isCoupleBooked
                 ? `${rowCode}${index1} - ${rowCode}${index2}`
                 : null}
             </button>
           );
 
-          if (!isCoupleDisabled) index += 2;
+          if (!isSeatDisabled) index += 2;
           i += 2;
           continue;
         }
       }
+
+      // Check if seat is booked (sold or locked by others)
+      const isSeatBooked = isSeatSoled || (isSeatLocked && !isSelected);
 
       // normal seat
       elements.push(
         <button
           key={seat.SeatId}
           onClick={() => toggleSeat(seat, seatDisplayTitle)}
-          disabled={isMutating}
+          disabled={isMutating || isSeatBooked}
           className={`
-      w-12 h-12 rounded-lg text-white opacity-90 transition-all flex items-center justify-center text-xs font-bold
-
-      ${
-        isLockedAndSelected
-          ? "ring-2 ring-white scale-105 hover:scale-110 cursor-pointer"
-          : ""
-      }
-
-      ${
-        isSelected && !isLockedAndSelected
-          ? "scale-105 ring-2 ring-amber-400 hover:scale-110 cursor-pointer"
-          : ""
-      }
-
-      /* Disabled seat */
-      ${
-        !isSelected && isSeatDisabled
-          ? "bg-zinc-900 cursor-default pointer-events-none"
-          : ""
-      }
-
-      /* Locked by others (chưa chọn) */
-      ${
-        (!isSelected && !isLockedAndSelected && isSeatLocked) || isSeatSoled
-          ? "bg-red-900 cursor-default pointer-events-none"
-          : ""
-      }
-
-      /* Normal seat */
-      ${
-        !isSelected && !isSeatDisabled && !isSeatLocked
-          ? "hover:scale-110 cursor-pointer"
-          : ""
-      }
-    `}
+            w-12 h-12 rounded-lg text-white transition-all flex items-center justify-center text-xs font-bold relative
+            ${isSelected ? "seat-selected" : ""}
+            ${isSeatBooked && !isSelected ? "seat-booked" : ""}
+            ${!isSelected && !isSeatBooked && !isSeatDisabled ? "hover:scale-110 hover:brightness-110 cursor-pointer" : ""}
+            ${isSeatDisabled ? "bg-zinc-900 cursor-default pointer-events-none" : ""}
+          `}
           style={{
-            backgroundColor: isSeatDisabled
-              ? undefined
-              : isLockedAndSelected
-              ? "#007bff" // màu xanh khi vừa locked vừa selected
-              : isSeatLocked || isSeatSoled
-              ? "#7f1d1d"
-              : color,
+            backgroundColor: isSelected 
+              ? undefined // CSS class handles this
+              : isSeatBooked 
+                ? undefined // CSS class handles this  
+                : isSeatDisabled 
+                  ? undefined 
+                  : color,
           }}
           title={`${rowCode}${seat.SeatNumber} - ${type?.name}`}
         >
-          {!isSeatDisabled ? `${rowCode}${index}` : null}
+          {!isSeatDisabled && !isSeatBooked ? `${rowCode}${index}` : null}
         </button>
       );
 
@@ -847,8 +846,23 @@ const SeatMap = ({
   ); // assuming 7 is the ID for DISABLE seat type
 
   const actionLegendTitle = [
-    { title: "Ghế đã bán", color: "#7f1d1d" },
-    { title: "Ghế đang chọn", color: "#007bff" },
+    { 
+      title: "Ghế đã bán", 
+      className: "seat-booked-legend",
+      style: {
+        background: `repeating-linear-gradient(45deg, #374151, #374151 2px, #1f2937 2px, #1f2937 4px)`,
+        opacity: 0.7
+      }
+    },
+    { 
+      title: "Ghế đang chọn", 
+      className: "seat-selected-legend",
+      style: {
+        backgroundColor: "#00E676",
+        boxShadow: "0 0 6px 1px rgba(0, 230, 118, 0.6)",
+        border: "1px solid white"
+      }
+    },
   ];
 
   return (
@@ -871,6 +885,39 @@ const SeatMap = ({
               size={20}
             />
           </DialogClose>
+          
+          {/* Countdown Timer */}
+          <div className={`absolute right-3 flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+            timeLeft <= 60 
+              ? "bg-red-500/20 border-red-500/50 animate-pulse" 
+              : timeLeft <= 180 
+                ? "bg-yellow-500/20 border-yellow-500/50" 
+                : "bg-zinc-700/50 border-zinc-600"
+          }`}>
+            Thời gian chọn ghế
+            <svg 
+              className={`w-4 h-4 ${timeLeft <= 60 ? "text-red-400" : timeLeft <= 180 ? "text-yellow-400" : "text-gray-400"}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+              />
+            </svg>
+            <span className={`font-mono font-bold text-sm ${
+              timeLeft <= 60 
+                ? "text-red-400" 
+                : timeLeft <= 180 
+                  ? "text-yellow-400" 
+                  : "text-white"
+            }`}>
+              {formatTime(timeLeft)}
+            </span>
+          </div>
         </div>
 
         <div className="flex-1 overflow-auto">
@@ -931,8 +978,8 @@ const SeatMap = ({
             {actionLegendTitle.map((item) => (
               <div key={item.title} className="flex items-center gap-2">
                 <div
-                  className="w-3 h-3 rounded"
-                  style={{ backgroundColor: item.color }}
+                  className={`w-3 h-3 rounded ${item.className}`}
+                  style={item.style}
                 />
                 <span className="text-xs text-gray-300">{item.title}</span>
               </div>

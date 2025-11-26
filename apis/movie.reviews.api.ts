@@ -56,6 +56,7 @@ interface CreateNewReviewParams {
   body: {
     rating_star: number;
     comment: string;
+    image_urls?: string[];
   };
 }
 
@@ -92,9 +93,11 @@ interface GetMovieReviewsRes {
       rating_id: number;
       user_id: number;
       user_name: string;
+      user_avatar?: string;
       rating_star: number;
       comment: string;
       rating_at: string;
+      image_urls?: string[];
     }[];
   };
 }

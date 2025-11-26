@@ -630,3 +630,73 @@ body {
     --sidebar-ring: oklch(0.439 0 0);
   }
 }
+
+/* ===== Seat Selection Animations ===== */
+
+/* Subtle glow for selected seats */
+.seat-selected {
+  box-shadow: 0 0 6px 1px rgba(0, 230, 118, 0.5);
+  border: 2px solid white !important;
+  background-color: #00E676 !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+/* Couple seat selected */
+.couple-seat-selected {
+  box-shadow: 0 0 6px 1px rgba(0, 230, 118, 0.5);
+  border: 2px solid white !important;
+  background-color: #00E676 !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+/* Booked/Sold seat with diagonal stripes */
+.seat-booked {
+  background: repeating-linear-gradient(
+    45deg,
+    #374151,
+    #374151 4px,
+    #1f2937 4px,
+    #1f2937 8px
+  ) !important;
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  position: relative;
+}
+
+.seat-booked::after {
+  content: "✕";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: bold;
+}
+
+/* Couple seat booked */
+.couple-seat-booked {
+  background: repeating-linear-gradient(
+    45deg,
+    #374151,
+    #374151 6px,
+    #1f2937 6px,
+    #1f2937 12px
+  ) !important;
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  position: relative;
+}
+
+.couple-seat-booked::after {
+  content: "✕";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: bold;
+}

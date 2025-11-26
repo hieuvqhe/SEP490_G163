@@ -288,7 +288,7 @@ export default function ContractList() {
                           <ContractDetails contractId={contract.contractId} />
                         </DialogContent>
                       </Dialog>
-                      {!contract.partnerSignatureUrl && (
+                      {contract.status === "pending" && !contract.partnerSignatureUrl && (
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -298,7 +298,7 @@ export default function ContractList() {
                           Tải PDF
                         </Button>
                       )}
-                      {contract.partnerSignatureUrl && (
+                      {(contract.status === "active" || contract.partnerSignatureUrl) && (
                         <Button 
                           variant="outline" 
                           size="sm"
