@@ -231,10 +231,14 @@ class PartnerPermissionService {
   ): Promise<RevokeEmployeePermissionsResponse> {
     try {
       const client = createPartnerPermissionRequest();
-      const response = await client.delete<RevokeEmployeePermissionsResponse>(
-        `/partners/employees/${employeeId}/permissions`,
-        { data }
-      );
+      
+      // Build query params for DELETE request to avoid CORS/OPTIONS issues with body
+      const queryParams = new URLSearchParams();
+      data.cinemaIds.forEach((id) => queryParams.append("cinemaIds", id.toString()));
+      data.permissionCodes.forEach((code) => queryParams.append("permissionCodes", code));
+      
+      const endpoint = `/partners/employees/${employeeId}/permissions?${queryParams.toString()}`;
+      const response = await client.delete<RevokeEmployeePermissionsResponse>(endpoint);
       return response.data;
     } catch (error) {
       throw handlePartnerPermissionError(error, "Đã xảy ra lỗi hệ thống khi thu hồi quyền của nhân viên.");

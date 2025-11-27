@@ -604,25 +604,28 @@ export default function EmployeePermissionModal({
                 {activeCinemas.map((cinema) => {
                   const isSelected = selectedCinemaIds.has(cinema.cinemaId);
                   return (
-                    <button
+                    <div
                       key={cinema.cinemaId}
                       onClick={() => toggleCinema(cinema.cinemaId)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm transition-all",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm transition-all cursor-pointer",
                         isSelected
                           ? "bg-orange-500/20 border-orange-500/50 text-orange-300"
                           : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600"
                       )}
                     >
-                      <Checkbox
-                        checked={isSelected}
+                      <div
                         className={cn(
-                          "h-3.5 w-3.5 border-zinc-600",
-                          isSelected && "bg-orange-500 border-orange-500"
+                          "h-3.5 w-3.5 rounded border flex items-center justify-center",
+                          isSelected
+                            ? "bg-orange-500 border-orange-500"
+                            : "border-zinc-600 bg-transparent"
                         )}
-                      />
+                      >
+                        {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                      </div>
                       {cinema.cinemaName}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
