@@ -134,6 +134,12 @@ const VoucherManagement = () => {
     setFormMode("create");
   }, []);
 
+  const handleOpenCreateForm = useCallback(() => {
+    setFormMode("create");
+    setEditingVoucherId(null);
+    setIsFormOpen(true);
+  }, []);
+
   const handleUpdateFilters = useCallback((partial: Partial<VoucherFilterState>) => {
     setFilters((prev: VoucherFilterState) => ({ ...prev, ...partial }));
     setPage(1);
@@ -311,7 +317,7 @@ const VoucherManagement = () => {
             onChange={handleUpdateFilters}
             isRefreshing={isFetching}
             onRefresh={refetch}
-            onCreate={resetFormState}
+            onCreate={handleOpenCreateForm}
           />
         </div>
       </div>

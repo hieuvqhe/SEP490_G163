@@ -32,6 +32,7 @@ import { useToast } from "@/components/ToastProvider";
 import CreateEmployeeModal from "./CreateEmployeeModal";
 import EditEmployeeModal from "./EditEmployeeModal";
 import AssignCinemaModal from "./AssignCinemaModal";
+import EmployeePermissionModal from "./EmployeePermissionModal";
 import EmployeeCard from "./EmployeeCard";
 
 import {
@@ -53,6 +54,7 @@ export default function EmployeeManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<PartnerEmployee | null>(null);
   const [assigningEmployee, setAssigningEmployee] = useState<PartnerEmployee | null>(null);
+  const [permissionEmployee, setPermissionEmployee] = useState<PartnerEmployee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<PartnerEmployee | null>(null);
   const [checkingEmployee, setCheckingEmployee] = useState<number | null>(null);
 
@@ -224,6 +226,7 @@ export default function EmployeeManagement() {
               employee={employee}
               onEdit={setEditingEmployee}
               onAssign={setAssigningEmployee}
+              onPermission={setPermissionEmployee}
               onDelete={handleDeleteClick}
               getRoleBadge={getRoleBadge}
               formatDate={formatDate}
@@ -260,6 +263,14 @@ export default function EmployeeManagement() {
           open={!!assigningEmployee}
           employee={assigningEmployee}
           onClose={() => setAssigningEmployee(null)}
+        />
+      )}
+
+      {permissionEmployee && (
+        <EmployeePermissionModal
+          open={!!permissionEmployee}
+          employee={permissionEmployee}
+          onClose={() => setPermissionEmployee(null)}
         />
       )}
 
