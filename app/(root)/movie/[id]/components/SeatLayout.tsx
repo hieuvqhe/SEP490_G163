@@ -38,9 +38,6 @@ const SeatLayout = ({ showtime, sessionId, setSeatLayoutContent, seatLayoutConte
           movieTitle={showtimeData?.movie.title}
           basePrice={showtime.basePrice}
           sessionId={sessionId}
-          onPurchase={(selectedSeats) => {
-            console.log("Purchasing seats:", selectedSeats);
-          }}
           setSeatLayoutContent={setSeatLayoutContent}
           seatLayoutContent={seatLayoutContent}
           showtimeId={showtime.showtimeId}

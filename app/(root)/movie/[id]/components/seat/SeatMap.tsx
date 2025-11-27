@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, Dispatch, SetStateAction, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useCallback,
+} from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
   useSeatActions,
@@ -45,7 +52,6 @@ interface SeatMapProps {
   movieTitle?: string;
   basePrice?: number;
   sessionId?: string;
-  onPurchase?: (selectedSeats: number[]) => void;
   setSeatLayoutContent?: Dispatch<SetStateAction<boolean>>;
   seatLayoutContent?: boolean;
   showtimeId?: number;
@@ -57,12 +63,10 @@ const SeatMap = ({
   movieTitle,
   basePrice,
   sessionId,
-  onPurchase,
   setSeatLayoutContent,
   showtimeId,
 }: SeatMapProps) => {
-  // console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
-  console.log(`showtimeId: ${showtimeId}`);
+  // console.log(`showtimeId: ${showtimeId}`);
 
   const { showToast } = useToast();
   const router = useRouter();
@@ -75,7 +79,9 @@ const SeatMap = ({
   const formatTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   }, []);
 
   // ==================== GAP VALIDATION LOGIC ====================
@@ -348,8 +354,20 @@ const SeatMap = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, isSessionExpired, selectedSeats, sessionId, router, showToast, mutateSeatActions]);
+  }, [
+    timeLeft,
+    isSessionExpired,
+    selectedSeats,
+    sessionId,
+    router,
+    showToast,
+    mutateSeatActions,
+  ]);
   // ==================== END COUNTDOWN TIMER EFFECT ====================
+
+  useEffect(() => {
+    console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
+  }, []);
 
   const seatTypeColor = useMemo(() => {
     const map: Record<number, string> = {};
@@ -672,26 +690,16 @@ const SeatMap = ({
   const validateSeatsMutation = useValidateSelectionSeats();
 
   const handlePurchase = () => {
-    if (selectedSeats.length === 0) {
-      showToast("Vui lòng chọn ít nhất 1 ghế", "warning");
-      return;
-    }
-
+    setCombosDialog(false);
     validateSeatsMutation.mutate(sessionId ?? "", {
       onSuccess: (res) => {
-        if (res.result.errors.length === 0) {
-          if (onPurchase) {
-            const newSelectedSeats = selectedSeats.map((item) => item.seatId);
-            onPurchase(newSelectedSeats);
+        if (res.result.isValid) {
+          requestAnimationFrame(() => {
             setCombosDialog(true);
-          }
+          });
         } else {
-          showToast(
-            `${
-              res.result.errors[0].message
-            }: ${res.result.errors[0].affectedSeats.map((i) => i)}`,
-            "warning"
-          );
+          setCombosDialog(false);
+          showToast(`${res.result.errors[0].message}`);
           return;
         }
       },
@@ -727,11 +735,13 @@ const SeatMap = ({
           nextType?.code === "COUPLE" &&
           nextSeat.SeatNumber === seat.SeatNumber + 1
         ) {
-          const isCoupleBooked = 
-            seat.Status === "SOLD" || 
+          const isCoupleBooked =
+            seat.Status === "SOLD" ||
             nextSeat.Status === "SOLD" ||
-            (seat.Status === "LOCKED" && !selectedSeats.some(s => s.seatId === seat.SeatId)) ||
-            (nextSeat.Status === "LOCKED" && !selectedSeats.some(s => s.seatId === nextSeat.SeatId));
+            (seat.Status === "LOCKED" &&
+              !selectedSeats.some((s) => s.seatId === seat.SeatId)) ||
+            (nextSeat.Status === "LOCKED" &&
+              !selectedSeats.some((s) => s.seatId === nextSeat.SeatId));
           const isCoupleDisabled = isSeatDisabled || isCoupleBooked;
           const color = seatTypeColor[seat.SeatTypeId] || "#ccc";
           const isSelected =
@@ -748,19 +758,27 @@ const SeatMap = ({
               disabled={isMutating || isCoupleBooked}
               className={`
                 w-26 h-12 rounded-lg text-white transition-all flex items-center justify-center text-xs font-bold relative
-                ${isSelected ? "couple-seat-selected" : ""}
+                ${isSelected ? "couple-seat-selected cursor-pointer" : ""}
                 ${isCoupleBooked && !isSelected ? "couple-seat-booked" : ""}
-                ${!isSelected && !isCoupleBooked && !isSeatDisabled ? "hover:scale-110 hover:brightness-110 cursor-pointer" : ""}
-                ${isSeatDisabled ? "bg-zinc-900 cursor-default pointer-events-none" : ""}
+                ${
+                  !isSelected && !isCoupleBooked && !isSeatDisabled
+                    ? "hover:scale-110 hover:brightness-110 cursor-pointer"
+                    : ""
+                }
+                ${
+                  isSeatDisabled
+                    ? "bg-zinc-900 cursor-default pointer-events-none"
+                    : ""
+                }
               `}
               style={{
-                backgroundColor: isSelected 
+                backgroundColor: isSelected
                   ? undefined // CSS class handles this
-                  : isCoupleBooked 
-                    ? undefined // CSS class handles this
-                    : isSeatDisabled 
-                      ? undefined 
-                      : color,
+                  : isCoupleBooked
+                  ? undefined // CSS class handles this
+                  : isSeatDisabled
+                  ? undefined
+                  : color,
               }}
               title={`${rowCode}${seat.SeatNumber} - ${rowCode}${nextSeat.SeatNumber} - ${type?.name}`}
             >
@@ -787,19 +805,27 @@ const SeatMap = ({
           disabled={isMutating || isSeatBooked}
           className={`
             w-12 h-12 rounded-lg text-white transition-all flex items-center justify-center text-xs font-bold relative
-            ${isSelected ? "seat-selected" : ""}
+            ${isSelected ? "seat-selected cursor-pointer" : ""}
             ${isSeatBooked && !isSelected ? "seat-booked" : ""}
-            ${!isSelected && !isSeatBooked && !isSeatDisabled ? "hover:scale-110 hover:brightness-110 cursor-pointer" : ""}
-            ${isSeatDisabled ? "bg-zinc-900 cursor-default pointer-events-none" : ""}
+            ${
+              !isSelected && !isSeatBooked && !isSeatDisabled
+                ? "hover:scale-110 hover:brightness-110 cursor-pointer"
+                : ""
+            }
+            ${
+              isSeatDisabled
+                ? "bg-zinc-900 cursor-default pointer-events-none"
+                : ""
+            }
           `}
           style={{
-            backgroundColor: isSelected 
+            backgroundColor: isSelected
               ? undefined // CSS class handles this
-              : isSeatBooked 
-                ? undefined // CSS class handles this  
-                : isSeatDisabled 
-                  ? undefined 
-                  : color,
+              : isSeatBooked
+              ? undefined // CSS class handles this
+              : isSeatDisabled
+              ? undefined
+              : color,
           }}
           title={`${rowCode}${seat.SeatNumber} - ${type?.name}`}
         >
@@ -846,22 +872,22 @@ const SeatMap = ({
   ); // assuming 7 is the ID for DISABLE seat type
 
   const actionLegendTitle = [
-    { 
-      title: "Ghế đã bán", 
+    {
+      title: "Ghế đã bán",
       className: "seat-booked-legend",
       style: {
         background: `repeating-linear-gradient(45deg, #374151, #374151 2px, #1f2937 2px, #1f2937 4px)`,
-        opacity: 0.7
-      }
+        opacity: 0.7,
+      },
     },
-    { 
-      title: "Ghế đang chọn", 
+    {
+      title: "Ghế đang chọn",
       className: "seat-selected-legend",
       style: {
         backgroundColor: "#00E676",
         boxShadow: "0 0 6px 1px rgba(0, 230, 118, 0.6)",
-        border: "1px solid white"
-      }
+        border: "1px solid white",
+      },
     },
   ];
 
@@ -885,36 +911,46 @@ const SeatMap = ({
               size={20}
             />
           </DialogClose>
-          
+
           {/* Countdown Timer */}
-          <div className={`absolute right-3 flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
-            timeLeft <= 60 
-              ? "bg-red-500/20 border-red-500/50 animate-pulse" 
-              : timeLeft <= 180 
-                ? "bg-yellow-500/20 border-yellow-500/50" 
+          <div
+            className={`absolute right-3 flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+              timeLeft <= 60
+                ? "bg-red-500/20 border-red-500/50 animate-pulse"
+                : timeLeft <= 180
+                ? "bg-yellow-500/20 border-yellow-500/50"
                 : "bg-zinc-700/50 border-zinc-600"
-          }`}>
-            Thời gian chọn ghế
-            <svg 
-              className={`w-4 h-4 ${timeLeft <= 60 ? "text-red-400" : timeLeft <= 180 ? "text-yellow-400" : "text-gray-400"}`}
-              fill="none" 
-              stroke="currentColor" 
+            }`}
+          >
+            {/* Thời gian chọn ghế */}
+            <svg
+              className={`w-4 h-4 ${
+                timeLeft <= 60
+                  ? "text-red-400"
+                  : timeLeft <= 180
+                  ? "text-yellow-400"
+                  : "text-gray-400"
+              }`}
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className={`font-mono font-bold text-sm ${
-              timeLeft <= 60 
-                ? "text-red-400" 
-                : timeLeft <= 180 
-                  ? "text-yellow-400" 
+            <span
+              className={`font-mono font-bold text-sm ${
+                timeLeft <= 60
+                  ? "text-red-400"
+                  : timeLeft <= 180
+                  ? "text-yellow-400"
                   : "text-white"
-            }`}>
+              }`}
+            >
               {formatTime(timeLeft)}
             </span>
           </div>

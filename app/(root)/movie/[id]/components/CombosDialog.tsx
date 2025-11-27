@@ -16,7 +16,7 @@ import {
   useUpsertBookingSessionCombos,
 } from "@/apis/user.booking-session.api";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CheckoutDetail from "./CheckoutDetail";
 import { useCreatePayOS } from "@/apis/user.payment.api";
 import { useAuthStore } from "@/store/authStore";
@@ -32,11 +32,14 @@ type ComboCount = {
   serviceId: number;
   quantity: number;
   servicesTitle: string;
+  price?: number;
 };
 
 interface PostPricingPreview {
   appliedVoucherCode: string | null; // tùy API có thể null
   total: number;
+  seatSubTotal?: number;
+  comboSubTotal?: number;
 }
 
 const CombosDialog = ({
@@ -44,7 +47,9 @@ const CombosDialog = ({
   selectedSeats,
   showtimeId,
 }: CombosDialogReq) => {
-  // console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
+  useEffect(() => {
+    console.log(`SessionId: ${sessionId} ---- ShowtimeId: ${showtimeId}`);
+  }, []);
   const { user } = useAuthStore();
   const { showToast } = useToast();
   const { data: getBookingComboRes, isLoading: combosLoading } =
@@ -52,8 +57,6 @@ const CombosDialog = ({
 
   const upsertComboMutate = useUpsertBookingSessionCombos();
   const previewOrderMutate = usePostPricingPreview();
-  const checkoutMutate = useCreateCheckout();
-  const createPaymentMutate = useCreatePayOS();
 
   const combos = getBookingComboRes?.result.combos ?? [];
   const currency = getBookingComboRes?.result.currency ?? "";
@@ -69,20 +72,29 @@ const CombosDialog = ({
 
   if (combosLoading) return null;
 
-  const increase = (serviceId: number, servicesTitle: string) => {
+  const increase = (
+    serviceId: number,
+    servicesTitle: string,
+    price: number
+  ) => {
     setCounts((prev) => {
       const exists = prev.find((c) => c.serviceId === serviceId);
       if (exists) {
         return prev.map((c) =>
           c.serviceId === serviceId
-            ? { ...c, quantity: c.quantity + 1, servicesTitle: c.servicesTitle }
+            ? {
+                ...c,
+                quantity: c.quantity + 1,
+                servicesTitle: c.servicesTitle,
+                price: c.price,
+              }
             : c
         );
       }
       // chưa có → thêm mới
       return [
         ...prev,
-        { serviceId, quantity: 1, servicesTitle: servicesTitle },
+        { serviceId, quantity: 1, servicesTitle: servicesTitle, price: price },
       ];
     });
   };
@@ -108,47 +120,6 @@ const CombosDialog = ({
 
   const currentCombos = counts;
 
-  const handleCreatePayment = (orderId: string) => {
-    console.log(orderId);
-    setCurentOrderId(orderId);
-    createPaymentMutate.mutate(
-      {
-        orderId: orderId ?? "",
-        cancelUrl: "",
-        returnUrl: "",
-      },
-      {
-        onSuccess: (res) => {
-          setQrCode(res.result.qrCode);
-          setLoadingSpin(false);
-          setCheckoutDialog(true);
-        },
-        onError: () => {
-          console.log(`handleCreatePayment failed`);
-        },
-      }
-    );
-  };
-
-  const handleSendCheckout = () => {
-    checkoutMutate.mutate(
-      {
-        id: sessionId ?? "",
-        body: {
-          provider: "PayOS",
-          cancelUrl: "",
-          returnUrl: "",
-        },
-      },
-      {
-        onSuccess: (res) => handleCreatePayment(res.result.orderId),
-        onError: (res) => {
-          console.log(`handleGetPreview failed: ${res.message}`);
-        },
-      }
-    );
-  };
-
   const handleGetPreview = () => {
     previewOrderMutate.mutate(
       {
@@ -160,8 +131,12 @@ const CombosDialog = ({
           setPreviewSession({
             appliedVoucherCode: res.result.appliedVoucherCode,
             total: res.result.total,
+            seatSubTotal: res.result.seatsSubtotal,
+            comboSubTotal: res.result.combosSubtotal,
           });
-          handleSendCheckout();
+          setLoadingSpin(false);
+          setCheckoutDialog(true);
+          // handleSendCheckout();
         },
         onError: () => {
           console.log(`handleGetPreview failed`);
@@ -251,7 +226,7 @@ const CombosDialog = ({
                   <Button
                     disabled={count >= maxCurrent}
                     variant="outline"
-                    onClick={() => increase(c.serviceId, c.name)}
+                    onClick={() => increase(c.serviceId, c.name, c.price)}
                     className="w-8 h-8 flex items-center justify-center"
                   >
                     +

@@ -459,6 +459,25 @@ body {
   .text-primary {
     color: #f84565;
   }
+
+  /* Custom scrollbar cho container có class .custom-scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #ffffff; /* nền trắng */
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db; /* Tailwind gray-300 */
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af; /* gray-400 */
+  }
 }
 
 @theme inline {
@@ -534,35 +553,25 @@ body {
   --sidebar-ring: oklch(0.705 0.015 286.067);
 
   /* INNER DEPTH SHADOWS (inset) */
-  --shadow-s-inner:
-    inset 0 1px 2px #ffffff30,   /* top highlight */
-    inset 0 1px 2px #00000030,   /* dark shadow */
-    inset 0 2px 4px #00000015;   /* soft */
+  --shadow-s-inner: inset 0 1px 2px #ffffff30,
+    /* top highlight */ inset 0 1px 2px #00000030,
+    /* dark shadow */ inset 0 2px 4px #00000015; /* soft */
 
-  --shadow-m-inner:
-    inset 0 1px 2px #ffffff50,
-    inset 0 2px 4px #00000030,
+  --shadow-m-inner: inset 0 1px 2px #ffffff50, inset 0 2px 4px #00000030,
     inset 0 4px 8px #00000015;
 
-  --shadow-l-inner:
-    inset 0 1px 2px #ffffff70,
-    inset 0 4px 6px #00000030,
+  --shadow-l-inner: inset 0 1px 2px #ffffff70, inset 0 4px 6px #00000030,
     inset 0 6px 10px #00000015;
 
-    /* OUTER DEPTH SHADOWS (no inset) */
-  --shadow-s-outer:
-    0 1px 2px #ffffff20,   /* soft highlight */
-    0 1px 2px #00000040,   /* dark close shadow */
-    0 3px 6px #00000020;   /* ambient */
+  /* OUTER DEPTH SHADOWS (no inset) */
+  --shadow-s-outer: 0 1px 2px #ffffff20,
+    /* soft highlight */ 0 1px 2px #00000040,
+    /* dark close shadow */ 0 3px 6px #00000020; /* ambient */
 
-  --shadow-m-outer:
-    0 2px 3px #ffffff25,
-    0 2px 6px #00000045,
+  --shadow-m-outer: 0 2px 3px #ffffff25, 0 2px 6px #00000045,
     0 6px 12px #00000022;
 
-  --shadow-l-outer:
-    0 3px 4px #ffffff30,
-    0 4px 8px #00000050,
+  --shadow-l-outer: 0 3px 4px #ffffff30, 0 4px 8px #00000050,
     0 10px 20px #00000024;
 }
 
@@ -637,7 +646,7 @@ body {
 .seat-selected {
   box-shadow: 0 0 6px 1px rgba(0, 230, 118, 0.5);
   border: 2px solid white !important;
-  background-color: #00E676 !important;
+  background-color: #00e676 !important;
   transform: scale(1.02);
   transition: all 0.2s ease;
 }
@@ -646,7 +655,7 @@ body {
 .couple-seat-selected {
   box-shadow: 0 0 6px 1px rgba(0, 230, 118, 0.5);
   border: 2px solid white !important;
-  background-color: #00E676 !important;
+  background-color: #00e676 !important;
   transform: scale(1.02);
   transition: all 0.2s ease;
 }
@@ -699,4 +708,34 @@ body {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.4);
   font-weight: bold;
+}
+
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-right {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out forwards;
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 0.2s ease-in forwards;
 }
