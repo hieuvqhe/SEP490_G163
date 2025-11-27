@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import React, { useState } from "react";
+import React, { Dispatch, use, useEffect, useState } from "react";
 import {
   useCheckPayOSOrder,
   useCreatePayOS,
@@ -30,6 +30,8 @@ import {
 import { LuTicketPercent } from "react-icons/lu";
 import Image from "next/image";
 import { formatCurrency } from "@/utils/format";
+import { QRCodeCanvas } from "qrcode.react";
+import { useGetUserVoucherByCode } from "@/apis/user.voucher.api";
 
 interface ComboCount {
   serviceId: number;
@@ -49,36 +51,34 @@ interface CheckOutProps {
   sessionId?: string;
   selectedCombos: ComboCount[];
   selectedSeats?: { seatId: number; seatTitle: string }[];
-  cinemaName?: string;
-  roomName?: string;
-  roomFormat?: string;
-  qrCode?: string;
-  totalPrice?: number;
   previewSession?: PostPricingPreview;
-  curentOrderId: string;
   showtimeId?: number;
+  setCheckoutDialog?: Dispatch<React.SetStateAction<boolean>>;
 }
 
 const CheckoutDetail = ({
   selectedCombos,
   selectedSeats,
   previewSession,
-  curentOrderId,
   showtimeId,
   sessionId,
+  setCheckoutDialog,
 }: CheckOutProps) => {
-  // console.log(`showtimeId: ${showtimeId}`);
-  // console.log(`curentOrderId: ${curentOrderId}`);
+  useEffect(() => {
+    console.log(`showtimeId: ${showtimeId}`);
+  }, []);
 
   const { showToast } = useToast();
   const [voucherCode, setVoucherCode] = useState<string>("");
-  const [paymentDisplay, setPaymentDisplay] = useState<boolean>(true);
+  const [paymentDisplay, setPaymentDisplay] = useState<boolean>(false);
   const [qrCode, setQrCode] = useState<string>("");
-  const [showSpnner, setShowSpinner] = useState<boolean>(true);
+  const [showSpnner, setShowSpinner] = useState<boolean>(false);
+  const [orderId, setOrderId] = useState<string>("");
+  const [voucherForInfo, setVoucherForInfo] = useState<string>("");
 
-  const [appliedVouchers, setAppliedVouchers] = useState<{ code: string }[]>(
-    []
-  );
+  const [appliedVouchers, setAppliedVouchers] = useState<
+    { code: string; description: string; discountVal: number }[]
+  >([]);
 
   const expiredOrderMutate = useSetExpiredOrder();
   const checkPayOSOrderMutate = useCheckPayOSOrder();
@@ -87,11 +87,22 @@ const CheckoutDetail = ({
   const checkoutMutate = useCreateCheckout();
   const createPaymentMutate = useCreatePayOS();
 
+  const { data: getVoucherByCodeRes, isLoading: voucherInfoLoad } =
+    useGetUserVoucherByCode(voucherForInfo);
+  const voucherInfo = getVoucherByCodeRes?.result;
+
+  useEffect(() => {
+    // console.log("voucherInfo:", voucherInfo);
+    console.log("appliedVouchers:", appliedVouchers);
+  }, []);
+
   const { data: getPartnerShowtimeRes } = useGetShowtimeById(showtimeId ?? 0);
   const showtimeInfo = getPartnerShowtimeRes?.result;
 
   const handleSetExpiredOrder = () => {
-    expiredOrderMutate.mutate(curentOrderId, {
+    console.log(orderId);
+
+    expiredOrderMutate.mutate(orderId, {
       onSuccess: () => {
         console.log("handleSetExpiredOrder sucess");
       },
@@ -104,27 +115,86 @@ const CheckoutDetail = ({
   const handleSetVoucher = () => {
     if (!voucherCode.trim()) return;
 
-    setVoucherMutate.mutate(
-      {
-        id: sessionId ?? "",
-        voucherCode: voucherCode.trim(),
-      },
-      {
-        onSuccess: (res) => {
-          showToast(res.message, "", "success");
-          setAppliedVouchers((prev) => [...prev, { code: voucherCode.trim() }]);
-        },
-        onError: (error) => {
-          showToast(error.message, "", "error");
-        },
-      }
-    );
+    if (voucherCode.length === 0) {
+      showToast("Không được gửi mã trống", "", "warning");
+      return;
+    }
 
+    if (appliedVouchers.some((v) => v.code === voucherCode.trim())) {
+      showToast("Mã giảm giá đã được áp dụng", "", "warning");
+      return;
+    }
+    setVoucherForInfo(voucherCode.trim());
     setVoucherCode("");
   };
 
+  useEffect(() => {
+    if (!voucherInfoLoad && voucherInfo) {
+      setVoucherMutate.mutate(
+        {
+          id: sessionId ?? "",
+          voucherCode: voucherInfo.voucherCode, // hoặc voucherForInfo
+        },
+        {
+          onSuccess: (res) => {
+            showToast(res.message, "", "success");
+            setAppliedVouchers((prev) => [
+              ...prev,
+              {
+                code: voucherInfo.voucherCode,
+                description: voucherInfo.description,
+                discountVal: voucherInfo.discountVal,
+              },
+            ]);
+          },
+          onError: (error) => {
+            // showToast("Mã không hợp lệ", "", "error");
+          },
+        }
+      );
+    }
+  }, [voucherInfoLoad, voucherInfo]);
+
+  // const handleSetVoucher = () => {
+  //   const code = voucherCode.trim();
+  //   if (!code) return;
+
+  //   setVoucherForInfo(code);
+  //   setVoucherCode("");
+
+  //   if (!voucherInfo || voucherInfoLoad) {
+  //     showToast("Đang tải voucher hoặc voucher không tồn tại", "", "warning");
+  //     return;
+  //   }
+
+  //   setVoucherMutate.mutate(
+  //     {
+  //       id: sessionId ?? "",
+  //       voucherCode: code,
+  //     },
+  //     {
+  //       onSuccess: (res) => {
+  //         showToast(res.message, "", "success");
+  //         setAppliedVouchers((prev) => [
+  //           ...prev,
+  //           {
+  //             code,
+  //             description: voucherInfo.description,
+  //             discountVal: voucherInfo.discountVal,
+  //           },
+  //         ]);
+  //       },
+  //       onError: (error) => {
+  //         showToast(error.message, "", "error");
+  //       },
+  //     }
+  //   );
+  // };
+
   const handleCheckPaymentStatus = () => {
-    checkPayOSOrderMutate.mutate(curentOrderId, {
+    console.log(orderId);
+
+    checkPayOSOrderMutate.mutate(orderId, {
       onSuccess: (res) => {
         switch (res.result.status) {
           case "EXPIRED":
@@ -211,13 +281,30 @@ const CheckoutDetail = ({
         },
       },
       {
-        onSuccess: (res) => handleCreatePayment(res.result.orderId),
+        onSuccess: (res) => {
+          setOrderId(res.result.orderId);
+          handleCreatePayment(res.result.orderId);
+        },
         onError: (err) => {
           console.log(`handleGetPreview failed: ${err.message}`);
           showToast(err.message, "", "error");
         },
       }
     );
+  };
+
+  const calculateTotalDiscount = () => {
+    return appliedVouchers.reduce(
+      (total, voucher) => total + voucher.discountVal,
+      0
+    );
+  };
+
+  const handleBackQrPayment = () => {
+    setPaymentDisplay(false);
+    setQrCode("");
+    handleSetExpiredOrder();
+    setCheckoutDialog?.(false);
   };
 
   return (
@@ -372,15 +459,27 @@ const CheckoutDetail = ({
               </div>
             ) : (
               <div>
-                <div className="flex flex-col items-center justify-around h-full w-full ">
+                <div className="flex flex-col gap-10 items-center justify-around h-full w-full ">
                   <h3 className="text-lg font-bold">
                     Quét mã QR để thanh toán
                   </h3>
-                  <p>Qr code</p>
+                  {qrCode && (
+                    // <div></div>
+                    <QRCodeCanvas
+                      value={qrCode} // dữ liệu để mã QR hiển thị
+                      size={200} // kích thước px
+                      bgColor="#ffffff" // màu nền
+                      fgColor="#000000" // màu QR
+                      level="H" // mức độ sửa lỗi (L, M, Q, H)
+                    />
+                  )}
 
+                  {/* <div className="w-full flex justify-between gap-4"> */}
+                  {/* <Button onClick={handleBackQrPayment}>Trở lại</Button> */}
                   <Button onClick={handleCheckPaymentStatus}>
                     Kiểm tra trạng thái thanh toán
                   </Button>
+                  {/* </div> */}
                 </div>
               </div>
             )}
@@ -438,6 +537,7 @@ const CheckoutDetail = ({
                         <input
                           type="text"
                           placeholder="Nhập mã giảm giá..."
+                          value={voucherCode}
                           className="w-full px-3 py-3 text-sm border border-zinc-300 rounded-lg focus:ring-2 focus:ring-[#c92241]"
                           onChange={(e) => setVoucherCode(e.target.value)}
                         />
@@ -472,8 +572,7 @@ const CheckoutDetail = ({
                                 {/* Description (nếu không có mô tả thì ẩn) */}
                                 {/* {v.description && ( */}
                                 <p className="text-xs text-green-600 leading-4">
-                                  {/* {v.description} */} Mã giảm 50% cho đơn
-                                  hàng trên 100.000đ
+                                  {/* {v.description} */} {v.description}
                                 </p>
                                 {/* )} */}
                               </div>
@@ -481,7 +580,7 @@ const CheckoutDetail = ({
                               {/* RIGHT – DISCOUNT + REMOVE */}
                               <div className="flex items-center gap-3">
                                 <span className="font-bold text-green-700 whitespace-nowrap">
-                                  -30.000đ
+                                  -{formatCurrency(v.discountVal)}
                                 </span>
 
                                 <button
@@ -516,12 +615,19 @@ const CheckoutDetail = ({
                     <div className="space-y-4">
                       <div className="flex justify-between text-sm text-green-600">
                         <span>Tiết kiệm</span>
-                        <span className="font-semibold">-0đ</span>
+                        <span className="font-semibold">
+                          -{formatCurrency(calculateTotalDiscount())}
+                        </span>
                       </div>
 
                       <div className="flex justify-between text-lg font-bold">
                         <span>Cần thanh toán</span>
-                        <span>{previewSession?.total?.toLocaleString()}đ</span>
+                        <span>
+                          {formatCurrency(
+                            (previewSession?.total ?? 0) -
+                              calculateTotalDiscount()
+                          )}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -551,7 +657,9 @@ const CheckoutDetail = ({
 
               <div className="flex justify-between text-sm text-green-600">
                 <span>Khuyến mãi</span>
-                <span className="font-semibold">-0đ</span>
+                <span className="font-semibold">
+                  -{formatCurrency(calculateTotalDiscount())}
+                </span>
               </div>
 
               {appliedVouchers.length !== 0 && (
@@ -568,7 +676,9 @@ const CheckoutDetail = ({
                   Số tiền cần thanh toán
                 </span>
                 <span className="text-lg font-semibold">
-                  {previewSession?.total?.toLocaleString()}đ
+                  {formatCurrency(
+                    (previewSession?.total ?? 0) - calculateTotalDiscount()
+                  )}
                 </span>
               </div>
               <p className="text-xs text-zinc-500">

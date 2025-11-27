@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { IoChevronBackOutline } from "react-icons/io5";
 import {
-  useCreateCheckout,
   useGetBookingSessionCombos,
   usePostPricingPreview,
   useUpsertBookingSessionCombos,
@@ -18,7 +17,6 @@ import {
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import CheckoutDetail from "./CheckoutDetail";
-import { useCreatePayOS } from "@/apis/user.payment.api";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/ToastProvider";
 
@@ -65,10 +63,7 @@ const CombosDialog = ({
   // Mỗi combo có số lượng riêng → dùng object { comboCode: count }
   const [counts, setCounts] = useState<ComboCount[]>([]);
   const [checkoutDialog, setCheckoutDialog] = useState<boolean>(false);
-  const [loadingSpin, setLoadingSpin] = useState<boolean>(false);
   const [previewSession, setPreviewSession] = useState<PostPricingPreview>();
-  const [qrCode, setQrCode] = useState<string>();
-  const [curentOrderId, setCurentOrderId] = useState<string>();
 
   if (combosLoading) return null;
 
@@ -134,12 +129,12 @@ const CombosDialog = ({
             seatSubTotal: res.result.seatsSubtotal,
             comboSubTotal: res.result.combosSubtotal,
           });
-          setLoadingSpin(false);
           setCheckoutDialog(true);
-          // handleSendCheckout();
         },
         onError: () => {
           console.log(`handleGetPreview failed`);
+          showToast("Lỗi lấy thông tin chi tiết đơn hàng", "", "error");
+          return;
         },
       }
     );
@@ -151,7 +146,6 @@ const CombosDialog = ({
       quantity: c.quantity,
     }));
 
-    setLoadingSpin(true);
     console.log(items);
 
     upsertComboMutate.mutate(
@@ -160,6 +154,8 @@ const CombosDialog = ({
         onSuccess: () => handleGetPreview(),
         onError: () => {
           console.log(`handleCheckout failed`);
+          showToast("Lỗi lấy thông tin chi tiết đơn hàng", "", "error");
+          return;
         },
       }
     );
@@ -260,13 +256,12 @@ const CombosDialog = ({
             </DialogTrigger>
             {checkoutDialog && (
               <CheckoutDetail
-                curentOrderId={curentOrderId ?? ""}
                 sessionId={sessionId}
                 selectedCombos={currentCombos}
                 selectedSeats={selectedSeats}
                 previewSession={previewSession}
-                qrCode={qrCode}
                 showtimeId={showtimeId}
+                setCheckoutDialog={setCheckoutDialog}
               />
             )}
           </Dialog>

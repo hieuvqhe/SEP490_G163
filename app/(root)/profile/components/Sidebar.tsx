@@ -11,11 +11,11 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 interface SidebarProps {
   activeSection: string;
-  setActiveSection: (section: string) => void;
+  setActiveSection: Dispatch<SetStateAction<string>>;
 }
 
 const Sidebar = ({ activeSection, setActiveSection }: SidebarProps) => {
