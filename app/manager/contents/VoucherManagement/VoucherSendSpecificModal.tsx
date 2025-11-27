@@ -28,10 +28,12 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<"booking_count" | "total_spent">("total_spent");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [minBookings, setMinBookings] = useState<string>("");
+  const [maxBookings, setMaxBookings] = useState<string>("");
   
   const customersParams: GetTopCustomersParams = {
     page: currentPage,
-    pageSize: 10,
+    pageSize: 50, // Fetch more to filter client-side
     sortBy,
     sortOrder,
     ...(searchQuery && { customerName: searchQuery }),
@@ -42,8 +44,26 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
     accessToken || undefined
   );
 
-  const customers = customersData?.result?.fullCustomerList?.customers || [];
+  const rawCustomers = customersData?.result?.fullCustomerList?.customers || [];
   const pagination = customersData?.result?.fullCustomerList?.pagination;
+  
+  // Filter customers by booking count on client-side
+  const customers = useMemo(() => {
+    let filtered = rawCustomers;
+    
+    const min = minBookings ? parseInt(minBookings) : null;
+    const max = maxBookings ? parseInt(maxBookings) : null;
+    
+    if (min !== null && !isNaN(min)) {
+      filtered = filtered.filter((c) => c.totalBookings >= min);
+    }
+    
+    if (max !== null && !isNaN(max)) {
+      filtered = filtered.filter((c) => c.totalBookings <= max);
+    }
+    
+    return filtered;
+  }, [rawCustomers, minBookings, maxBookings]);
   
   if (!open) return null;
 
@@ -52,6 +72,8 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
     setSelectedUserIds(new Set());
     setSearchQuery("");
     setCurrentPage(1);
+    setMinBookings("");
+    setMaxBookings("");
   };
 
   const handleToggleUser = (userId: number) => {
@@ -67,10 +89,20 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
   };
 
   const handleSelectAll = () => {
-    if (selectedUserIds.size === customers.length && customers.length > 0) {
-      setSelectedUserIds(new Set());
+    if (customers.length > 0 && customers.every((c) => selectedUserIds.has(c.userId))) {
+      // Deselect all filtered customers
+      setSelectedUserIds((prev) => {
+        const newSet = new Set(prev);
+        customers.forEach((c) => newSet.delete(c.userId));
+        return newSet;
+      });
     } else {
-      setSelectedUserIds(new Set(customers.map((c) => c.userId)));
+      // Select all filtered customers
+      setSelectedUserIds((prev) => {
+        const newSet = new Set(prev);
+        customers.forEach((c) => newSet.add(c.userId));
+        return newSet;
+      });
     }
   };
 
@@ -163,11 +195,39 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <label className="block text-sm font-medium text-gray-200">
                 Danh sách khách hàng ({selectedUserIds.size} đã chọn)
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Booking count filter */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-400 whitespace-nowrap">Số lần đặt:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={minBookings}
+                    onChange={(e) => {
+                      setMinBookings(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Từ"
+                    className="w-20 rounded-lg border border-white/10 bg-white/10 px-2 py-1.5 text-sm text-white placeholder:text-gray-400 focus:border-orange-400 focus:outline-none"
+                  />
+                  <span className="text-gray-400">-</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={maxBookings}
+                    onChange={(e) => {
+                      setMaxBookings(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Đến"
+                    className="w-20 rounded-lg border border-white/10 bg-white/10 px-2 py-1.5 text-sm text-white placeholder:text-gray-400 focus:border-orange-400 focus:outline-none"
+                  />
+                </div>
+                
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <input
@@ -229,7 +289,7 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
                           <th className="p-3 text-left">
                             <input
                               type="checkbox"
-                              checked={customers.length > 0 && selectedUserIds.size === customers.length}
+                              checked={customers.length > 0 && customers.every((c) => selectedUserIds.has(c.userId))}
                               onChange={handleSelectAll}
                               className="h-4 w-4 rounded border-white/20 bg-white/10 text-orange-500 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0"
                             />

@@ -8,9 +8,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Edit, Trash2, MapPin } from "lucide-react";
+import { MoreVertical, Edit, Trash2, MapPin, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useGetCinemaAssignments,
@@ -22,6 +23,7 @@ interface EmployeeCardProps {
   employee: PartnerEmployee;
   onEdit: (employee: PartnerEmployee) => void;
   onAssign: (employee: PartnerEmployee) => void;
+  onPermission: (employee: PartnerEmployee) => void;
   onDelete: (employee: PartnerEmployee) => void;
   getRoleBadge: (role: string) => React.ReactNode;
   formatDate: (dateStr: string) => string;
@@ -31,6 +33,7 @@ export default function EmployeeCard({
   employee,
   onEdit,
   onAssign,
+  onPermission,
   onDelete,
   getRoleBadge,
   formatDate,
@@ -92,6 +95,18 @@ export default function EmployeeCard({
                   <MapPin className="h-4 w-4 mr-2" />
                   Phân rạp
                 </DropdownMenuItem>
+              )}
+              {employee.roleType === "Staff" && employee.isActive && hasActiveCinemas && (
+                <>
+                  <DropdownMenuSeparator className="bg-zinc-700" />
+                  <DropdownMenuItem
+                    onClick={() => onPermission(employee)}
+                    className="cursor-pointer hover:bg-zinc-700 text-orange-400"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Phân quyền
+                  </DropdownMenuItem>
+                </>
               )}
               {canDelete && (
                 <DropdownMenuItem

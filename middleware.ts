@@ -18,10 +18,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/403", request.url)); // trang không có quyền
   }
 
-  // ⚙️ Phân quyền cho partner
-  // if (pathname.startsWith("/partner") && roleLower !== "partner") {
-  //   return NextResponse.redirect(new URL("/403", request.url));
-  // }
+  if (pathname.startsWith("/partner") && roleLower !== "partner") {
+    return NextResponse.redirect(new URL("/403", request.url));
+  }
 
   // ⚙️ Phân quyền cho manager
   if (pathname.startsWith("/manager") && roleLower !== "manager") {

@@ -73,8 +73,15 @@ const QRScanner = ({ onScanSuccess, onScanError }: QRScannerProps) => {
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1,
         },
-        (decodedText) => {
+        async (decodedText) => {
           setScanStatus("Quét thành công!");
+          // Stop scanner after successful scan
+          try {
+            await scanner.stop();
+            setIsScanning(false);
+          } catch {
+            // Ignore stop errors
+          }
           onScanSuccess(decodedText);
         },
         () => {
