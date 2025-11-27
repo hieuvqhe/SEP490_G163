@@ -66,6 +66,7 @@ const CheckoutDetail = ({
 }: CheckOutProps) => {
   useEffect(() => {
     console.log(`showtimeId: ${showtimeId}`);
+    console.log(`sessionId: ${sessionId}`);
   }, []);
 
   const { showToast } = useToast();
@@ -90,11 +91,6 @@ const CheckoutDetail = ({
   const { data: getVoucherByCodeRes, isLoading: voucherInfoLoad } =
     useGetUserVoucherByCode(voucherForInfo);
   const voucherInfo = getVoucherByCodeRes?.result;
-
-  useEffect(() => {
-    // console.log("voucherInfo:", voucherInfo);
-    console.log("appliedVouchers:", appliedVouchers);
-  }, []);
 
   const { data: getPartnerShowtimeRes } = useGetShowtimeById(showtimeId ?? 0);
   const showtimeInfo = getPartnerShowtimeRes?.result;
@@ -286,7 +282,7 @@ const CheckoutDetail = ({
           handleCreatePayment(res.result.orderId);
         },
         onError: (err) => {
-          console.log(`handleGetPreview failed: ${err.message}`);
+          console.log(`handleSendCheckout failed: ${err.message}`);
           showToast(err.message, "", "error");
         },
       }
