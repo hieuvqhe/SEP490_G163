@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Film, BarChart3, Settings, ChevronRight } from "lucide-react";
+import { Users, Film, BarChart3, Settings, ChevronRight, Activity } from "lucide-react";
 import { useGetUsers } from "@/apis/admin.api";
 
 interface AdminSidebarProps {
@@ -25,6 +25,12 @@ export const AdminSidebar = ({
       icon: Users,
       count: isLoading ? "..." : usersData?.result?.total || 0,
       color: "from-emerald-500 to-teal-500",
+    },
+    {
+      id: "audit-logs",
+      label: "Nhật ký hoạt động",
+      icon: Activity,
+      color: "from-amber-500 to-orange-500",
     },
   ];
 

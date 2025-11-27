@@ -7,7 +7,7 @@ import { useAuthStore } from "@/store/authStore";
 import {
   AdminHeader, AdminSidebar
 } from "./components";
-import { UserManagement } from "./contents";
+import { UserManagement, AuditLogManagement } from "./contents";
 
 
 const AdminPage = () => {
@@ -30,6 +30,9 @@ const AdminPage = () => {
       
       case "users":
         return <UserManagement />;
+      
+      case "audit-logs":
+        return <AuditLogManagement />;
     
       default:
         return <UserManagement />;
