@@ -39,11 +39,16 @@ export default function AssignCinemaModal({
   const { data: assignmentsData, isLoading: loadingAssignments } = useGetCinemaAssignments(
     employee.employeeId
   );
-  // Lấy danh sách TẤT CẢ nhân viên Staff active (để lấy assignments của họ)
-  const { data: employeesData, isLoading: loadingEmployees } = useGetPartnerEmployees({
+  // Lấy danh sách TẤT CẢ nhân viên Staff và Cashier active (để lấy assignments của họ)
+  const { data: staffData, isLoading: loadingStaff } = useGetPartnerEmployees({
     roleType: "Staff",
     isActive: true,
-    limit: 1000, // Lấy nhiều để đảm bảo có đủ
+    limit: 1000,
+  });
+  const { data: cashierData, isLoading: loadingCashier } = useGetPartnerEmployees({
+    roleType: "Cashier", 
+    isActive: true,
+    limit: 1000,
   });
   const { data: cinemasData, isLoading: loadingCinemas } = useGetPartnerCinemas({
     page: 1,
@@ -56,7 +61,15 @@ export default function AssignCinemaModal({
 
   const assignments = assignmentsData?.result || [];
   const cinemas = cinemasData?.result?.cinemas || [];
-  const allEmployees = employeesData?.result?.employees || [];
+  
+  // Merge Staff và Cashier employees
+  const allEmployees = [
+    ...(staffData?.result?.employees || []),
+    ...(cashierData?.result?.employees || []),
+  ];
+  
+  // Kiểm tra nếu nhân viên hiện tại là Cashier (chỉ được chọn 1 rạp)
+  const isCashier = employee.roleType === "Cashier";
   
   // Fetch assignments của TẤT CẢ nhân viên Staff khác (không phải nhân viên hiện tại)
   const otherEmployees = allEmployees.filter(emp => emp.employeeId !== employee.employeeId);
@@ -104,6 +117,10 @@ export default function AssignCinemaModal({
       if (newSet.has(cinemaId)) {
         newSet.delete(cinemaId);
       } else {
+        // Nếu là Cashier, chỉ cho phép chọn 1 rạp duy nhất
+        if (isCashier) {
+          newSet.clear(); // Xóa tất cả lựa chọn trước đó
+        }
         newSet.add(cinemaId);
       }
       return newSet;
@@ -146,7 +163,7 @@ export default function AssignCinemaModal({
     }
   };
 
-  const isLoading = loadingAssignments || loadingEmployees || loadingCinemas || otherAssignmentsQueries.some(q => q.isLoading);
+  const isLoading = loadingAssignments || loadingStaff || loadingCashier || loadingCinemas || otherAssignmentsQueries.some(q => q.isLoading);
   const isPending = assignMutation.isPending || unassignMutation.isPending;
   const hasChanges =
     selectedCinemaIds.size !== initialAssignments.size ||
@@ -193,7 +210,10 @@ export default function AssignCinemaModal({
         ) : (
           <div className="space-y-3">
             <Label className="text-sm font-medium text-zinc-300">
-              Chọn các rạp ({selectedCinemaIds.size} đã chọn)
+              {isCashier 
+                ? `Chọn rạp (Cashier chỉ được phân 1 rạp)` 
+                : `Chọn các rạp (${selectedCinemaIds.size} đã chọn)`
+              }
             </Label>
             {cinemas.map((cinema) => {
               const isSelected = selectedCinemaIds.has(cinema.cinemaId);

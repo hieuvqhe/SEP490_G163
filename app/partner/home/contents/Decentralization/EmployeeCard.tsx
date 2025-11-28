@@ -38,16 +38,16 @@ export default function EmployeeCard({
   getRoleBadge,
   formatDate,
 }: EmployeeCardProps) {
-  // Kiểm tra assignments nếu là Staff
+  // Kiểm tra assignments nếu là Staff hoặc Cashier
+  const canHaveCinema = employee.roleType === "Staff" || employee.roleType === "Cashier";
   const { data: assignmentsData } = useGetCinemaAssignments(
-    employee.roleType === "Staff" ? employee.employeeId : undefined,
-    { enabled: employee.roleType === "Staff" }
+    canHaveCinema ? employee.employeeId : undefined,
+    { enabled: canHaveCinema }
   );
 
-  const hasActiveCinemas =
-    employee.roleType === "Staff"
-      ? (assignmentsData?.result?.filter((a) => a.isActive).length || 0) > 0
-      : false;
+  const hasActiveCinemas = canHaveCinema
+    ? (assignmentsData?.result?.filter((a) => a.isActive).length || 0) > 0
+    : false;
 
   // Chỉ hiển thị menu "Tạm dừng làm việc" nếu:
   // - Không phải Staff, HOẶC
@@ -87,7 +87,7 @@ export default function EmployeeCard({
                 <Edit className="h-4 w-4 mr-2" />
                 Chỉnh sửa
               </DropdownMenuItem>
-              {employee.roleType === "Staff" && employee.isActive && (
+              {canHaveCinema && employee.isActive && (
                 <DropdownMenuItem
                   onClick={() => onAssign(employee)}
                   className="cursor-pointer hover:bg-zinc-700"
@@ -197,11 +197,12 @@ export default function EmployeeCard({
             {employee.isActive ? "Đang làm" : "Ngừng làm"}
           </Badge>
         </div>
-        {/* Cinema Assignments for Staff */}
-        {employee.roleType === "Staff" && (
+        {/* Cinema Assignments for Staff and Cashier */}
+        {canHaveCinema && (
           <EmployeeCinemaAssignments
             employeeId={employee.employeeId}
             isActive={employee.isActive}
+            roleType={employee.roleType}
           />
         )}
       </CardContent>

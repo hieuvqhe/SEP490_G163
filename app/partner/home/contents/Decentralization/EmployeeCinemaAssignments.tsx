@@ -9,17 +9,20 @@ import { cn } from "@/lib/utils";
 interface EmployeeCinemaAssignmentsProps {
   employeeId: number;
   isActive: boolean;
+  roleType?: string;
 }
 
 export default function EmployeeCinemaAssignments({ 
   employeeId, 
-  isActive 
+  isActive,
+  roleType = "Staff"
 }: EmployeeCinemaAssignmentsProps) {
   const { data: assignmentsData, isLoading, error } = useGetCinemaAssignments(employeeId);
 
   
   const assignments = assignmentsData?.result?.filter(a => a.isActive) || [];
 
+  const isCashier = roleType === "Cashier";
 
   if (isLoading) {
     return (
@@ -35,7 +38,7 @@ export default function EmployeeCinemaAssignments({
       <div className="mt-2 pt-2 border-t border-zinc-700">
         <div className="flex items-center gap-1.5 text-xs text-zinc-500">
           <Building2 className="h-3.5 w-3.5" />
-          <span>Chưa được phân rạp</span>
+          <span>{isCashier ? "Chưa được phân rạp thu ngân" : "Chưa được phân rạp"}</span>
         </div>
       </div>
     );
@@ -45,7 +48,14 @@ export default function EmployeeCinemaAssignments({
     <div className="mt-2 pt-2 border-t border-zinc-700 space-y-1.5">
       <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-300">
         <Building2 className="h-3.5 w-3.5" />
-        <span>Quản lý {assignments.length} rạp:</span>
+        <span>
+          {isCashier 
+            ? "Thu ngân tại:" 
+            : assignments.length === 1 
+              ? "Quản lý rạp:" 
+              : `Quản lý ${assignments.length} rạp:`
+          }
+        </span>
       </div>
       <div className="space-y-1">
         {assignments.map((assignment) => (
