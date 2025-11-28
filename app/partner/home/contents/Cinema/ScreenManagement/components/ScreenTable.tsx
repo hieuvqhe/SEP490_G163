@@ -20,6 +20,10 @@ interface ScreenTableProps {
   onEdit: (screen: PartnerScreen) => void;
   onDelete: (screen: PartnerScreen) => void;
   onViewSeatLayout?: (screen: PartnerScreen) => void;
+  /** Có quyền chỉnh sửa phòng chiếu không */
+  canEdit?: boolean;
+  /** Có quyền xóa/vô hiệu hóa phòng chiếu không */
+  canDelete?: boolean;
 }
 
 const DisableIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
@@ -53,6 +57,8 @@ const ScreenTable = ({
   onEdit,
   onDelete,
   onViewSeatLayout,
+  canEdit = true,
+  canDelete = true,
 }: ScreenTableProps) => {
   const renderSortIcon = (columnKey: string) => {
     if (sortBy !== columnKey) return <ArrowUpDown className="size-4 text-[#9e9ea2]" />;
@@ -230,16 +236,18 @@ const ScreenTable = ({
                       >
                         <Eye className="size-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="icon-sm"
-                        className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
-                        onClick={() => onEdit(screen)}
-                        title="Chỉnh sửa"
-                      >
-                        <PencilLine className="size-4" />
-                      </Button>
-                      {screen.isActive ? (
+                      {canEdit && (
+                        <Button
+                          variant="outline"
+                          size="icon-sm"
+                          className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
+                          onClick={() => onEdit(screen)}
+                          title="Chỉnh sửa"
+                        >
+                          <PencilLine className="size-4" />
+                        </Button>
+                      )}
+                      {canDelete && (screen.isActive ? (
                         <Button
                           variant="outline"
                           size="icon-sm"
@@ -259,7 +267,7 @@ const ScreenTable = ({
                         >
                           <DisableIcon className="size-4" />
                         </Button>
-                      )}
+                      ))}
                     </div>
                   </td>
                 </tr>

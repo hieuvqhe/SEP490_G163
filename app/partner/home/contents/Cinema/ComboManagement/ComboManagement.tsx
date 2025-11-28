@@ -36,9 +36,16 @@ import {
   mapStatusFilterToBoolean,
 } from "./utils";
 import { Info } from "lucide-react";
+import { usePermission, PERMISSION_CODES } from "@/app/partner/home/contexts/PermissionContext";
 
 const ComboManagement = () => {
   const { showToast } = useToast();
+  const { hasPermission: checkPermission } = usePermission();
+
+  // Permission checks (global - không cần cinemaId)
+  const canCreateCombo = checkPermission(PERMISSION_CODES.SERVICE_CREATE);
+  const canUpdateCombo = checkPermission(PERMISSION_CODES.SERVICE_UPDATE);
+  const canDeleteCombo = checkPermission(PERMISSION_CODES.SERVICE_DELETE);
 
   const [filters, setFilters] = useState<ComboFilters>({ ...DEFAULT_COMBO_FILTERS });
   const [pagination, setPagination] = useState<{ page: number; limit: number }>({ page: 1, limit: 10 });
@@ -376,6 +383,7 @@ const ComboManagement = () => {
             onRefresh={() => refetch()}
             onCreate={handleCreateClick}
             isRefreshing={isRefreshing}
+            canCreate={canCreateCombo}
           />
         </div>
 
@@ -391,6 +399,8 @@ const ComboManagement = () => {
           onView={handleViewClick}
           onEdit={handleEditClick}
           onDelete={handleDeleteClick}
+          canEdit={canUpdateCombo}
+          canDelete={canDeleteCombo}
         />
       </div>
 

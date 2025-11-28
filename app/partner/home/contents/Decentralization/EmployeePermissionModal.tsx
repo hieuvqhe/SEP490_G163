@@ -286,12 +286,15 @@ export default function EmployeePermissionModal({
   const grantMutation = useGrantEmployeePermissions();
   const revokeMutation = useRevokeEmployeePermissions();
 
-  // Auto-select all cinemas on open
+  // Reset selected cinemas when modal opens with new employee
   useEffect(() => {
-    if (activeCinemas.length > 0 && selectedCinemaIds.size === 0) {
-      setSelectedCinemaIds(new Set(activeCinemas.map((c) => c.cinemaId)));
+    if (open) {
+      // Không tự động chọn rạp nào, để người dùng tự chọn
+      setSelectedCinemaIds(new Set());
+      setPendingGrants(new Set());
+      setPendingRevokes(new Set());
     }
-  }, [activeCinemas]);
+  }, [open, employee.employeeId]);
 
   // Reset pending changes when cinema selection changes
   useEffect(() => {

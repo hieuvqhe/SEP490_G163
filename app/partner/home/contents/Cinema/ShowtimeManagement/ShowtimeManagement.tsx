@@ -51,9 +51,11 @@ import { Button } from "@/components/ui/button";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { Info } from "lucide-react";
+import { usePermission, PERMISSION_CODES } from "@/app/partner/home/contexts/PermissionContext";
 
 const ShowtimeManagement = () => {
   const { showToast } = useToast();
+  const { canPerform } = usePermission();
 
   const [movieSearchTerm, setMovieSearchTerm] = useState("");
   const [cinemaSearch, setCinemaSearch] = useState("");
@@ -73,6 +75,11 @@ const ShowtimeManagement = () => {
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<PartnerShowtime | null>(null);
+
+  // Permission checks cho cinema đang chọn
+  const canCreateShowtime = selectedCinemaId ? canPerform(PERMISSION_CODES.SHOWTIME_CREATE, selectedCinemaId) : false;
+  const canUpdateShowtime = selectedCinemaId ? canPerform(PERMISSION_CODES.SHOWTIME_UPDATE, selectedCinemaId) : false;
+  const canDeleteShowtime = selectedCinemaId ? canPerform(PERMISSION_CODES.SHOWTIME_DELETE, selectedCinemaId) : false;
 
   const invalidateScreens = useInvalidatePartnerScreens();
 
@@ -517,6 +524,7 @@ const ShowtimeManagement = () => {
                 movieName={selectedMovie?.title}
                 cinemaName={selectedCinema?.cinemaName}
                 screenName={selectedScreen?.screenName}
+                canCreate={canCreateShowtime}
               />
             </div>
 
@@ -538,6 +546,8 @@ const ShowtimeManagement = () => {
                   onPageChange={handlePageChange}
                   onEdit={handleEditShowtime}
                   onDelete={handleDeleteShowtime}
+                  canEdit={canUpdateShowtime}
+                  canDelete={canDeleteShowtime}
                 />
               </div>
             )}

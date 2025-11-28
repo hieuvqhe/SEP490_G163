@@ -19,6 +19,8 @@ interface ShowtimeToolbarProps {
   movieName?: string;
   cinemaName?: string;
   screenName?: string;
+  /** Có quyền tạo suất chiếu không */
+  canCreate?: boolean;
 }
 
 const ShowtimeToolbar = ({
@@ -30,6 +32,7 @@ const ShowtimeToolbar = ({
   movieName,
   cinemaName,
   screenName,
+  canCreate = true,
 }: ShowtimeToolbarProps) => {
   const handleInputChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -86,15 +89,17 @@ const ShowtimeToolbar = ({
             <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
             Làm mới
           </Button>
-          <Button
-            size="sm"
-            onClick={onCreate}
-            disabled={!movieName || !cinemaName || !screenName}
-            className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Plus className="size-4" />
-            Thêm suất chiếu
-          </Button>
+          {canCreate && (
+            <Button
+              size="sm"
+              onClick={onCreate}
+              disabled={!movieName || !cinemaName || !screenName}
+              className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Plus className="size-4" />
+              Thêm suất chiếu
+            </Button>
+          )}
         </div>
       </div>
 

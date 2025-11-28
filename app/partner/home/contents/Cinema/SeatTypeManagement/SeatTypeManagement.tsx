@@ -24,6 +24,7 @@ import {
   SeatTypeToolbar,
 } from "./components";
 import type { SeatTypeFilters, SeatTypeFormValues } from "./types";
+import { usePermission, PERMISSION_CODES } from "@/app/partner/home/contexts/PermissionContext";
 
 const mapSortFieldToApi = (field: SeatTypeFilters["sortBy"]) => {
   switch (field) {
@@ -106,6 +107,12 @@ const getErrorMessage = (error: unknown): string => {
 
 const SeatTypeManagement = () => {
   const { showToast } = useToast();
+  const { hasPermission: checkPermission } = usePermission();
+
+  // Permission checks (global - không cần cinemaId)
+  const canCreateSeatType = checkPermission(PERMISSION_CODES.SEAT_TYPE_CREATE);
+  const canUpdateSeatType = checkPermission(PERMISSION_CODES.SEAT_TYPE_UPDATE);
+  const canDeleteSeatType = checkPermission(PERMISSION_CODES.SEAT_TYPE_DELETE);
 
   const [filters, setFilters] = useState<SeatTypeFilters>(DEFAULT_FILTERS);
   const [pagination, setPagination] = useState<{ page: number; limit: number }>({ page: 1, limit: 10 });
@@ -547,6 +554,7 @@ const SeatTypeManagement = () => {
         isRefreshing={isRefreshing}
         onCreate={handleCreateClick}
         onStartGuide={handleStartGuide}
+        canCreate={canCreateSeatType}
       />
 
       <SeatTypeTable
@@ -561,6 +569,8 @@ const SeatTypeManagement = () => {
         onView={handleViewClick}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        canEdit={canUpdateSeatType}
+        canDelete={canDeleteSeatType}
       />
 
       <SeatTypeFormModal

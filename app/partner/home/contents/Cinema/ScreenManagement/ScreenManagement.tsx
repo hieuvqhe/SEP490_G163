@@ -37,9 +37,12 @@ import {
 import type { ScreenFilters, ScreenFormValues } from "./types";
 import { MonitorPlay } from "lucide-react";
 import { usePartnerHomeStore } from "@/store/partnerHomeStore";
+import { usePermission, PERMISSION_CODES } from "@/app/partner/home/contexts/PermissionContext";
 
 const ScreenManagement = () => {
   const { showToast } = useToast();
+  const { canPerform } = usePermission();
+  
   const [selectedCinemaId, setSelectedCinemaId] = useState<number | null>(null);
   const [selectedCinema, setSelectedCinema] = useState<PartnerCinema | null>(null);
   const [cinemaSearch, setCinemaSearch] = useState("");
@@ -61,6 +64,11 @@ const ScreenManagement = () => {
 
   const setActiveTab = usePartnerHomeStore((state) => state.setActiveTab);
   const setSeatLayoutContext = usePartnerHomeStore((state) => state.setSeatLayoutContext);
+
+  // Permission checks cho cinema đang chọn
+  const canCreateScreen = selectedCinemaId ? canPerform(PERMISSION_CODES.SCREEN_CREATE, selectedCinemaId) : false;
+  const canUpdateScreen = selectedCinemaId ? canPerform(PERMISSION_CODES.SCREEN_UPDATE, selectedCinemaId) : false;
+  const canDeleteScreen = selectedCinemaId ? canPerform(PERMISSION_CODES.SCREEN_DELETE, selectedCinemaId) : false;
 
   const invalidateScreens = useInvalidatePartnerScreens();
   const invalidateCinemas = useInvalidatePartnerCinemas();
@@ -446,6 +454,7 @@ const ScreenManagement = () => {
                 onCreate={handleCreateClick}
                 cinemaName={selectedCinema.cinemaName}
                 onStartGuide={handleStartGuide}
+                canCreate={canCreateScreen}
               />
 
               <ScreenTable
@@ -460,6 +469,8 @@ const ScreenManagement = () => {
                 onView={handleDetailClick}
                 onEdit={handleEditClick}
                 onDelete={handleDeleteClick}
+                canEdit={canUpdateScreen}
+                canDelete={canDeleteScreen}
                 onViewSeatLayout={handleViewSeatLayout}
               />
 
@@ -471,13 +482,17 @@ const ScreenManagement = () => {
                       Rạp này chưa có phòng chiếu nào
                     </h3>
                     <p className="text-sm text-[#9e9ea2]">
-                      Hãy tạo phòng chiếu mới để bắt đầu quản lý lịch chiếu và sơ đồ ghế cho rạp.
+                      {canCreateScreen 
+                        ? "Hãy tạo phòng chiếu mới để bắt đầu quản lý lịch chiếu và sơ đồ ghế cho rạp."
+                        : "Bạn không có quyền tạo phòng chiếu cho rạp này."}
                     </p>
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row">
-                    <Button onClick={handleCreateClick} className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]">
-                      Tạo phòng chiếu đầu tiên
-                    </Button>
+                    {canCreateScreen && (
+                      <Button onClick={handleCreateClick} className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]">
+                        Tạo phòng chiếu đầu tiên
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => setActiveTab("seating-chart")}

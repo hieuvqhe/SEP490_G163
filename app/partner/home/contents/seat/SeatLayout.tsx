@@ -43,6 +43,7 @@ import { useToast } from "@/components/ToastProvider";
 import { Info } from "lucide-react";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
+import { usePermission, PERMISSION_CODES } from "@/app/partner/home/contexts/PermissionContext";
 
 type GuideStep = {
   element: string;
@@ -92,9 +93,23 @@ const mapApiSeatStatusToLocal = (status?: string): SeatData["status"] => {
 };
 
 const SeatLayout = () => {
+  const { canPerform, hasPermission: checkPermission } = usePermission();
+
+  // Get cinemaId from seatLayoutContext for cinema-specific permission check
   const seatLayoutContext = usePartnerHomeStore(
     (state) => state.seatLayoutContext
   );
+  
+  // Permission checks
+  const cinemaId = seatLayoutContext.cinemaId ?? undefined;
+  const canCreateSeatLayout = cinemaId 
+    ? canPerform(PERMISSION_CODES.SEAT_LAYOUT_CREATE, cinemaId) 
+    : checkPermission(PERMISSION_CODES.SEAT_LAYOUT_CREATE);
+  const canUpdateSeatLayout = cinemaId 
+    ? canPerform(PERMISSION_CODES.SEAT_LAYOUT_UPDATE, cinemaId) 
+    : checkPermission(PERMISSION_CODES.SEAT_LAYOUT_UPDATE);
+  const canSaveSeatLayout = canCreateSeatLayout || canUpdateSeatLayout;
+
   const setActiveTab = usePartnerHomeStore((state) => state.setActiveTab);
   const screenId = seatLayoutContext.screenId ?? undefined;
 
@@ -1442,17 +1457,19 @@ const SeatLayout = () => {
                 >
                   Xem dữ liệu sơ đồ ghế
                 </Button>
-                <Button
-                  onClick={handleSaveSeatLayout}
-                  disabled={isSaving || seats.length === 0 || !screenId}
-                  className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white shadow hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isSaving
-                    ? "Đang lưu sơ đồ ghế..."
-                    : hasExistingLayout
-                    ? "Cập nhật sơ đồ ghế"
-                    : "Hoàn tất tạo sơ đồ ghế"}
-                </Button>
+                {canSaveSeatLayout && (
+                  <Button
+                    onClick={handleSaveSeatLayout}
+                    disabled={isSaving || seats.length === 0 || !screenId}
+                    className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white shadow hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isSaving
+                      ? "Đang lưu sơ đồ ghế..."
+                      : hasExistingLayout
+                      ? "Cập nhật sơ đồ ghế"
+                      : "Hoàn tất tạo sơ đồ ghế"}
+                  </Button>
+                )}
               </div>
             </div>
           </div>

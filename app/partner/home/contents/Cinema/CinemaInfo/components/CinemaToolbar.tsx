@@ -15,6 +15,7 @@ type CinemaToolbarProps = {
   onCreate: () => void;
   isRefreshing: boolean;
   onStartGuide: () => void;
+  canCreate?: boolean;
 };
 
 const CinemaToolbar = ({
@@ -25,6 +26,7 @@ const CinemaToolbar = ({
   isRefreshing,
   onCreate,
   onStartGuide,
+  canCreate = true,
 }: CinemaToolbarProps) => {
   const handleInputChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -90,15 +92,17 @@ const CinemaToolbar = ({
             />
             Làm mới
           </Button>
-          <Button
-            size="sm"
-            onClick={onCreate}
-            className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
-            id="cinema-tour-create-btn"
-          >
-            <Plus className="size-4" />
-            Tạo rạp mới
-          </Button>
+          {canCreate && (
+            <Button
+              size="sm"
+              onClick={onCreate}
+              className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
+              id="cinema-tour-create-btn"
+            >
+              <Plus className="size-4" />
+              Tạo rạp mới
+            </Button>
+          )}
         </div>
       </div>
 

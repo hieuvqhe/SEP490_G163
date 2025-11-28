@@ -14,6 +14,7 @@ type ComboToolbarProps = {
   onRefresh: () => void;
   onCreate: () => void;
   isRefreshing: boolean;
+  canCreate?: boolean;
 };
 
 const ComboToolbar = ({
@@ -23,6 +24,7 @@ const ComboToolbar = ({
   onRefresh,
   onCreate,
   isRefreshing,
+  canCreate = true,
 }: ComboToolbarProps) => {
   const handleInputChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -72,14 +74,16 @@ const ComboToolbar = ({
             <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
             Làm mới
           </Button>
-          <Button
-            size="sm"
-            onClick={onCreate}
-            className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
-          >
-            <Plus className="size-4" />
-            Tạo combo mới
-          </Button>
+          {canCreate && (
+            <Button
+              size="sm"
+              onClick={onCreate}
+              className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
+            >
+              <Plus className="size-4" />
+              Tạo combo mới
+            </Button>
+          )}
         </div>
       </div>
 

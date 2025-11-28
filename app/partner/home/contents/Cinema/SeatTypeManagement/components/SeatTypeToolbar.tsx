@@ -15,6 +15,8 @@ type SeatTypeToolbarProps = {
   onCreate: () => void;
   isRefreshing: boolean;
   onStartGuide?: () => void;
+  /** Có quyền tạo loại ghế không */
+  canCreate?: boolean;
 };
 
 const SeatTypeToolbar = ({
@@ -25,6 +27,7 @@ const SeatTypeToolbar = ({
   onCreate,
   isRefreshing,
   onStartGuide,
+  canCreate = true,
 }: SeatTypeToolbarProps) => {
   const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -87,15 +90,17 @@ const SeatTypeToolbar = ({
             <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
             Làm mới
           </Button>
-          <Button
-            size="sm"
-            onClick={onCreate}
-            className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
-            id="seat-type-tour-create-btn"
-          >
-            <Plus className="size-4" />
-            Tạo loại ghế
-          </Button>
+          {canCreate && (
+            <Button
+              size="sm"
+              onClick={onCreate}
+              className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
+              id="seat-type-tour-create-btn"
+            >
+              <Plus className="size-4" />
+              Tạo loại ghế
+            </Button>
+          )}
         </div>
       </div>
 

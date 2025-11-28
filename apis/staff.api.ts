@@ -1,5 +1,6 @@
 import { BASE_URL } from "@/constants";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 // ==================== Types ====================
 
@@ -60,35 +61,20 @@ export interface StaffApiError {
 // ==================== Service ====================
 
 class StaffService {
-  private baseURL = `${BASE_URL}/api/partners/staff`;
+  private baseURL = `${BASE_URL}/partners/staff`;
 
   /**
    * Lấy thông tin hồ sơ nhân viên
    * GET /partners/staff/profile
    */
   async getStaffProfile(accessToken: string): Promise<GetStaffProfileResponse> {
-    try {
-      const response = await fetch(`${this.baseURL}/profile`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw result as StaffApiError;
-      }
-
-      return result;
-    } catch (error: any) {
-      if (error.name === 'TypeError') {
-        throw { message: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.' } as StaffApiError;
-      }
-      throw error;
-    }
+    const response = await axios.get(`${this.baseURL}/profile`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
   }
 }
 
@@ -101,7 +87,7 @@ export const staffService = new StaffService();
  */
 export const useGetStaffProfile = (accessToken?: string) => {
   return useQuery({
-    queryKey: ['staff-profile'],
+    queryKey: ['staff-profile', accessToken],
     queryFn: () => staffService.getStaffProfile(accessToken!),
     enabled: !!accessToken,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -112,33 +98,16 @@ export const useGetStaffProfile = (accessToken?: string) => {
 // ==================== Utility Functions ====================
 
 /**
- * Lấy danh sách quyền theo rạp
+ * Lấy danh sách unique permission codes
  */
-export const getPermissionsByCinema = (permissions: GrantedPermission[]): Map<number, GrantedPermission[]> => {
-  const permissionMap = new Map<number, GrantedPermission[]>();
-  
+export const getUniquePermissionCodes = (permissions: GrantedPermission[]): string[] => {
+  const codes = new Set<string>();
   permissions.forEach(permission => {
-    const existing = permissionMap.get(permission.cinemaId) || [];
-    existing.push(permission);
-    permissionMap.set(permission.cinemaId, existing);
+    if (permission.isActive) {
+      codes.add(permission.permissionCode);
+    }
   });
-  
-  return permissionMap;
-};
-
-/**
- * Lấy danh sách quyền theo loại resource
- */
-export const getPermissionsByResourceType = (permissions: GrantedPermission[]): Map<string, GrantedPermission[]> => {
-  const permissionMap = new Map<string, GrantedPermission[]>();
-  
-  permissions.forEach(permission => {
-    const existing = permissionMap.get(permission.resourceType) || [];
-    existing.push(permission);
-    permissionMap.set(permission.resourceType, existing);
-  });
-  
-  return permissionMap;
+  return Array.from(codes);
 };
 
 /**
@@ -150,9 +119,7 @@ export const hasPermission = (
   cinemaId: number
 ): boolean => {
   return permissions.some(
-    p => p.permissionCode === permissionCode && 
-         p.cinemaId === cinemaId && 
-         p.isActive
+    p => p.permissionCode === permissionCode && p.cinemaId === cinemaId && p.isActive
   );
 };
 
@@ -175,9 +142,26 @@ export const getCinemasWithPermission = (
   permissions: GrantedPermission[],
   permissionCode: string
 ): number[] => {
-  return permissions
+  const cinemaIds = new Set<number>();
+  permissions
     .filter(p => p.permissionCode === permissionCode && p.isActive)
-    .map(p => p.cinemaId);
+    .forEach(p => cinemaIds.add(p.cinemaId));
+  return Array.from(cinemaIds);
+};
+
+/**
+ * Nhóm permissions theo rạp
+ */
+export const groupPermissionsByCinema = (
+  permissions: GrantedPermission[]
+): Map<number, GrantedPermission[]> => {
+  const map = new Map<number, GrantedPermission[]>();
+  permissions.forEach(p => {
+    const existing = map.get(p.cinemaId) || [];
+    existing.push(p);
+    map.set(p.cinemaId, existing);
+  });
+  return map;
 };
 
 /**

@@ -22,6 +22,10 @@ interface SeatTypeTableProps {
   onView: (seatType: PartnerSeatType) => void;
   onEdit: (seatType: PartnerSeatType) => void;
   onDelete: (seatType: PartnerSeatType) => void;
+  /** Có quyền chỉnh sửa loại ghế không */
+  canEdit?: boolean;
+  /** Có quyền xóa loại ghế không */
+  canDelete?: boolean;
 }
 
 const columns: { key: keyof PartnerSeatType | "status" | "surcharge" | "actions"; label: string; sortable?: boolean }[] = [
@@ -46,6 +50,8 @@ const SeatTypeTable = ({
   onView,
   onEdit,
   onDelete,
+  canEdit = true,
+  canDelete = true,
 }: SeatTypeTableProps) => {
   const renderSortIcon = (columnKey: string) => {
     if (sortBy !== columnKey) return <ArrowUpDown className="size-4 text-[#9e9ea2]" />;
@@ -169,16 +175,18 @@ const SeatTypeTable = ({
                         >
                           <Eye className="size-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="icon-sm"
-                          className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
-                          onClick={() => onEdit(seatType)}
-                          title="Chỉnh sửa"
-                        >
-                          <PencilLine className="size-4" />
-                        </Button>
-                        {seatType.status && (
+                        {canEdit && (
+                          <Button
+                            variant="outline"
+                            size="icon-sm"
+                            className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
+                            onClick={() => onEdit(seatType)}
+                            title="Chỉnh sửa"
+                          >
+                            <PencilLine className="size-4" />
+                          </Button>
+                        )}
+                        {canDelete && seatType.status && (
                           <Button
                             variant="outline"
                             size="icon-sm"

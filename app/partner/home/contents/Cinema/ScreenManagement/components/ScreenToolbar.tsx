@@ -14,6 +14,8 @@ interface ScreenToolbarProps {
   onCreate: () => void;
   cinemaName?: string;
   onStartGuide?: () => void;
+  /** Có quyền tạo phòng chiếu không */
+  canCreate?: boolean;
 }
 
 const ScreenToolbar = ({
@@ -24,6 +26,7 @@ const ScreenToolbar = ({
   onCreate,
   cinemaName,
   onStartGuide,
+  canCreate = true,
 }: ScreenToolbarProps) => {
   const handleInputChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -88,15 +91,17 @@ const ScreenToolbar = ({
             <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
             Làm mới
           </Button>
-          <Button
-            size="sm"
-            onClick={onCreate}
-            className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
-            id="screen-tour-create-btn"
-          >
-            <Plus className="size-4" />
-            Thêm phòng
-          </Button>
+          {canCreate && (
+            <Button
+              size="sm"
+              onClick={onCreate}
+              className="bg-[#ff7a45] text-[#151518] transition hover:bg-[#ff8d60]"
+              id="screen-tour-create-btn"
+            >
+              <Plus className="size-4" />
+              Thêm phòng
+            </Button>
+          )}
         </div>
       </div>
 

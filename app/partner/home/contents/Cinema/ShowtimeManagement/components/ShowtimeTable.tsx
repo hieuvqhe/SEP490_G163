@@ -19,6 +19,10 @@ interface ShowtimeTableProps {
   onPageChange: (page: number) => void;
   onEdit: (showtime: ShowtimeListItem) => void;
   onDelete: (showtime: ShowtimeListItem) => void;
+  /** Có quyền chỉnh sửa suất chiếu không */
+  canEdit?: boolean;
+  /** Có quyền xóa suất chiếu không */
+  canDelete?: boolean;
 }
 
 const statusLabelMap: Record<string, string> = {
@@ -40,6 +44,8 @@ const ShowtimeTable = ({
   onPageChange,
   onEdit,
   onDelete,
+  canEdit = true,
+  canDelete = true,
 }: ShowtimeTableProps) => {
   if (loading) {
     return (
@@ -133,24 +139,28 @@ const ShowtimeTable = ({
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="size-8 border border-[#3a3a3d] text-[#f5f5f5] hover:bg-[#27272a]"
-                        onClick={() => onEdit(item)}
-                        title="Chỉnh sửa"
-                      >
-                        <PencilLine className="size-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="size-8 border border-rose-500/60 text-rose-200 hover:bg-rose-500/20"
-                        onClick={() => onDelete(item)}
-                        title="Xoá"
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="size-8 border border-[#3a3a3d] text-[#f5f5f5] hover:bg-[#27272a]"
+                          onClick={() => onEdit(item)}
+                          title="Chỉnh sửa"
+                        >
+                          <PencilLine className="size-4" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="size-8 border border-rose-500/60 text-rose-200 hover:bg-rose-500/20"
+                          onClick={() => onDelete(item)}
+                          title="Xoá"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>

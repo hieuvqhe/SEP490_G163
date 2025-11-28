@@ -108,5 +108,6 @@ export const useGetUserVoucherByCode = (voucherCode: string) => {
   return useQuery({
     queryKey: ["user-vouchers", voucherCode],
     queryFn: () => userVoucherApiInstance.getVoucherByCode(voucherCode),
+    enabled: !!voucherCode && voucherCode.trim().length > 0, // Chỉ gọi API khi có mã voucher
   });
 };

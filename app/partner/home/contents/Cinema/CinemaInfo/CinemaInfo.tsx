@@ -22,6 +22,7 @@ import {
   CinemaToolbar,
 } from "./components";
 import type { CinemaFilters, CinemaFormValues, CinemaLike } from "./types";
+import { usePermission, PERMISSION_CODES } from "@/app/partner/home/contexts/PermissionContext";
 
 const defaultFilters: CinemaFilters = {
   search: "",
@@ -125,6 +126,13 @@ const getErrorMessage = (error: unknown): string => {
 
 const CinemaInfo = () => {
   const { showToast } = useToast();
+  const { hasPermission: checkPermission } = usePermission();
+
+  // Permission checks (global - không cần cinemaId cho Cinema management)
+  const canCreateCinema = checkPermission(PERMISSION_CODES.CINEMA_CREATE);
+  const canUpdateCinema = checkPermission(PERMISSION_CODES.CINEMA_UPDATE);
+  const canDeleteCinema = checkPermission(PERMISSION_CODES.CINEMA_DELETE);
+
   const [filters, setFilters] = useState<CinemaFilters>(defaultFilters);
   const [pagination, setPagination] = useState<{ page: number; limit: number }>({ page: 1, limit: 10 });
 
@@ -421,6 +429,7 @@ const CinemaInfo = () => {
         isRefreshing={isRefreshing}
         onCreate={handleCreateClick}
         onStartGuide={handleStartGuide}
+        canCreate={canCreateCinema}
       />
 
       <CinemaTable
@@ -435,6 +444,8 @@ const CinemaInfo = () => {
         onView={handleDetailClick}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        canEdit={canUpdateCinema}
+        canDelete={canDeleteCinema}
       />
 
       <CinemaFormModal

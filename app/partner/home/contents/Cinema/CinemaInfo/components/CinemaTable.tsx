@@ -26,6 +26,8 @@ interface CinemaTableProps {
   onView: (cinema: PartnerCinema) => void;
   onEdit: (cinema: PartnerCinema) => void;
   onDelete: (cinema: PartnerCinema) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 const columns: { key: keyof PartnerCinema | "status" | "screens"; label: string; sortable?: boolean }[] = [
@@ -51,6 +53,8 @@ const CinemaTable = ({
   onView,
   onEdit,
   onDelete,
+  canEdit = true,
+  canDelete = true,
 }: CinemaTableProps) => {
   const renderSortIcon = (columnKey: string) => {
     if (sortBy !== columnKey) return <ArrowUpDown className="size-4 text-[#9e9ea2]" />;
@@ -177,24 +181,28 @@ const CinemaTable = ({
                         >
                           <Eye className="size-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="icon-sm"
-                          className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
-                          onClick={() => onEdit(cinema)}
-                          title="Chỉnh sửa"
-                        >
-                          <PencilLine className="size-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon-sm"
-                          className="border border-rose-600/50 text-rose-300 transition hover:bg-rose-500/20 hover:text-white"
-                          onClick={() => onDelete(cinema)}
-                          title="Xoá rạp"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        {canEdit && (
+                          <Button
+                            variant="outline"
+                            size="icon-sm"
+                            className="border border-[#3a3a3d] text-[#f5f5f5] transition hover:bg-[#27272a] hover:text-white"
+                            onClick={() => onEdit(cinema)}
+                            title="Chỉnh sửa"
+                          >
+                            <PencilLine className="size-4" />
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="outline"
+                            size="icon-sm"
+                            className="border border-rose-600/50 text-rose-300 transition hover:bg-rose-500/20 hover:text-white"
+                            onClick={() => onDelete(cinema)}
+                            title="Xoá rạp"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
