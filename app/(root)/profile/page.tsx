@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import ProfilePage from "./components/ProfilePage";
+import ProfilePage from "./ProfilePage";
 
 const page = () => {
   return (

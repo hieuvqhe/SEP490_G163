@@ -183,7 +183,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full flex flex-col justify-around">
       {/* Main Profile Card */}
       {isLoading && (
         <div className="flex items-center justify-center py-20">
@@ -205,7 +205,7 @@ const UserProfile = () => {
       )}
 
       {getUserData() && (
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="flex justify-around items-center">
           {/* Avatar and Basic Info */}
           <div className="flex flex-col items-center space-y-6">
             <div className="relative">

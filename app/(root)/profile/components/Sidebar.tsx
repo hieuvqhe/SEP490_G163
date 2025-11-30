@@ -1,15 +1,15 @@
 "use client";
 
+import { useAuthStore } from "@/store/authStore";
 import {
-  Bell,
   CreditCard,
   Heart,
   LogOut,
-  Settings,
   Ticket,
   User,
   Menu,
   X,
+  Award,
 } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 
@@ -20,14 +20,13 @@ interface SidebarProps {
 
 const Sidebar = ({ activeSection, setActiveSection }: SidebarProps) => {
   const [openMobile, setOpenMobile] = useState(false);
+  const {user} = useAuthStore();
 
   const menuItems = [
     { id: "profile", label: "Thông tin cá nhân", icon: User },
     { id: "tickets", label: "Vé đã mua", icon: Ticket },
-    { id: "favorites", label: "Yêu thích", icon: Heart },
-    { id: "payments", label: "Phương thức thanh toán", icon: CreditCard },
-    { id: "notifications", label: "Thông báo", icon: Bell },
-    { id: "settings", label: "Cài đặt", icon: Settings },
+    { id: "orders", label: "Lịch sử giao dịch", icon: CreditCard },
+    { id: "favorites", label: "Hạng thành viên", icon: Award },
   ];
 
   const renderMenu = (
@@ -83,8 +82,8 @@ const Sidebar = ({ activeSection, setActiveSection }: SidebarProps) => {
               ND
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Nguyễn Văn A</h3>
-              <p className="text-sm text-gray-500">nguyenvana@email.com</p>
+              <h3 className="font-semibold text-gray-900">{user?.username}</h3>
+              <p className="text-sm text-gray-500">{user?.email}</p>
             </div>
           </div>
 
@@ -114,8 +113,8 @@ const Sidebar = ({ activeSection, setActiveSection }: SidebarProps) => {
               ND
             </div>
             <div>
-              <h3 className="font-semibold text-white">Nguyễn Văn A</h3>
-              <p className="text-sm text-zinc-400">nguyenvana@email.com</p>
+              <h3 className="font-semibold text-white">{user?.fullname}</h3>
+              <p className="text-sm text-zinc-400">{user?.email}</p>
             </div>
           </div>
         </div>
