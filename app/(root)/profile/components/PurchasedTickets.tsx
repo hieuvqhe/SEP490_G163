@@ -47,11 +47,13 @@ export interface UserTicket {
   checkInStatus: string;
   checkInTime: string | null;
   ticketQR: string;
+
   booking: {
     bookingId: number;
     bookingCode: string;
     paymentStatus: string;
   };
+
   movie: {
     movieId: number;
     title: string;
@@ -59,20 +61,29 @@ export interface UserTicket {
     posterUrl: string;
     genre: string;
   };
+
   cinema: {
     cinemaId: number;
     cinemaName: string;
     address: string;
+    city: string;
+    district: string;
   };
+
   showtime: {
     showtimeId: number;
     showDatetime: string;
     endTime: string;
+    formatType: string;
+    status: string;
   };
+
   seat: {
     seatId: number;
+    rowCode: string;
+    seatNumber: number;
     seatName: string;
-    seatType: string;
+    seatTypeName: string;
   };
 }
 
@@ -113,7 +124,7 @@ export default function PurchasedTickets() {
 
   useEffect(() => {
     console.log(items);
-  }, [])
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -167,37 +178,35 @@ export default function PurchasedTickets() {
       </div>
 
       {/* Pagination */}
-      
-        <Pagination className="justify-end mt-4">
-          <PaginationContent className="">
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => page > 1 && setPage(page - 1)}
-                className={cn(
-                  "text-white/70 hover:text-white hover:bg-white/10 cursor-pointer",
-                  page <= 1 &&
-                    "opacity-50 cursor-not-allowed pointer-events-none"
-                )}
-              />
-            </PaginationItem>
 
-            <span className="px-6 py-2 text-white/90 font-medium select-none">
-              {page} / {totalPages}
-            </span>
+      <Pagination className="justify-end mt-4">
+        <PaginationContent className="">
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => page > 1 && setPage(page - 1)}
+              className={cn(
+                "text-white/70 hover:text-white hover:bg-white/10 cursor-pointer",
+                page <= 1 && "opacity-50 cursor-not-allowed pointer-events-none"
+              )}
+            />
+          </PaginationItem>
 
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => page < totalPages && setPage(page + 1)}
-                className={cn(
-                  "text-white/70 hover:text-white hover:bg-white/10 cursor-pointer",
-                  page >= totalPages &&
-                    "opacity-50 cursor-not-allowed pointer-events-none"
-                )}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-    
+          <span className="px-6 py-2 text-white/90 font-medium select-none">
+            {page} / {totalPages}
+          </span>
+
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => page < totalPages && setPage(page + 1)}
+              className={cn(
+                "text-white/70 hover:text-white hover:bg-white/10 cursor-pointer",
+                page >= totalPages &&
+                  "opacity-50 cursor-not-allowed pointer-events-none"
+              )}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
@@ -417,7 +426,7 @@ export function TicketCard({ ticket }: { ticket: UserTicket }) {
                     {seat.seatName}
                   </p>
                   <span className="text-xs text-zinc-500 border border-zinc-700 px-1.5 rounded">
-                    {seat.seatType}
+                    {seat.seatTypeName}
                   </span>
                 </div>
               </div>

@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/pagination";
 import { Spinner } from "@/components/ui/spinner"; // Hoặc component loading của bạn
 import Image from "next/image";
+import { formatCurrency } from "@/utils/format";
 
 // --- TYPES (Từ code bạn cung cấp) ---
 export interface OrderItem {
@@ -479,17 +480,26 @@ const OrderHistory = () => {
                   <span className="block text-zinc-500 text-xs uppercase mb-2">
                     Danh sách ghế
                   </span>
-                  <div className="flex flex-wrap gap-2">
-                    {getOrderByIdRes.result.tickets.map(
-                      (ticket, index: number) => (
-                        <span
-                          key={index}
-                          className="px-2.5 py-1 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded text-xs font-bold"
-                        >
-                          {ticket.seat.seatName}
-                        </span>
-                      )
-                    )}
+                  <div className="flex items-end-safe justify-between">
+                    <div className="grid grid-cols-4 gap-2 w-[50%]">
+                      {getOrderByIdRes.result.tickets.map(
+                        (ticket, index: number) => (
+                          <span
+                            key={index}
+                            className="px-2.5 py-1 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded text-xs font-bold"
+                          >
+                            {ticket.seat.seatName}
+                          </span>
+                        )
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-green-400">
+                        {formatCurrency(
+                          getOrderByIdRes.result.booking.ticketsTotal
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -507,18 +517,41 @@ const OrderHistory = () => {
                               key={index}
                               className="flex items-center justify-between text-zinc-300 bg-zinc-900/50 px-3 py-2 rounded"
                             >
-                              <span className="font-medium">
-                                {combo.serviceName}
-                              </span>
-                              <span className="font-mono font-bold text-white bg-zinc-700 px-2 py-0.5 rounded text-xs">
-                                x{combo.quantity}
-                              </span>
+                              <div className="flex items-center gap-3">
+                                <span className="font-mono font-bold text-white bg-zinc-700 px-2 py-0.5 rounded text-xs">
+                                  x{combo.quantity}
+                                </span>
+                                <span className="font-medium">
+                                  {combo.serviceName}
+                                </span>
+                              </div>
+                              <p className="text-green-400">
+                                {formatCurrency(
+                                  getOrderByIdRes.result.booking.combosTotal
+                                )}
+                              </p>
                             </div>
                           )
                         )}
                       </div>
                     </div>
                   )}
+
+                {getOrderByIdRes.result.voucher && (
+                  <div className="col-span-2 p-3 bg-zinc-800/50 rounded border border-zinc-700/50">
+                    <span className="block text-zinc-500 text-xs uppercase mb-2">
+                      Voucher đã áp dụng
+                    </span>
+                    <div className="flex items-end-safe justify-between">
+                      <div className="grid grid-cols-4 gap-2 w-[50%]">
+                        <p>
+                          Voucher: {getOrderByIdRes.result.voucher.voucherCode}
+                        </p>
+                      </div>
+                      <div>-{getOrderByIdRes.result.voucher.discountVal}%</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
