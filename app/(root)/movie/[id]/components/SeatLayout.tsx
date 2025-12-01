@@ -18,6 +18,9 @@ const SeatLayout = ({ showtime, sessionId, setSeatLayoutContent, seatLayoutConte
 
   const showtimeData = showtimeSeatRes?.result;
 
+  // console.log(showtimeData?.seatTypes);
+  
+
   return (
     // <DialogContent className="!max-w-[98vw] !w-[60vw] !h-fit p-0 overflow-hidden flex flex-col bg-zinc-800">
     <DialogContent

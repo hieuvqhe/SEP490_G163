@@ -715,7 +715,7 @@ const SeatMap = ({
       const seat = rowSeats[i];
       const type = seatTypes?.find((t) => t.seatTypeId === seat.SeatTypeId);
 
-      const isSeatDisabled = type?.code === "DISABLE";
+      const isSeatDisabled = type?.code === "DISABLE" || type?.code === "DISABLE_2";
       const isSeatLocked = seat.Status === "LOCKED";
       const isSeatSoled = seat.Status === "SOLD";
 
