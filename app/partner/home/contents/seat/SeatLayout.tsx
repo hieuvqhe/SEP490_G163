@@ -624,7 +624,8 @@ const SeatLayout = () => {
       const nodes: React.ReactNode[] = [];
 
       const getSeatLabel = (seat: SeatData) => {
-        if (seat.status === "Maintenance") {
+        // Ghế Maintenance hoặc Blocked đều hiển thị Z0 và không đếm số thứ tự
+        if (seat.status === "Maintenance" || seat.status === "Blocked") {
           return "Z0";
         }
         seatOrderRef.current += 1;
@@ -735,11 +736,12 @@ const SeatLayout = () => {
 
     return sortedSeats.map(({ colorCode, ...rest }) => {
       const currentCount = seatCounters.get(rest.row) ?? 0;
-      const isMaintenance = rest.status === "Maintenance";
-      const nextCount = isMaintenance ? currentCount : currentCount + 1;
+      // Ghế Maintenance hoặc Blocked đều hiển thị Z0 và không đếm số thứ tự
+      const isHiddenSeat = rest.status === "Maintenance" || rest.status === "Blocked";
+      const nextCount = isHiddenSeat ? currentCount : currentCount + 1;
       seatCounters.set(rest.row, nextCount);
 
-      const seatName = isMaintenance ? "Z0" : `${rest.row}${nextCount}`;
+      const seatName = isHiddenSeat ? "Z0" : `${rest.row}${nextCount}`;
 
       return {
         ...rest,
@@ -832,6 +834,21 @@ const SeatLayout = () => {
     if (seats.length === 0) {
       showToast("Chưa có dữ liệu ghế để lưu.", undefined, "error");
       return;
+    }
+
+    // Kiểm tra ghế mẫu - không cho phép tạo rạp có ghế mẫu
+    if (templateSeatType) {
+      const hasTemplateSeat = seats.some(
+        (seat) => seat.seatTypeId === templateSeatType.id
+      );
+      if (hasTemplateSeat) {
+        showToast(
+          "Không được tạo sơ đồ ghế có chứa \"Ghế mẫu\". Vui lòng thay đổi loại ghế cho các ghế mẫu hoặc tạo lại sơ đồ.",
+          undefined,
+          "error"
+        );
+        return;
+      }
     }
 
     const payload: SavePartnerSeatLayoutRequest = {

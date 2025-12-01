@@ -12,6 +12,7 @@ export interface CreateVoucherRequest {
   usageLimit: number;
   description?: string;
   isActive: boolean;
+  isRestricted: boolean;
 }
 
 export interface VoucherDetail {
@@ -25,6 +26,7 @@ export interface VoucherDetail {
   usedCount: number;
   description?: string | null;
   isActive: boolean;
+  isRestricted: boolean;
   createdAt: string;
   updatedAt: string | null;
   managerId: number;
@@ -41,6 +43,7 @@ export interface VoucherSummary {
   usageLimit: number;
   usedCount: number;
   isActive: boolean;
+  isRestricted: boolean;
   createdAt: string;
   managerName: string;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,8 +17,10 @@ import {
   type PartnerEmployee,
 } from "@/apis/partner.decentralization.api";
 import { useGetPartnerCinemas } from "@/apis/partner.cinema.api";
-import { MapPin, Check } from "lucide-react";
+import { MapPin, Check, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 interface AssignCinemaModalProps {
   open: boolean;
@@ -35,21 +37,54 @@ export default function AssignCinemaModal({
   const [initialAssignments, setInitialAssignments] = useState<Set<number>>(new Set());
 
   const { showToast } = useToast();
-  // Lấy assignments của nhân viên hiện tại
-  const { data: assignmentsData, isLoading: loadingAssignments } = useGetCinemaAssignments(
-    employee.employeeId
-  );
-  // Lấy danh sách TẤT CẢ nhân viên Staff và Cashier active (để lấy assignments của họ)
-  const { data: staffData, isLoading: loadingStaff } = useGetPartnerEmployees({
-    roleType: "Staff",
+
+  // 1. Fetch specific assignments for THIS employee (to correctly show what they currently have)
+  const { data: employeeAssignmentsData, isLoading: loadingEmployeeAssignments } = 
+    useGetCinemaAssignments(employee.employeeId);
+
+  // 2. Fetch ALL employees to check their assignments
+  const { data: employeesData, isLoading: loadingEmployees } = useGetPartnerEmployees({
+    limit: 50, // Limit to 50 as requested
     isActive: true,
-    limit: 1000,
   });
-  const { data: cashierData, isLoading: loadingCashier } = useGetPartnerEmployees({
-    roleType: "Cashier", 
-    isActive: true,
-    limit: 1000,
+
+  // 3. Filter out the current employee from the list
+  const otherEmployees = useMemo(() => {
+    return (employeesData?.result?.employees || []).filter(
+      (emp) => String(emp.employeeId) !== String(employee.employeeId)
+    );
+  }, [employeesData, employee.employeeId]);
+
+  // 4. Fetch assignments for ALL OTHER employees
+  const otherAssignmentsQueries = useQueries({
+    queries: otherEmployees.map((emp) => ({
+      queryKey: ["cinema-assignments", emp.employeeId],
+      queryFn: () => partnerEmployeeService.getCinemaAssignments(emp.employeeId),
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      gcTime: 10 * 60 * 1000,
+    })),
   });
+
+  // 5. Aggregate assignments from other employees
+  const assignedToOthers = useMemo(() => {
+    const assigned = new Set<number>();
+    const assignmentMap = new Map<number, string>(); // cinemaId -> employeeName
+
+    otherAssignmentsQueries.forEach((query, index) => {
+      if (query.data?.result) {
+        const empName = otherEmployees[index]?.fullName || "Unknown";
+        query.data.result.forEach((assignment) => {
+          if (assignment.isActive) {
+            assigned.add(assignment.cinemaId);
+            assignmentMap.set(assignment.cinemaId, empName);
+          }
+        });
+      }
+    });
+
+    return { set: assigned, map: assignmentMap };
+  }, [otherAssignmentsQueries, otherEmployees]);
+  
   const { data: cinemasData, isLoading: loadingCinemas } = useGetPartnerCinemas({
     page: 1,
     limit: 100,
@@ -59,56 +94,92 @@ export default function AssignCinemaModal({
   const assignMutation = useAssignCinemaToEmployee();
   const unassignMutation = useUnassignCinemaFromEmployee();
 
-  const assignments = assignmentsData?.result || [];
+  const handleStartTour = useCallback(() => {
+    const steps = [
+      {
+        element: "#assign-cinema-tour-modal",
+        popover: {
+          title: "Phân quyền rạp cho nhân viên",
+          description: "Tại đây bạn có thể phân quyền quản lý rạp cho nhân viên. Nhân viên sẽ có quyền truy cập các rạp được phân quyền.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#assign-cinema-tour-employee-info",
+        popover: {
+          title: "Thông tin nhân viên",
+          description: "Hiển thị thông tin nhân viên đang được phân quyền, bao gồm tên và email.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#assign-cinema-tour-selection-label",
+        popover: {
+          title: "Quy tắc chọn rạp",
+          description: employee.roleType === "Cashier" 
+            ? "Cashier chỉ được phân quyền quản lý 1 rạp duy nhất. Nhân viên và Marketing có thể quản lý nhiều rạp."
+            : "Nhân viên và Marketing có thể được phân quyền quản lý nhiều rạp. Cashier chỉ được phân 1 rạp.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#assign-cinema-tour-cinema-list",
+        popover: {
+          title: "Danh sách rạp",
+          description: "Chọn các rạp muốn phân quyền. Rạp đã được phân cho nhân viên khác sẽ bị vô hiệu hóa và hiển thị tên nhân viên được phân.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#assign-cinema-tour-actions",
+        popover: {
+          title: "Lưu thay đổi",
+          description: "Nhấn 'Lưu thay đổi' để xác nhận phân quyền, hoặc 'Hủy' để đóng mà không lưu.",
+          side: "top" as const,
+          align: "end" as const,
+        },
+      },
+    ];
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [employee.roleType]);
+
   const cinemas = cinemasData?.result?.cinemas || [];
   
-  // Merge Staff và Cashier employees
-  const allEmployees = [
-    ...(staffData?.result?.employees || []),
-    ...(cashierData?.result?.employees || []),
-  ];
-  
-  // Kiểm tra nếu nhân viên hiện tại là Cashier (chỉ được chọn 1 rạp)
-  const isCashier = employee.roleType === "Cashier";
-  
-  // Fetch assignments của TẤT CẢ nhân viên Staff khác (không phải nhân viên hiện tại)
-  const otherEmployees = allEmployees.filter(emp => emp.employeeId !== employee.employeeId);
-  
-  // Sử dụng useQueries để fetch assignments của từng nhân viên khác một cách an toàn
-  const otherAssignmentsQueries = useQueries({
-    queries: otherEmployees.map(emp => ({
-      queryKey: ["cinema-assignments", emp.employeeId],
-      queryFn: () => partnerEmployeeService.getCinemaAssignments(emp.employeeId),
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-    })),
-  });
-  
-  // Merge tất cả assignments của nhân viên khác
-  const allOtherAssignments = otherAssignmentsQueries
-    .flatMap(query => query.data?.result || [])
-    .filter(a => a.isActive);
-
-  // Tạo Set chứa các cinemaId đã được phân cho NHÂN VIÊN KHÁC
-  const assignedToOthers = new Set(
-    allOtherAssignments.map((a) => a.cinemaId)
-  );
-  
-
-
+  // Initialize selection from employee's specific assignments
   useEffect(() => {
-    if (assignments.length > 0) {
+    if (employeeAssignmentsData?.result) {
       const assigned = new Set(
-        assignments.filter((a) => a.isActive).map((a) => a.cinemaId)
+        employeeAssignmentsData.result
+          .filter((a) => a.isActive)
+          .map((a) => a.cinemaId)
       );
       setSelectedCinemaIds(assigned);
       setInitialAssignments(assigned);
     }
-  }, [assignments]);
+  }, [employeeAssignmentsData]);
+
+  // Check if current employee is Cashier
+  const isCashier = employee.roleType === "Cashier";
 
   const handleToggleCinema = (cinemaId: number) => {
-    // Không cho phép chọn rạp đã được phân cho nhân viên khác
-    if (assignedToOthers.has(cinemaId)) {
+    const isSelected = selectedCinemaIds.has(cinemaId);
+    const isAssignedToOther = assignedToOthers.set.has(cinemaId);
+
+    // Không cho phép chọn rạp đã được phân cho nhân viên khác (trừ khi rạp đó đang được chọn bởi nhân viên hiện tại - trường hợp conflict)
+    if (isAssignedToOther && !isSelected) {
       return;
     }
     
@@ -163,7 +234,10 @@ export default function AssignCinemaModal({
     }
   };
 
-  const isLoading = loadingAssignments || loadingStaff || loadingCashier || loadingCinemas || otherAssignmentsQueries.some(q => q.isLoading);
+  const isLoading = loadingEmployeeAssignments || loadingEmployees || loadingCinemas;
+  // Note: We don't block UI on otherAssignmentsQueries loading, but we might show loading state for individual items if needed.
+  // Or we can just let them pop in. For now, let's not block the whole modal.
+  
   const isPending = assignMutation.isPending || unassignMutation.isPending;
   const hasChanges =
     selectedCinemaIds.size !== initialAssignments.size ||
@@ -175,13 +249,25 @@ export default function AssignCinemaModal({
         className="bg-zinc-900 border-zinc-800 text-zinc-100 max-w-2xl max-h-[80vh] overflow-y-auto"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
+        id="assign-cinema-tour-modal"
       >
-        <DialogTitle className="text-xl font-semibold mb-4">
-          Phân quyền rạp cho nhân viên
-        </DialogTitle>
+        <div className="flex items-center justify-between mb-4">
+          <DialogTitle className="text-xl font-semibold">
+            Phân quyền rạp cho nhân viên
+          </DialogTitle>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleStartTour}
+            className="bg-zinc-800 text-zinc-200 hover:bg-zinc-700 border-zinc-700 rounded-xl"
+          >
+            <Info className="mr-1 size-4" /> Hướng dẫn
+          </Button>
+        </div>
 
         {/* Employee Info */}
-        <div className="bg-zinc-800/50 p-4 rounded-xl mb-4">
+        <div className="bg-zinc-800/50 p-4 rounded-xl mb-4" id="assign-cinema-tour-employee-info">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-semibold">
               {employee.fullName.charAt(0).toUpperCase()}
@@ -208,8 +294,8 @@ export default function AssignCinemaModal({
             Chưa có rạp nào để phân quyền
           </div>
         ) : (
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-zinc-300">
+          <div className="space-y-3" id="assign-cinema-tour-cinema-list">
+            <Label className="text-sm font-medium text-zinc-300" id="assign-cinema-tour-selection-label">
               {isCashier 
                 ? `Chọn rạp (Cashier chỉ được phân 1 rạp)` 
                 : `Chọn các rạp (${selectedCinemaIds.size} đã chọn)`
@@ -217,10 +303,8 @@ export default function AssignCinemaModal({
             </Label>
             {cinemas.map((cinema) => {
               const isSelected = selectedCinemaIds.has(cinema.cinemaId);
-              const isAssignedToOther = assignedToOthers.has(cinema.cinemaId);
-              const assignedEmployee = isAssignedToOther 
-                ? allOtherAssignments.find(a => a.cinemaId === cinema.cinemaId && a.isActive)
-                : null;
+              const isAssignedToOther = assignedToOthers.set.has(cinema.cinemaId);
+              const assignedEmployeeName = assignedToOthers.map.get(cinema.cinemaId);
               
               return (
                 <div
@@ -228,7 +312,7 @@ export default function AssignCinemaModal({
                   onClick={() => handleToggleCinema(cinema.cinemaId)}
                   className={cn(
                     "flex items-center gap-3 p-4 rounded-xl border transition-all",
-                    isAssignedToOther
+                    isAssignedToOther && !isSelected
                       ? "bg-zinc-800/30 border-zinc-700/50 opacity-50 cursor-not-allowed"
                       : isSelected
                       ? "bg-emerald-500/10 border-emerald-500/30 cursor-pointer"
@@ -237,7 +321,7 @@ export default function AssignCinemaModal({
                 >
                   <Checkbox
                     checked={isSelected}
-                    disabled={isAssignedToOther}
+                    disabled={isAssignedToOther && !isSelected}
                     onCheckedChange={() => handleToggleCinema(cinema.cinemaId)}
                     className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
                   />
@@ -250,9 +334,9 @@ export default function AssignCinemaModal({
                           Đã chọn
                         </Badge>
                       )}
-                      {isAssignedToOther && assignedEmployee && (
+                      {isAssignedToOther && (
                         <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/20 text-xs">
-                          Đã phân cho {assignedEmployee.employeeName}
+                          Đã phân cho {assignedEmployeeName}
                         </Badge>
                       )}
                     </div>
@@ -270,7 +354,7 @@ export default function AssignCinemaModal({
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800 mt-4">
+        <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800 mt-4" id="assign-cinema-tour-actions">
           <Button
             type="button"
             variant="outline"

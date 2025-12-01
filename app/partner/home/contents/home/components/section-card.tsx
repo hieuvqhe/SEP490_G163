@@ -178,7 +178,7 @@ export function SectionCards() {
   return (
     <div className="space-y-6">
       {/* Overview Stats - Row 1 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4" id="cinema-stats-overview">
         {/* Total Revenue Card */}
         <StatCard delay={0}>
           <CardHeader>
@@ -293,7 +293,7 @@ export function SectionCards() {
       </div>
 
       {/* Charts Row - Row 2 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3" id="cinema-stats-charts">
         {/* Revenue Trend Card */}
         <StatCard delay={0.4} className="h-full">
           <CardHeader>
@@ -400,7 +400,7 @@ export function SectionCards() {
       </div>
 
       {/* Cinema & Movie Stats - Row 3 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2" id="cinema-stats-top-list">
         {/* Top Cinemas */}
         <StatCard delay={0.6} className="h-full">
           <CardHeader>
@@ -503,7 +503,7 @@ export function SectionCards() {
       </div>
 
       {/* Bottom Stats - Row 4 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4" id="cinema-stats-time">
         {/* Time Stats - Today */}
         <StatCard delay={0.8}>
           <CardHeader>
@@ -598,7 +598,7 @@ export function SectionCards() {
       </div>
 
       {/* Top Customers Row - Row 5 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6" id="cinema-stats-customers">
         <StatCard delay={1.2}>
           <CardHeader>
             <CardDescription className="text-zinc-400 flex items-center gap-2">
@@ -686,7 +686,7 @@ export function SectionCards() {
       </div>
 
       {/* Showtime & Seat Stats - Row 6 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2" id="cinema-stats-showtime">
         {/* Showtime Stats */}
         <StatCard delay={1.3} className="h-full">
           <CardHeader>

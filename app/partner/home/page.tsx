@@ -28,6 +28,7 @@ import SeatTypeManagement from "./contents/Cinema/SeatTypeManagement/SeatTypeMan
 import ComboManagement from "./contents/Cinema/ComboManagement";
 import ContractList from "./contents/Contract/ContractList";
 import EmployeeManagement from "./contents/Decentralization/EmployeeManagement";
+import BookingStatsPage from "./contents/booking-stats/page";
 
 const PartnerHomepage = () => {
   const activeTab = usePartnerHomeStore((state) => state.activeTab);
@@ -65,6 +66,10 @@ const PartnerHomepage = () => {
       case "employees":
         return <EmployeeManagement />;
       
+      case "bookings":
+      case "transactions":
+      case "booking-stats":
+        return <BookingStatsPage />;
 
       default:
         return (

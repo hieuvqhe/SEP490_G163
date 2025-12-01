@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,9 @@ import {
   type PartnerEmployee,
 } from "@/apis/partner.decentralization.api";
 import { useToast } from "@/components/ToastProvider";
+import { Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 interface EditEmployeeModalProps {
   open: boolean;
@@ -51,6 +54,88 @@ export default function EditEmployeeModal({
   const hasActiveCinemas = employee.roleType === "Staff" 
     ? (assignmentsData?.result?.filter(a => a.isActive).length || 0) > 0
     : false;
+
+  const handleStartTour = useCallback(() => {
+    const steps = [
+      {
+        element: "#edit-employee-tour-modal",
+        popover: {
+          title: "Chỉnh sửa thông tin nhân viên",
+          description: "Form này cho phép bạn cập nhật thông tin nhân viên, thay đổi vai trò và trạng thái làm việc.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#edit-employee-tour-readonly-info",
+        popover: {
+          title: "Thông tin cố định",
+          description: "Email và ngày vào làm là thông tin cố định, không thể chỉnh sửa sau khi tạo nhân viên.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#edit-employee-tour-fullname",
+        popover: {
+          title: "Họ và tên",
+          description: "Cập nhật họ tên đầy đủ của nhân viên. Thông tin này sẽ được hiển thị trong hệ thống.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#edit-employee-tour-phone",
+        popover: {
+          title: "Số điện thoại",
+          description: "Cập nhật số điện thoại liên hệ của nhân viên. Yêu cầu 10 chữ số.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#edit-employee-tour-role",
+        popover: {
+          title: "Vai trò nhân viên",
+          description: hasActiveCinemas 
+            ? "⚠️ Nhân viên đang quản lý rạp nên không thể đổi vai trò. Vui lòng hủy phân quyền rạp trước."
+            : "Thay đổi vai trò: Nhân viên (quản lý rạp), Marketing (quản lý khuyến mãi), Thu ngân (bán vé).",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#edit-employee-tour-status",
+        popover: {
+          title: "Trạng thái làm việc",
+          description: hasActiveCinemas
+            ? "⚠️ Nhân viên đang quản lý rạp nên không thể tạm dừng. Vui lòng hủy phân quyền rạp trước."
+            : "Chọn 'Đang làm việc' để kích hoạt tài khoản hoặc 'Ngừng làm việc' để tạm dừng truy cập hệ thống.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#edit-employee-tour-actions",
+        popover: {
+          title: "Cập nhật thông tin",
+          description: "Nhấn 'Cập nhật' để lưu các thay đổi, hoặc 'Hủy' để đóng mà không lưu.",
+          side: "top" as const,
+          align: "end" as const,
+        },
+      },
+    ];
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [hasActiveCinemas]);
 
   useEffect(() => {
     setFormData({
@@ -139,14 +224,26 @@ export default function EditEmployeeModal({
         className="bg-zinc-900 border-zinc-800 text-zinc-100 max-w-2xl"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
+        id="edit-employee-tour-modal"
       >
-        <DialogTitle className="text-xl font-semibold mb-4">
-          Chỉnh sửa thông tin nhân viên
-        </DialogTitle>
+        <div className="flex items-center justify-between mb-4">
+          <DialogTitle className="text-xl font-semibold">
+            Chỉnh sửa thông tin nhân viên
+          </DialogTitle>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleStartTour}
+            className="bg-zinc-800 text-zinc-200 hover:bg-zinc-700 border-zinc-700 rounded-xl"
+          >
+            <Info className="mr-1 size-4" /> Hướng dẫn
+          </Button>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Employee Info (Read-only) */}
-          <div className="bg-zinc-800/50 p-4 rounded-xl space-y-2">
+          <div className="bg-zinc-800/50 p-4 rounded-xl space-y-2" id="edit-employee-tour-readonly-info">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-zinc-400">Email:</span>
               <span className="text-zinc-200">{employee.email}</span>
@@ -160,7 +257,7 @@ export default function EditEmployeeModal({
           </div>
 
           {/* Full Name */}
-          <div className="space-y-2">
+          <div className="space-y-2" id="edit-employee-tour-fullname">
             <Label htmlFor="fullName" className="text-sm font-medium">
               Họ và tên <span className="text-red-500">*</span>
             </Label>
@@ -177,7 +274,7 @@ export default function EditEmployeeModal({
           </div>
 
           {/* Phone */}
-          <div className="space-y-2">
+          <div className="space-y-2" id="edit-employee-tour-phone">
             <Label htmlFor="phone" className="text-sm font-medium">
               Số điện thoại <span className="text-red-500">*</span>
             </Label>
@@ -194,7 +291,7 @@ export default function EditEmployeeModal({
           </div>
 
           {/* Role Type */}
-          <div className="space-y-2">
+          <div className="space-y-2" id="edit-employee-tour-role">
             <Label htmlFor="roleType" className="text-sm font-medium">
               Vai trò <span className="text-red-500">*</span>
             </Label>
@@ -220,7 +317,7 @@ export default function EditEmployeeModal({
           </div>
 
           {/* Is Active */}
-          <div className="space-y-2">
+          <div className="space-y-2" id="edit-employee-tour-status">
             <Label htmlFor="isActive" className="text-sm font-medium">
               Trạng thái làm việc <span className="text-red-500">*</span>
             </Label>
@@ -259,7 +356,7 @@ export default function EditEmployeeModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4" id="edit-employee-tour-actions">
             <Button
               type="button"
               variant="outline"

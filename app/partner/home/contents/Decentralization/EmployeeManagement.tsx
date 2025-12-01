@@ -19,7 +19,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Search, UserPlus } from "lucide-react";
+import { Search, UserPlus, Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import {
   useGetPartnerEmployees,
   useDeletePartnerEmployee,
@@ -57,6 +59,64 @@ export default function EmployeeManagement() {
   const [permissionEmployee, setPermissionEmployee] = useState<PartnerEmployee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<PartnerEmployee | null>(null);
   const [checkingEmployee, setCheckingEmployee] = useState<number | null>(null);
+
+  const handleStartGuide = () => {
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps: [
+        {
+          element: "#employee-management",
+          popover: {
+            title: "Quản lý nhân viên",
+            description: "Trang quản lý toàn bộ nhân viên của Partner. Bạn có thể tạo, chỉnh sửa, phân quyền và quản lý nhân viên tại đây.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#employee-header",
+          popover: {
+            title: "Thêm nhân viên mới",
+            description: "Nhấn nút 'Thêm nhân viên mới' để tạo tài khoản cho nhân viên. Bạn cần điền thông tin cơ bản và chọn vai trò.",
+            side: "left" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#employee-filters",
+          popover: {
+            title: "Tìm kiếm và lọc",
+            description: "Tìm kiếm theo tên, email hoặc lọc theo vai trò (Nhân viên, Marketing, Thu ngân) và trạng thái (Đang làm, Ngừng làm).",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#employee-grid",
+          popover: {
+            title: "Danh sách nhân viên",
+            description: "Hiển thị tất cả nhân viên với thông tin vai trò, trạng thái. Mỗi card có các hành động: Chỉnh sửa, Phân quyền rạp, Phân quyền chức năng.",
+            side: "top" as const,
+            align: "center" as const,
+          },
+        },
+        {
+          element: "#employee-pagination",
+          popover: {
+            title: "Phân trang",
+            description: "Điều hướng giữa các trang khi có nhiều nhân viên. Mỗi trang hiển thị tối đa 8 nhân viên.",
+            side: "top" as const,
+            align: "center" as const,
+          },
+        },
+      ],
+    }).drive();
+  };
 
   const { showToast } = useToast();
   const deleteEmployeeMutation = useDeletePartnerEmployee();
@@ -132,26 +192,36 @@ export default function EmployeeManagement() {
   };
 
   return (
-    <div className="min-h-[85vh] text-zinc-100 rounded-xl border border-[#27272a] bg-[#151518] p-6 shadow-lg shadow-black/40">
+    <div id="employee-management" className="min-h-[85vh] text-zinc-100 rounded-xl border border-[#27272a] bg-[#151518] p-6 shadow-lg shadow-black/40">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div id="employee-header" className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Quản lý nhân viên</h1>
           <p className="text-sm text-zinc-400 mt-1">
             Tổng: {employeesData?.result?.pagination?.totalCount || 0} nhân viên
           </p>
         </div>
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="rounded-xl bg-emerald-600 hover:bg-emerald-500 flex items-center gap-2"
-        >
-          <UserPlus className="h-4 w-4" />
-          Thêm nhân viên mới
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="border border-zinc-600 bg-zinc-700/70 text-zinc-100 hover:bg-zinc-700"
+            onClick={handleStartGuide}
+          >
+            <Info className="mr-1 size-4" /> Hướng dẫn
+          </Button>
+          <Button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="rounded-xl bg-emerald-600 hover:bg-emerald-500 flex items-center gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Thêm nhân viên mới
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 items-center mb-6">
+      <div id="employee-filters" className="flex flex-wrap gap-4 items-center mb-6">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-2.5 text-zinc-500" size={18} />
           <Input
@@ -219,7 +289,7 @@ export default function EmployeeManagement() {
           <p className="text-zinc-400">Không tìm thấy nhân viên nào</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div id="employee-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {employees.map((employee) => (
             <EmployeeCard
               key={employee.employeeId}
@@ -236,7 +306,7 @@ export default function EmployeeManagement() {
       )}
 
       {/* Pagination */}
-      <div className="mt-6">
+      <div id="employee-pagination" className="mt-6">
         <CustomPagination
           totalPages={totalPages}
           currentPage={page}
