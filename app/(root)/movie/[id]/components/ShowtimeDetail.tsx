@@ -190,14 +190,24 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
     <div className="w-full bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col gap-5 hover:bg-white/10 transition-all duration-200">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="relative w-14 h-14 rounded-md overflow-hidden bg-white/10 flex-shrink-0">
-          <Image
-            src={""}
-            alt={cinema.cinemaName}
-            fill
-            className="object-contain p-2"
-          />
-        </div>
+        {cinema.logoUrl && (
+          <div className="relative w-14 h-14 rounded-md overflow-hidden bg-white/10 flex-shrink-0">
+            <Image
+              src={cinema.logoUrl}
+              alt={cinema.cinemaName}
+              fill
+              className="object-contain p-2"
+              unoptimized
+            />
+          </div>
+        )}
+        {!cinema.logoUrl && (
+          <div className="w-14 h-14 rounded-md bg-white/10 flex-shrink-0 flex items-center justify-center">
+            <span className="text-xs font-bold text-white/40">
+              {cinema.cinemaName.substring(0, 2).toUpperCase()}
+            </span>
+          </div>
+        )}
         <div>
           <h2 className="font-semibold text-lg text-white">
             {cinema.cinemaName}
