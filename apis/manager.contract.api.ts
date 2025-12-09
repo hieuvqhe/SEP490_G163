@@ -372,7 +372,7 @@ class ManagerContractService {
     try {
       const url = `${this.baseURL}/contracts/${contractId}/send-pdf`;
       const response = await fetch(url, {
-        method: "PUT",
+        method: "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",

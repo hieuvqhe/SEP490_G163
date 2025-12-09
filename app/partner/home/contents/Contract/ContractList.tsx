@@ -53,7 +53,7 @@ export default function ContractList() {
     limit: 4,
     page: page,
     sortOrder: "asc",
-    status: statusParams === "pending_signature" ? "pending" : statusParams,
+    status: statusParams,
   });
   const totalPages = partnerContractRes?.result.pagination.totalPages;
 
