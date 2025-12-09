@@ -144,7 +144,7 @@ export interface Contract {
   endDate: string;
   commissionRate: number;
   minimumRevenue: number;
-  status: "active" | "inactive" | "terminated" | "pending"; // enum-like union
+  status: "active" | "inactive" | "terminated" | "pending" | "pending_signature";
   isLocked: boolean;
   isActive?: boolean;
   contractHash?: string;
@@ -198,7 +198,7 @@ export interface GetContractsByIdResponse {
 export interface ContractQueryParams {
   page?: number;
   limit?: number;
-  status?: "active" | "inactive" | "terminated" | "pending" | "all";
+  status?: "active" | "inactive" | "terminated" | "pending" | "pending_signature" | "all";
   contractType?: "partnership" | "service" | "other";
   search?: string;
   sortBy: "asc" | "desc";
