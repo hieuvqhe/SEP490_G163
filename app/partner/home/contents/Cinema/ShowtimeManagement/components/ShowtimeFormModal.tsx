@@ -165,6 +165,18 @@ const ShowtimeFormModal = ({
     field: keyof ShowtimeFormValues,
     value: string | ShowtimeFormValues["status"]
   ) => {
+    // Validate basePrice to prevent negative values
+    if (field === "basePrice" && typeof value === "string") {
+      const numValue = parseFloat(value);
+      if (value !== "" && numValue < 0) {
+        setErrors((prev) => ({ 
+          ...prev, 
+          basePrice: "Giá cơ bản không được âm" 
+        }));
+        return;
+      }
+    }
+    
     setValues((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
@@ -241,7 +253,14 @@ const ShowtimeFormModal = ({
   const validateBulkCommonFields = () => {
     const nextErrors: Partial<Record<keyof ShowtimeFormValues, string>> = {};
 
-    if (!values.basePrice.trim()) nextErrors.basePrice = "Vui lòng nhập giá cơ bản";
+    if (!values.basePrice.trim()) {
+      nextErrors.basePrice = "Vui lòng nhập giá cơ bản";
+    } else {
+      const priceValue = parseFloat(values.basePrice);
+      if (isNaN(priceValue) || priceValue < 0) {
+        nextErrors.basePrice = "Giá cơ bản không được âm";
+      }
+    }
     if (!values.availableSeats.trim()) nextErrors.availableSeats = "Vui lòng nhập số ghế khả dụng";
     if (!values.formatType.trim()) nextErrors.formatType = "Vui lòng nhập định dạng";
 
@@ -374,7 +393,14 @@ const ShowtimeFormModal = ({
 
     if (!values.startTime) nextErrors.startTime = "Vui lòng chọn thời gian bắt đầu";
     if (!values.endTime) nextErrors.endTime = "Vui lòng chọn thời gian kết thúc";
-    if (!values.basePrice.trim()) nextErrors.basePrice = "Vui lòng nhập giá cơ bản";
+    if (!values.basePrice.trim()) {
+      nextErrors.basePrice = "Vui lòng nhập giá cơ bản";
+    } else {
+      const priceValue = parseFloat(values.basePrice);
+      if (isNaN(priceValue) || priceValue < 0) {
+        nextErrors.basePrice = "Giá cơ bản không được âm";
+      }
+    }
     if (!values.availableSeats.trim()) nextErrors.availableSeats = "Vui lòng nhập số ghế khả dụng";
     if (!values.formatType.trim()) nextErrors.formatType = "Vui lòng nhập định dạng";
 
@@ -589,7 +615,7 @@ const ShowtimeFormModal = ({
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3" id="showtime-form-tour-pricing">
+        <div className="grid gap-4 md:grid-cols-2" id="showtime-form-tour-pricing">
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Giá cơ bản (VND) <span className="text-rose-400">*</span>
@@ -603,7 +629,7 @@ const ShowtimeFormModal = ({
             />
             {errors.basePrice && <p className="text-xs text-rose-400">{errors.basePrice}</p>}
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Ghế khả dụng <span className="text-rose-400">*</span>
             </label>
@@ -615,7 +641,7 @@ const ShowtimeFormModal = ({
               className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
             />
             {errors.availableSeats && <p className="text-xs text-rose-400">{errors.availableSeats}</p>}
-          </div>
+          </div> */}
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
               Định dạng chiếu <span className="text-rose-400">*</span>
