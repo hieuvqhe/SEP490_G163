@@ -35,6 +35,8 @@ export default function AssignCinemaModal({
 }: AssignCinemaModalProps) {
   const [selectedCinemaIds, setSelectedCinemaIds] = useState<Set<number>>(new Set());
   const [initialAssignments, setInitialAssignments] = useState<Set<number>>(new Set());
+  const [selectedCity, setSelectedCity] = useState<string>("all");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
 
   const { showToast } = useToast();
 
@@ -157,6 +159,39 @@ export default function AssignCinemaModal({
   }, [employee.roleType]);
 
   const cinemas = cinemasData?.result?.cinemas || [];
+
+  // Get unique cities and districts from cinemas
+  const cities = useMemo(() => {
+    const uniqueCities = new Set(cinemas.map((c) => c.city));
+    return Array.from(uniqueCities).sort();
+  }, [cinemas]);
+
+  const districts = useMemo(() => {
+    if (selectedCity === "all") {
+      const uniqueDistricts = new Set(cinemas.map((c) => c.district));
+      return Array.from(uniqueDistricts).sort();
+    }
+    const filteredCinemas = cinemas.filter((c) => c.city === selectedCity);
+    const uniqueDistricts = new Set(filteredCinemas.map((c) => c.district));
+    return Array.from(uniqueDistricts).sort();
+  }, [cinemas, selectedCity]);
+
+  // Filter cinemas based on selected city and district
+  const filteredCinemas = useMemo(() => {
+    let filtered = cinemas;
+    if (selectedCity !== "all") {
+      filtered = filtered.filter((c) => c.city === selectedCity);
+    }
+    if (selectedDistrict !== "all") {
+      filtered = filtered.filter((c) => c.district === selectedDistrict);
+    }
+    return filtered;
+  }, [cinemas, selectedCity, selectedDistrict]);
+
+  // Reset district when city changes
+  useEffect(() => {
+    setSelectedDistrict("all");
+  }, [selectedCity]);
   
   // Initialize selection from employee's specific assignments
   useEffect(() => {
@@ -279,6 +314,44 @@ export default function AssignCinemaModal({
           </div>
         </div>
 
+        {/* Filter Section */}
+        {!isLoading && cinemas.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="space-y-2">
+              <Label className="text-sm text-zinc-400">Thành phố</Label>
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="all">Tất cả thành phố</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm text-zinc-400">Quận/Huyện</Label>
+              <select
+                value={selectedDistrict}
+                onChange={(e) => setSelectedDistrict(e.target.value)}
+                disabled={selectedCity === "all"}
+                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="all">Tất cả quận/huyện</option>
+                {districts.map((district) => (
+                  <option key={district} value={district}>
+                    {district}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
         {/* Cinema List */}
         {isLoading ? (
           <div className="space-y-2">
@@ -293,15 +366,19 @@ export default function AssignCinemaModal({
           <div className="text-center py-10 text-zinc-400">
             Chưa có rạp nào để phân quyền
           </div>
+        ) : filteredCinemas.length === 0 ? (
+          <div className="text-center py-10 text-zinc-400">
+            Không tìm thấy rạp phù hợp với bộ lọc
+          </div>
         ) : (
           <div className="space-y-3" id="assign-cinema-tour-cinema-list">
             <Label className="text-sm font-medium text-zinc-300" id="assign-cinema-tour-selection-label">
               {isCashier 
-                ? `Chọn rạp (Cashier chỉ được phân 1 rạp)` 
-                : `Chọn các rạp (${selectedCinemaIds.size} đã chọn)`
+                ? `Chọn rạp (Cashier chỉ được phân 1 rạp) - ${filteredCinemas.length} rạp` 
+                : `Chọn các rạp (${selectedCinemaIds.size} đã chọn) - ${filteredCinemas.length} rạp`
               }
             </Label>
-            {cinemas.map((cinema) => {
+            {filteredCinemas.map((cinema) => {
               const isSelected = selectedCinemaIds.has(cinema.cinemaId);
               const isAssignedToOther = assignedToOthers.set.has(cinema.cinemaId);
               const assignedEmployeeName = assignedToOthers.map.get(cinema.cinemaId);
