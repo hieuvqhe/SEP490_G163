@@ -32,6 +32,7 @@ interface RealtimeSeat {
   SeatId: number;
   RowCode: string;
   SeatNumber: number;
+  SeatName: string;
   SeatTypeId: number;
   Status: "AVAILABLE" | "LOCKED" | "SOLD" | string;
   LockedUntil: string | null;
@@ -715,7 +716,10 @@ const SeatMap = ({
       const seat = rowSeats[i];
       const type = seatTypes?.find((t) => t.seatTypeId === seat.SeatTypeId);
 
-      const isSeatDisabled = type?.code === "DISABLE" || type?.code === "DISABLE_2";
+      const isSeatDisabled =
+        type?.code === "DISABLE" ||
+        type?.code === "DISABLE_2" ||
+        seat.SeatName === "Z0";
       const isSeatLocked = seat.Status === "LOCKED";
       const isSeatSoled = seat.Status === "SOLD";
 

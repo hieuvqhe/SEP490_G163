@@ -266,11 +266,10 @@ export const useMovieReviews = (params: GetReviewParams) => {
 // ==========================
 // GET MY REVIEW
 // ==========================
-export const useMyReview = (movieId: number, enabled = true) => {
+export const useMyReview = (movieId: number) => {
   return useQuery({
     queryKey: ["my-review", movieId],
     queryFn: () => movieReviewServices.getMyReview(movieId),
-    enabled,
   });
 };
 

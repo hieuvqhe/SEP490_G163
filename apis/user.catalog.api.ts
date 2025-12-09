@@ -129,6 +129,7 @@ export interface Seat {
   seatId: number;
   rowCode: string;
   seatNumber: number;
+  seatName: string;
   seatTypeId: number;
   status: string;
   lockedUntil: string | null;

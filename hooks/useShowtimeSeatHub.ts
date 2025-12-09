@@ -12,6 +12,7 @@ interface Seat {
   SeatId: number;
   RowCode: string;
   SeatNumber: number;
+  SeatName: string;
   SeatTypeId: number;
   Status: "AVAILABLE" | "LOCKED" | "SOLD" | string;
   LockedUntil: string | null;
@@ -27,6 +28,7 @@ const mapApiSeat = (apiSeat: ApiSeat): Seat => ({
   LockedUntil: apiSeat.lockedUntil ?? null,
   RowCode: apiSeat.rowCode,
   SeatNumber: apiSeat.seatNumber,
+  SeatName: apiSeat.seatName,
   SeatTypeId: apiSeat.seatTypeId,
 });
 
@@ -54,7 +56,9 @@ export const useShowtimeSeat = (showtimeId: number | null) => {
     (seatId: number, status: Seat["Status"], lockedUntil: string | null) => {
       setSeatMap((prev) =>
         prev.map((seat) =>
-          seat.SeatId === seatId ? { ...seat, Status: status, LockedUntil: lockedUntil } : seat
+          seat.SeatId === seatId
+            ? { ...seat, Status: status, LockedUntil: lockedUntil }
+            : seat
         )
       );
     },
@@ -107,10 +111,10 @@ export const useShowtimeSeat = (showtimeId: number | null) => {
     connection.onclose(() => isMounted && setIsConnected(false));
 
     // Hàm khởi tạo async nội bộ
-   const startConnection = async () => {
+    const startConnection = async () => {
       try {
         await connection.start();
-        
+
         // Chỉ thực hiện tiếp nếu component chưa bị unmount
         if (isMounted) {
           setIsConnected(true);
@@ -118,11 +122,12 @@ export const useShowtimeSeat = (showtimeId: number | null) => {
         } else {
           await connection.stop();
         }
-      } catch (err: any) { // Thêm :any hoặc check type để truy cập .message
+      } catch (err: any) {
+        // Thêm :any hoặc check type để truy cập .message
         // LOGIC SỬA LỖI Ở ĐÂY:
         // Kiểm tra nếu lỗi là do ngắt kết nối trong quá trình negotiation thì bỏ qua
         if (err?.message?.includes("stopped during negotiation")) {
-            return; // Không log gì cả, đây là hành vi bình thường do React Strict Mode
+          return; // Không log gì cả, đây là hành vi bình thường do React Strict Mode
         }
 
         // Chỉ log những lỗi thực sự nghiêm trọng

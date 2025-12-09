@@ -6,7 +6,11 @@ import { LuSendHorizontal } from "react-icons/lu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/authStore";
 import LoginModal from "@/components/LoginModal";
-import { useCreateReview, useMovieReviews } from "@/apis/movie.reviews.api";
+import {
+  useCreateReview,
+  useMovieReviews,
+  useMyReview,
+} from "@/apis/movie.reviews.api";
 import { TfiCommentAlt } from "react-icons/tfi";
 import { IoMdImages, IoMdClose } from "react-icons/io";
 import RateStar from "./RateStar";
@@ -39,7 +43,7 @@ const Comment = ({ movieId }: CommentProps) => {
     // User thường sẽ ở lại trang hiện tại
     if (role) {
       const roleLower = role.toLowerCase();
-      
+
       switch (roleLower) {
         case "admin":
           window.location.href = "/admin";
@@ -93,20 +97,20 @@ const Comment = ({ movieId }: CommentProps) => {
     if (newFiles.length === 0) return;
 
     // Validate file types
-    const validFiles = newFiles.filter(file => 
-      file.type.startsWith("image/") && file.size <= 5 * 1024 * 1024 // Max 5MB
+    const validFiles = newFiles.filter(
+      (file) => file.type.startsWith("image/") && file.size <= 5 * 1024 * 1024 // Max 5MB
     );
 
     if (validFiles.length !== newFiles.length) {
       showToast("Chỉ chấp nhận ảnh và tối đa 5MB mỗi ảnh", "", "warning");
     }
 
-    setSelectedImages(prev => [...prev, ...validFiles]);
-    
+    setSelectedImages((prev) => [...prev, ...validFiles]);
+
     // Create preview URLs
-    validFiles.forEach(file => {
+    validFiles.forEach((file) => {
       const url = URL.createObjectURL(file);
-      setPreviewUrls(prev => [...prev, url]);
+      setPreviewUrls((prev) => [...prev, url]);
     });
 
     // Reset input
@@ -118,24 +122,32 @@ const Comment = ({ movieId }: CommentProps) => {
   // Remove selected image
   const removeImage = (index: number) => {
     URL.revokeObjectURL(previewUrls[index]);
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const { data: myReviewRes } = useMyReview(movieId ?? 0);
+  const myReview = myReviewRes?.result.review;
 
   const handleCreateNewReview = async () => {
     if (!user || comment.length === 0) return;
-    
+
+    // if (myReview) {
+    //   showToast("Bạn chỉ được đánh giá 1 lần", "", "warning");
+    //   return;
+    // }
+
     setIsUploading(true);
-    
+
     try {
       // Upload images to Cloudinary
       let imageUrls: string[] = [];
       if (selectedImages.length > 0) {
-        const uploadPromises = selectedImages.map(file => 
+        const uploadPromises = selectedImages.map((file) =>
           uploadToCloudinary.mutateAsync(file)
         );
         const results = await Promise.all(uploadPromises);
-        imageUrls = results.map(res => res.secure_url);
+        imageUrls = results.map((res) => res.secure_url);
       }
 
       // Create review with images
@@ -155,7 +167,7 @@ const Comment = ({ movieId }: CommentProps) => {
             setComment("");
             setRatingStar(0);
             setSelectedImages([]);
-            previewUrls.forEach(url => URL.revokeObjectURL(url));
+            previewUrls.forEach((url) => URL.revokeObjectURL(url));
             setPreviewUrls([]);
           },
           onError: (error) => {
@@ -183,9 +195,9 @@ const Comment = ({ movieId }: CommentProps) => {
             <div className="flex gap-3">
               <Avatar>
                 <AvatarImage src={user?.avatarUrl} />
-                <AvatarFallback>{user?.fullname}</AvatarFallback>
+                <AvatarFallback>{user?.username}</AvatarFallback>
               </Avatar>
-              <h1 className="max-w-[100px] truncate">{user?.username}</h1>
+              <h1 className="max-w-[100px] truncate">{user?.fullname}</h1>
             </div>
           ) : (
             <div className="">
@@ -202,93 +214,116 @@ const Comment = ({ movieId }: CommentProps) => {
             </div>
           )}
         </div>
-        <div className="w-full bg-zinc-800 px-2 py-2 border border-white/10 rounded-xl">
-          <div className="w-full relative select-none">
-            <Textarea
-              className="w-full h-[16vh] bg-black select-none rounded-xl border-none"
-              placeholder="Viết bình luận"
-              maxLength={1000}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-            <p className="absolute right-3 top-1 text-xs text-white/40">
-              {`${comment.length}/1000`}
-            </p>
-          </div>
-          <div className="flex justify-between items-center px-3 pt-4">
-            <div className="flex flex-col items-baseline gap-3">
-              <RateStar setRatingStar={setRatingStar} />
-              {/* Image upload section */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleImageSelect}
-                  disabled={selectedImages.length >= 3}
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={selectedImages.length >= 3}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
-                    selectedImages.length >= 3 
-                      ? "bg-zinc-700 text-zinc-500 cursor-not-allowed"
-                      : "bg-zinc-700 hover:bg-zinc-600 text-white cursor-pointer"
-                  }`}
-                >
-                  <IoMdImages size={18} />
-                  <span>Thêm ảnh ({selectedImages.length}/3)</span>
-                </button>
-              </div>
-            </div>
-            <div
-              className={`flex items-center justify-center gap-3 px-4 py-2 rounded-lg transition-all ${
-                user && comment.length > 0 && !isUploading
-                  ? "cursor-pointer bg-[#f84565] hover:bg-[#ff5a77] text-white"
-                  : "bg-zinc-700 text-white/50 cursor-not-allowed"
-              }`}
-              onClick={!isUploading ? handleCreateNewReview : undefined}
-            >
-              {isUploading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <p className="select-none">Đang gửi...</p>
-                </>
-              ) : (
-                <>
-                  <p className="select-none">Gửi</p>
-                  <LuSendHorizontal />
-                </>
-              )}
-            </div>
-          </div>
 
-          {/* Image previews */}
-          {previewUrls.length > 0 && (
-            <div className="flex flex-wrap gap-2 px-3 pt-3">
-              {previewUrls.map((url, index) => (
-                <div key={index} className="relative group">
-                  <Image
-                    src={url}
-                    alt={`Preview ${index + 1}`}
-                    width={80}
-                    height={80}
-                    className="w-20 h-20 object-cover rounded-lg border border-white/10"
+        {movieReviewList?.map((item) => (
+          <div key={item.rating_id}></div>
+        ))}
+
+        <div className="w-full bg-zinc-800 px-2 py-2 border border-white/10 rounded-xl relative">
+          {/* --- PHẦN THÊM MỚI: Lớp phủ thông báo --- */}
+          {myReview && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/10 rounded-xl">
+              <p className="text-white font-semibold text-lg drop-shadow-md select-none">
+                Bạn chỉ được review 1 lần
+              </p>
+            </div>
+          )}
+
+          {/* --- PHẦN NỘI DUNG CŨ: Được bao bọc và xử lý mờ/disable --- */}
+          <div
+            className={`transition-all duration-300 ${
+              myReview
+                ? "blur-sm opacity-30 pointer-events-none select-none"
+                : ""
+            }`}
+          >
+            <div className="w-full relative select-none">
+              <Textarea
+                className="w-full h-[16vh] bg-black select-none rounded-xl border-none"
+                placeholder="Viết bình luận"
+                maxLength={1000}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <p className="absolute right-3 top-1 text-xs text-white/40">
+                {`${comment.length}/1000`}
+              </p>
+            </div>
+            <div className="flex justify-between items-center px-3 pt-4">
+              <div className="flex flex-col items-baseline gap-3">
+                <RateStar setRatingStar={setRatingStar} />
+                {/* Image upload section */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleImageSelect}
+                    disabled={selectedImages.length >= 3}
                   />
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={selectedImages.length >= 3}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
+                      selectedImages.length >= 3
+                        ? "bg-zinc-700 text-zinc-500 cursor-not-allowed"
+                        : "bg-zinc-700 hover:bg-zinc-600 text-white cursor-pointer"
+                    }`}
                   >
-                    <IoMdClose size={14} className="text-white" />
+                    <IoMdImages size={18} />
+                    <span>Thêm ảnh ({selectedImages.length}/3)</span>
                   </button>
                 </div>
-              ))}
+              </div>
+              <div
+                className={`flex items-center justify-center gap-3 px-4 py-2 rounded-lg transition-all ${
+                  user && comment.length > 0 && !isUploading
+                    ? "cursor-pointer bg-[#f84565] hover:bg-[#ff5a77] text-white"
+                    : "bg-zinc-700 text-white/50 cursor-not-allowed"
+                }`}
+                onClick={!isUploading ? handleCreateNewReview : undefined}
+              >
+                {isUploading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <p className="select-none">Đang gửi...</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="select-none">Gửi</p>
+                    <LuSendHorizontal />
+                  </>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Image previews */}
+            {previewUrls.length > 0 && (
+              <div className="flex flex-wrap gap-2 px-3 pt-3">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <Image
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      width={80}
+                      height={80}
+                      className="w-20 h-20 object-cover rounded-lg border border-white/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <IoMdClose size={14} className="text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="w-full items-center flex flex-col gap-4">
@@ -347,7 +382,9 @@ const CommentCard = (props: CommentCardProps) => {
     if (!name) return "U";
     const words = name.trim().split(" ");
     if (words.length === 1) return words[0].charAt(0).toUpperCase();
-    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+    return (
+      words[0].charAt(0) + words[words.length - 1].charAt(0)
+    ).toUpperCase();
   };
 
   // Format date
@@ -356,7 +393,7 @@ const CommentCard = (props: CommentCardProps) => {
       const date = new Date(dateString);
       return date.toLocaleDateString("vi-VN", {
         day: "2-digit",
-        month: "2-digit", 
+        month: "2-digit",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
@@ -403,16 +440,20 @@ const CommentCard = (props: CommentCardProps) => {
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="font-semibold text-sm text-white">{props.name}</h1>
             {renderStars(props.ratingStar)}
-            <p className="text-xs text-zinc-500">{formatDate(props.commentTime)}</p>
+            <p className="text-xs text-zinc-500">
+              {formatDate(props.commentTime)}
+            </p>
           </div>
-          <p className="text-sm text-zinc-300 leading-relaxed">{props.comment}</p>
-          
+          <p className="text-sm text-zinc-300 leading-relaxed">
+            {props.comment}
+          </p>
+
           {/* Review Images */}
           {props.imageUrls && props.imageUrls.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {props.imageUrls.map((url, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setSelectedImage(url)}
                 >
@@ -432,7 +473,7 @@ const CommentCard = (props: CommentCardProps) => {
 
       {/* Image Lightbox */}
       {selectedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
