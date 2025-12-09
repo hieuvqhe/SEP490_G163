@@ -89,9 +89,7 @@ interface CreateContractModalProps {
   onClose: () => void;
 }
 
-const defaultTerms = `ĐIỀU 1: PHẠM VI HỢP TÁC...
-ĐIỀU 2: QUYỀN VÀ NGHĨA VỤ...
-ĐIỀU 3: ĐIỀU KHOẢN TÀI CHÍNH...`;
+const defaultTerms = ``;
 
 const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProps) => {
   const { accessToken } = useAuthStore();
@@ -464,7 +462,7 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
           </div>
 
           <div className="space-y-3">
-            <label className="font-body text-sm text-gray-300">Điều khoản hợp đồng</label>
+            <label className="font-body text-sm text-gray-300">Chú thích hợp đồng</label>
             <div className="relative">
               <Scroll className="absolute left-4 top-4 h-5 w-5 text-indigo-300" />
               <textarea

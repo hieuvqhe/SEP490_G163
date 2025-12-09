@@ -34,7 +34,7 @@ import { useToast } from "@/components/ToastProvider";
 export default function ContractList() {
   const [search, setSearch] = useState<string>("");
   const [statusParams, setStatusParams] = useState<
-    "active" | "inactive" | "terminated" | "pending" | "all"
+    "active" | "inactive" | "terminated" | "pending" | "all" | "pending_signature"
   >("all");
   const [page, setPage] = useState(1);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -53,7 +53,7 @@ export default function ContractList() {
     limit: 4,
     page: page,
     sortOrder: "asc",
-    status: statusParams,
+    status: statusParams === "pending_signature" ? "pending" : statusParams,
   });
   const totalPages = partnerContractRes?.result.pagination.totalPages;
 
@@ -395,7 +395,7 @@ export default function ContractList() {
                           <ContractDetails contractId={contract.contractId} />
                         </DialogContent>
                       </Dialog>
-                      {contract.status === "pending" && !contract.partnerSignatureUrl && (
+                      {contract.status === "pending_signature" && !contract.partnerSignatureUrl && (
                         <Button 
                           variant="outline" 
                           size="sm"
