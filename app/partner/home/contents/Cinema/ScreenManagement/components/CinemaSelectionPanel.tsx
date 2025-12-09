@@ -48,6 +48,11 @@ const CinemaSelectionPanel = ({
     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
   };
 
+  const truncateText = (text: string, maxLength: number) => {
+  if (!text) return '';
+  return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+};
+
   useEffect(() => {
     updateScrollButtons();
   }, [filtered.length, loading, errorMessage]);
@@ -137,23 +142,39 @@ const CinemaSelectionPanel = ({
                   className={cn(
                     "min-w-[100px] shrink-0 rounded-lg border px-4 py-3 text-left transition-all",
                     "border-[#27272a] bg-[#151518] hover:border-[#ff7a45]/60 hover:bg-[#1c1c1f] shadow-lg shadow-black/20",
-                    isSelected && "border-[#ff7a45]/70 bg-[#ff7a45]/10 shadow-lg shadow-[#ff7a45]/30"
+                    isSelected &&
+                      "border-[#ff7a45]/70 bg-[#ff7a45]/10 shadow-lg shadow-[#ff7a45]/30"
                   )}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="font-semibold text-[#f5f5f5]">{cinema.cinemaName}</p>
-                      <p className="text-xs uppercase tracking-wide text-[#9e9ea2]">
+                      <p className="font-semibold text-[#f5f5f5]"
+                        title={cinema.cinemaName}>
+                          {truncateText(cinema.cinemaName, 20)}
+                      </p>
+                      <p className="text-xs uppercase tracking-wide text-[#9e9ea2]"
+                      >
                         #{cinema.cinemaId} · {cinema.code}
                       </p>
-                      <p className="mt-1 text-xs text-[#9e9ea2]">{cinema.address}</p>
+                      <p
+                        className="mt-1 text-xs text-[#9e9ea2] line-clamp-2"
+                        title={cinema.address}
+                      >
+                       {truncateText(cinema.address, 20)}
+                      </p>
                     </div>
                     <div className="text-xs text-[#9e9ea2] text-right">
                       <p>
-                        Tổng phòng: <span className="text-[#f5f5f5]">{cinema.totalScreens ?? 0}</span>
+                        Tổng phòng:{" "}
+                        <span className="text-[#f5f5f5]">
+                          {cinema.totalScreens ?? 0}
+                        </span>
                       </p>
                       <p>
-                        Đang hoạt động: <span className="text-emerald-300">{cinema.activeScreens ?? 0}</span>
+                        Đang hoạt động:{" "}
+                        <span className="text-emerald-300">
+                          {cinema.activeScreens ?? 0}
+                        </span>
                       </p>
                     </div>
                   </div>
