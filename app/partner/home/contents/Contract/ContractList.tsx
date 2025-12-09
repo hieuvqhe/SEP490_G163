@@ -302,7 +302,7 @@ export default function ContractList() {
                   <SelectItem value="all">Tất cả</SelectItem>
                   <SelectItem value="active">Hiệu lực</SelectItem>
                   <SelectItem value="inactive">Hết hạn</SelectItem>
-                  <SelectItem value="peding">Chờ ký</SelectItem>
+                  <SelectItem value="pending">Chờ ký</SelectItem>
                   <SelectItem value="terminated">Đã hủy</SelectItem>
                 </SelectContent>
               </Select>
