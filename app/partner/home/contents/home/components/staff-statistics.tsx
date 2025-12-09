@@ -243,7 +243,7 @@ export function StaffStatistics() {
   return (
     <div className="space-y-6">
       {/* Overview Stats - Row 1 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4" id="staff-stats-overview">
         {/* Total Staff Card */}
         <StatCard delay={0} className="h-full flex flex-col">
           <CardHeader className="flex-1">
@@ -332,7 +332,7 @@ export function StaffStatistics() {
       </div>
 
       {/* Best Performer & Role Distribution - Row 2 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3" id="staff-stats-best">
         {/* Best Performer Card */}
         {summary.bestPerformer && (
           <StatCard delay={0.4} className="h-full">
@@ -438,7 +438,7 @@ export function StaffStatistics() {
       </div>
 
       {/* Staff Performance List - Row 3 */}
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6">
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6" id="staff-stats-ranking">
         <StatCard delay={0.7}>
           <CardHeader>
             <CardDescription className="text-zinc-400 flex items-center gap-2">
@@ -470,7 +470,7 @@ export function StaffStatistics() {
       </div>
 
       {/* Staff Details Grid - Row 4 */}
-      <div className="flex justify-center px-4 lg:px-6">
+      <div className="flex justify-center px-4 lg:px-6" id="staff-stats-details">
         <div className={cn(
           "grid gap-4 w-full",
           staffPerformance.length <= 2 

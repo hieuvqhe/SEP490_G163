@@ -27,6 +27,7 @@ interface FormState {
   usageLimit: number | "";
   description: string;
   isActive: boolean;
+  isRestricted: boolean;
 }
 
 interface FormErrors {
@@ -46,6 +47,7 @@ const defaultFormState: FormState = {
   usageLimit: "",
   description: "",
   isActive: true,
+  isRestricted: false,
 };
 
 const VoucherFormModal = ({
@@ -76,6 +78,7 @@ const VoucherFormModal = ({
         usageLimit: voucher.usageLimit,
         description: voucher.description || "",
         isActive: voucher.isActive,
+        isRestricted: voucher.isRestricted ?? false,
       });
       setErrors({});
       setGeneralError(null);
@@ -153,6 +156,7 @@ const VoucherFormModal = ({
       usageLimit: Number(formState.usageLimit),
       description: formState.description.trim() || undefined,
       isActive: Boolean(formState.isActive),
+      isRestricted: Boolean(formState.isRestricted),
     };
 
     try {
@@ -269,17 +273,32 @@ const VoucherFormModal = ({
               />
             </div>
 
-            <div className="flex items-center gap-3">
-              <input
-                id="voucher-active-toggle"
-                type="checkbox"
-                checked={formState.isActive}
-                onChange={(event) => handleChange("isActive", event.target.checked)}
-                className="h-4 w-4 rounded border border-white/20 bg-white/10"
-              />
-              <label htmlFor="voucher-active-toggle" className="text-sm text-gray-200">
-                Kích hoạt voucher sau khi lưu
-              </label>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <input
+                  id="voucher-active-toggle"
+                  type="checkbox"
+                  checked={formState.isActive}
+                  onChange={(event) => handleChange("isActive", event.target.checked)}
+                  className="h-4 w-4 rounded border border-white/20 bg-white/10"
+                />
+                <label htmlFor="voucher-active-toggle" className="text-sm text-gray-200">
+                  Kích hoạt voucher sau khi lưu
+                </label>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  id="voucher-restricted-toggle"
+                  type="checkbox"
+                  checked={formState.isRestricted}
+                  onChange={(event) => handleChange("isRestricted", event.target.checked)}
+                  className="h-4 w-4 rounded border border-white/20 bg-white/10"
+                />
+                <label htmlFor="voucher-restricted-toggle" className="text-sm text-gray-200">
+                  <span className="font-medium text-orange-400">Private</span> - Chỉ người được gửi mail mới dùng được voucher này
+                </label>
+              </div>
             </div>
 
             {generalError && (

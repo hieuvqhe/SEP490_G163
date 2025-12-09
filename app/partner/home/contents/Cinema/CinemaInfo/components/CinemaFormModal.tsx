@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import type { CinemaFormValues } from "../types";
 import { useUploadToCloudinary } from "@/apis/cloudinary.api";
 import { useToast } from "@/components/ToastProvider";
+import LocationPicker from "./LocationPicker";
 
 interface CinemaFormModalProps {
   open: boolean;
@@ -81,22 +82,6 @@ const baseFieldConfig: FieldConfig[] = [
     helper: "Email quản lý hoặc tiếp nhận liên hệ.",
     type: "email",
   },
-  {
-    key: "latitude",
-    label: "Vĩ độ",
-    placeholder: "",
-    helper: "Nhập vĩ độ theo toạ độ Google Maps (ví dụ: 21.0278).",
-    type: "number",
-    required: true,
-  },
-  {
-    key: "longitude",
-    label: "Kinh độ",
-    placeholder: "",
-    helper: "Nhập kinh độ theo toạ độ Google Maps (ví dụ: 105.8342).",
-    type: "number",
-    required: true,
-  },
 ];
 
 const optionalFieldConfig: FieldConfig[] = [
@@ -145,6 +130,14 @@ const CinemaFormModal = ({
 
   const handleChange = (key: keyof CinemaFormValues, value: string | boolean) => {
     setValues((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleLocationChange = (lat: number, lng: number) => {
+    setValues((prev) => ({
+      ...prev,
+      latitude: lat.toString(),
+      longitude: lng.toString(),
+    }));
   };
 
   const handleLogoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -202,10 +195,10 @@ const CinemaFormModal = ({
         },
       },
       {
-        element: "#cinema-form-tour-latitude",
+        element: "#cinema-form-tour-location",
         popover: {
-          title: "Toạ độ trên bản đồ",
-          description: "Nhập vĩ độ và kinh độ theo Google Maps để hiển thị vị trí rạp chính xác trên bản đồ.",
+          title: "Chọn vị trí trên bản đồ",
+          description: "Sử dụng bản đồ tương tác để chọn vị trí rạp chính xác. Bạn có thể click vào bản đồ, kéo marker hoặc tìm kiếm địa điểm.",
           side: "right" as const,
           align: "start" as const,
         },
@@ -281,6 +274,15 @@ const CinemaFormModal = ({
         nextErrors[field.key] = `Vui lòng nhập ${field.label.toLowerCase()}`;
       }
     });
+
+    // Validate coordinates
+    if (!values.latitude || values.latitude === "" || parseFloat(values.latitude as string) === 0) {
+      nextErrors.latitude = "Vui lòng chọn vị trí rạp trên bản đồ";
+    }
+
+    if (!values.longitude || values.longitude === "" || parseFloat(values.longitude as string) === 0) {
+      nextErrors.longitude = "Vui lòng chọn vị trí rạp trên bản đồ";
+    }
 
     if (values.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(values.email)) {
       nextErrors.email = "Email không hợp lệ";
@@ -361,6 +363,22 @@ const CinemaFormModal = ({
               )}
             </div>
           ))}
+        </div>
+
+        <div className="space-y-2" id="cinema-form-tour-location">
+          <label className="text-xs uppercase tracking-wide text-[#9e9ea2]">
+            Vị trí rạp chiếu <span className="text-rose-400">*</span>
+          </label>
+          <LocationPicker
+            latitude={values.latitude}
+            longitude={values.longitude}
+            onLocationChange={handleLocationChange}
+          />
+          {(errors.latitude || errors.longitude) && (
+            <span className="text-xs text-rose-400">
+              {errors.latitude || errors.longitude}
+            </span>
+          )}
         </div>
 
         <div className="grid gap-4" id="cinema-form-tour-optional">

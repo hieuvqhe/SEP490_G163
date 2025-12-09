@@ -154,7 +154,7 @@ class MovieReviewManagement {
     params: CreateNewReviewParams
   ): Promise<CreateNewReviewRes> => {
     try {
-      const res = await movieReviewApi.put(
+      const res = await createMovieReviewRequest().put(
         `${this.Base_Url}/${params.movieId}/reviews`,
         params.body
       );
@@ -191,7 +191,7 @@ class MovieReviewManagement {
 
   deleteMovieReviews = async (movieId: number) => {
     try {
-      const res = await movieReviewApi.delete(
+      const res = await createMovieReviewRequest().delete(
         `${this.Base_Url}/${movieId}/reviews`
       );
 

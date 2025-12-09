@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,7 @@ import {
   AlertCircle,
   CheckCheck,
   X,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ToastProvider";
@@ -49,6 +50,8 @@ import {
   type PartnerEmployee,
   type CinemaAssignment,
 } from "@/apis/partner.decentralization.api";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 interface EmployeePermissionModalProps {
   open: boolean;
@@ -162,7 +165,7 @@ function PermissionGroupCollapsible({
       </div>
       <CollapsibleContent className="px-4 pb-4">
         <div className="space-y-2 pt-2">
-          {group.permissions.map((permission) => {
+          {group.permissions.map((permission, index) => {
             const status = getPermissionStatus(permission.permissionCode);
             // Sử dụng effectiveGranted để hiển thị trạng thái (tính cả pending changes)
             const isFullyGranted = status.effectiveGranted === selectedCinemaCount;
@@ -171,6 +174,7 @@ function PermissionGroupCollapsible({
             return (
               <div
                 key={permission.permissionId}
+                id={index === 0 ? "employee-permission-tour-permission-item" : undefined}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer",
                   isFullyGranted
@@ -285,6 +289,103 @@ export default function EmployeePermissionModal({
   // Mutations
   const grantMutation = useGrantEmployeePermissions();
   const revokeMutation = useRevokeEmployeePermissions();
+
+  const handleStartTour = useCallback(() => {
+    const steps = [
+      {
+        element: "#employee-permission-tour-modal",
+        popover: {
+          title: "Phân quyền chi tiết cho nhân viên",
+          description: "Modal này cho phép bạn cấp hoặc thu hồi quyền truy cập cho từng rạp mà nhân viên quản lý. Quyền được chia theo nhóm chức năng.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#employee-permission-tour-cinema-selection",
+        popover: {
+          title: "Chọn rạp áp dụng",
+          description: "Chọn một hoặc nhiều rạp để cấp quyền. Bạn có thể chọn tất cả rạp hoặc từng rạp riêng lẻ. Quyền sẽ được áp dụng cho tất cả rạp đã chọn.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    // Chỉ thêm các bước về permissions nếu đã chọn rạp
+    if (selectedCinemaIds.size > 0) {
+      steps.push(
+        {
+          element: "#employee-permission-tour-quick-select",
+          popover: {
+            title: "Công cụ chọn nhanh",
+            description: "Dùng 'Chọn tất cả quyền' để cấp toàn bộ quyền hoặc 'Bỏ tất cả quyền' để thu hồi. Tiết kiệm thời gian khi cấp quyền hàng loạt.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#employee-permission-tour-permission-groups",
+          popover: {
+            title: "Nhóm quyền",
+            description: "Quyền được nhóm theo chức năng (Rạp, Phòng chiếu, Suất chiếu...). Mỗi nhóm có nút 'Chọn hết' và 'Bỏ hết' để quản lý nhanh.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#employee-permission-tour-permission-item",
+          popover: {
+            title: "Quyền cụ thể",
+            description: "Mỗi quyền có mô tả chi tiết và loại hành động (VIEW, CREATE, UPDATE, DELETE). Click để chọn/bỏ chọn. Badge màu cam = đang chờ lưu.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        },
+        {
+          element: "#employee-permission-tour-pending-count",
+          popover: {
+            title: "Thay đổi chưa lưu",
+            description: "Hiển thị số quyền sẽ cấp (+) và thu hồi (-). Thay đổi chỉ có hiệu lực sau khi nhấn 'Lưu thay đổi'.",
+            side: "bottom" as const,
+            align: "start" as const,
+          },
+        }
+      );
+    } else {
+      // Nếu chưa chọn rạp, hướng dẫn user chọn rạp
+      steps.push({
+        element: "#employee-permission-tour-cinema-selection",
+        popover: {
+          title: "Hãy chọn rạp trước",
+          description: "Vui lòng chọn ít nhất một rạp để xem và quản lý quyền. Sau khi chọn rạp, bạn có thể chạy lại hướng dẫn để xem đầy đủ các bước.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      });
+    }
+
+    // Luôn thêm bước actions ở cuối
+    steps.push({
+      element: "#employee-permission-tour-actions",
+      popover: {
+        title: "Lưu thay đổi",
+        description: "Nhấn 'Lưu thay đổi' để áp dụng, 'Đặt lại' để hủy thay đổi chưa lưu, hoặc 'Đóng' để thoát.",
+        side: "bottom" as const,
+        align: "start" as const,
+      },
+    });
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [selectedCinemaIds.size]);
 
   // Reset selected cinemas when modal opens with new employee
   useEffect(() => {
@@ -542,19 +643,30 @@ export default function EmployeePermissionModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] bg-zinc-900 border-zinc-700 text-zinc-100 p-0 overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[90vh] bg-zinc-900 border-zinc-700 text-zinc-100 p-0 overflow-hidden" id="employee-permission-tour-modal">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-zinc-800">
-          <DialogTitle className="text-xl font-semibold flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-              {employee.fullName.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div>Phân quyền cho {employee.fullName}</div>
-              <div className="text-sm font-normal text-zinc-400">
-                Chọn rạp và cấp quyền cho nhân viên
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                {employee.fullName.charAt(0).toUpperCase()}
               </div>
-            </div>
-          </DialogTitle>
+              <div>
+                <div>Phân quyền cho {employee.fullName}</div>
+                <div className="text-sm font-normal text-zinc-400">
+                  Chọn rạp và cấp quyền cho nhân viên
+                </div>
+              </div>
+            </DialogTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleStartTour}
+              className="border-zinc-700 hover:bg-zinc-800 text-zinc-200"
+            >
+              <Info className="mr-1 size-4" /> Hướng dẫn
+            </Button>
+          </div>
         </DialogHeader>
 
         {isLoading ? (
@@ -574,7 +686,7 @@ export default function EmployeePermissionModal({
         ) : (
           <div className="flex flex-col h-[calc(90vh-180px)]">
             {/* Cinema Selection */}
-            <div className="px-6 pt-4 pb-2 border-b border-zinc-800">
+            <div className="px-6 pt-4 pb-2 border-b border-zinc-800" id="employee-permission-tour-cinema-selection">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-sm font-medium text-zinc-300 flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-orange-400" />
@@ -652,7 +764,7 @@ export default function EmployeePermissionModal({
               ) : (
                 <>
                   {/* Quick Select All Header */}
-                  <div className="px-6 py-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-800/30">
+                  <div className="px-6 py-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-800/30" id="employee-permission-tour-quick-select">
                     <div className="text-sm text-zinc-300 flex items-center gap-2">
                       <Shield className="h-4 w-4 text-orange-400" />
                       <span>Tổng: {totalGranted}/{totalPermissions} quyền</span>
@@ -691,7 +803,7 @@ export default function EmployeePermissionModal({
                     </div>
                   </div>
                   {/* Permission Groups */}
-                  <div className="flex-1 px-6 py-4 overflow-y-auto space-y-2">
+                  <div className="flex-1 px-6 py-4 overflow-y-auto space-y-2" id="employee-permission-tour-permission-groups">
                     {permissionGroups.map((group) => (
                       <PermissionGroupCollapsible
                         key={group.resourceType}
@@ -711,7 +823,7 @@ export default function EmployeePermissionModal({
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-zinc-800 flex items-center justify-between bg-zinc-900">
-              <div className="text-sm text-zinc-400">
+              <div className="text-sm text-zinc-400" id="employee-permission-tour-pending-count">
                 {hasPendingChanges ? (
                   <span className="text-orange-400">
                     {pendingGrants.size > 0 && `+${pendingGrants.size} cấp`}
@@ -725,7 +837,7 @@ export default function EmployeePermissionModal({
                   "Chọn rạp để bắt đầu"
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2" id="employee-permission-tour-actions">
                 {hasPendingChanges && (
                   <Button
                     variant="outline"

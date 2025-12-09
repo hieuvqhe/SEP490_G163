@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { CreateActorModal } from "../../components/movies-coms/CreateActorModal";
+import { HelpIcon } from "./HelpIcon";
 import { useUploadToCloudinary } from "@/apis/cloudinary.api";
 import { useGenerateReadSasUrl } from "@/apis/pdf.blob.api";
 import { useToast } from "@/components/ToastProvider";
@@ -1086,7 +1087,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
               {/* Tên phim + Thể loại */}
               <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label htmlFor="title">Tên phim</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="title">Tên phim</Label>
+                    <HelpIcon
+                      title="Tên phim"
+                      description="Nhập tên chính thức của phim. Tên này sẽ hiển thị trên hệ thống và được sử dụng để tìm kiếm."
+                    />
+                  </div>
                   <Input
                     id="title"
                     value={form.title}
@@ -1100,7 +1107,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Thể loại</Label>
+                  <div className="flex items-center gap-2">
+                    <Label>Thể loại</Label>
+                    <HelpIcon
+                      title="Thể loại phim"
+                      description="Chọn một hoặc nhiều thể loại phù hợp với phim. Thể loại giúp khách hàng tìm kiếm và lọc phim dễ dàng hơn."
+                    />
+                  </div>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -1194,7 +1207,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
               {/* Thời lượng + Đạo diễn */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="durationMinutes">Thời lượng (phút)</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="durationMinutes">Thời lượng (phút)</Label>
+                    <HelpIcon
+                      title="Thời lượng phim"
+                      description="Nhập tổng thời lượng phim tính bằng phút. Ví dụ: phim 2 giờ = 120 phút. Thông tin này giúp lập lịch chiếu chính xác."
+                    />
+                  </div>
                   <Input
                     id="durationMinutes"
                     type="number"
@@ -1212,7 +1231,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="director">Đạo diễn</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="director">Đạo diễn</Label>
+                    <HelpIcon
+                      title="Đạo diễn"
+                      description="Tên đạo diễn chính của phim. Thông tin này sẽ hiển thị trong chi tiết phim và giúp khách hàng tìm hiểu thêm."
+                    />
+                  </div>
                   <Input
                     id="director"
                     value={form.director}
@@ -1231,7 +1256,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
               {/* Ngôn ngữ + Quốc gia */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="language">Ngôn ngữ</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="language">Ngôn ngữ</Label>
+                    <HelpIcon
+                      title="Ngôn ngữ phim"
+                      description="Ngôn ngữ chính của phim (có thể kèm phụ đề). Ví dụ: 'Tiếng Anh', 'Tiếng Việt', 'Tiếng Hàn - Phụ đề Việt'."
+                    />
+                  </div>
                   <Input
                     id="language"
                     value={form.language}
@@ -1246,7 +1277,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="country">Quốc gia</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="country">Quốc gia</Label>
+                    <HelpIcon
+                      title="Quốc gia sản xuất"
+                      description="Chọn quốc gia hoặc khu vực sản xuất phim. Nếu không có trong danh sách, chọn 'Khác' để nhập thủ công."
+                    />
+                  </div>
                   <Select
                     value={isCountryOther ? OTHER_OPTION_VALUE : form.country}
                     onValueChange={(value) => {
@@ -1301,7 +1338,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
 
               {/* Hãng sản xuất */}
               <div>
-                <Label>Hãng sản xuất</Label>
+                <div className="flex items-center gap-2">
+                  <Label>Hãng sản xuất</Label>
+                  <HelpIcon
+                    title="Hãng sản xuất"
+                    description="Chọn studio hoặc công ty sản xuất phim. Nếu không có trong danh sách, chọn 'Khác' để nhập thủ công."
+                  />
+                </div>
                 <Select
                   value={
                     PRODUCTION_OPTIONS.includes(form.production)
@@ -1359,7 +1402,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
 
               {/* Mô tả phim */}
               <div>
-                <Label htmlFor="description">Mô tả</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="description">Mô tả</Label>
+                  <HelpIcon
+                    title="Mô tả phim"
+                    description="Viết tóm tắt nội dung, cốt truyện chính của phim. Mô tả hấp dẫn giúp thu hút khách hàng mua vé."
+                  />
+                </div>
                 <Textarea
                   id="description"
                   value={form.description}
@@ -1380,7 +1429,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
               {/* Ngày công chiếu + Ngày kết thúc */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="premiereDate">Ngày khởi chiếu</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="premiereDate">Ngày khởi chiếu</Label>
+                    <HelpIcon
+                      title="Ngày khởi chiếu"
+                      description="Chọn ngày phim bắt đầu công chiếu tại rạp. Ngày này phải sau ngày hiện tại và trước ngày kết thúc."
+                    />
+                  </div>
                   <Input
                     id="premiereDate"
                     type="date"
@@ -1397,7 +1452,13 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="endDate">Ngày kết thúc</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="endDate">Ngày kết thúc chiếu</Label>
+                    <HelpIcon
+                      title="Ngày kết thúc"
+                      description="Chọn ngày kết thúc công chiếu. Ngày này phải sau ngày khởi chiếu. Sau ngày này phim sẽ không còn chiếu tại rạp."
+                    />
+                  </div>
                   <Input
                     id="endDate"
                     type="date"
@@ -1415,7 +1476,14 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
 
               {/* Trailer */}
               <div>
-                <Label htmlFor="trailerUrl">Đường dẫn trailer (YouTube)</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="trailerUrl">Đường dẫn trailer (YouTube)</Label>
+                  <HelpIcon
+                    title="Trailer phim"
+                    description="Nhập link YouTube của trailer phim. Trailer giúp khách hàng xem trước nội dung và quyết định mua vé. Link phải đúng định dạng YouTube."
+                    side="left"
+                  />
+                </div>
                 <Input
                   id="trailerUrl"
                   value={form.trailerUrl}
@@ -1431,6 +1499,15 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
               </div>
 
               {/* Tài liệu pháp lý */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-sm font-medium text-zinc-300">Tài liệu pháp lý</h3>
+                  <HelpIcon
+                    title="Tài liệu pháp lý bắt buộc"
+                    description="Cần tải lên văn bản bản quyền và giấy phép phân phối (định dạng PDF). Đây là yêu cầu bắt buộc để đảm bảo tính hợp pháp của việc chiếu phim."
+                    side="right"
+                  />
+                </div>
               <div className="grid grid-cols-1 gap-4">
                 <PdfUploadField
                   label="Văn bản bản quyền (PDF)"
@@ -1454,6 +1531,7 @@ const AddMovieModal = ({ open, onClose, mode = "create", initialSubmission = nul
                   isPreviewLoading={previewGeneratingField === "distributionLicenseUrl"}
                   onViewInfo={pdfUploadInfos.distributionLicenseUrl ? () => setInfoPdfField("distributionLicenseUrl") : undefined}
                 />
+              </div>
               </div>
 
               {/* Ghi chú bổ sung */}

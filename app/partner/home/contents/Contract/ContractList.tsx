@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   Card,
   CardHeader,
@@ -18,7 +18,9 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Upload, FileCheck, X, Loader2 } from "lucide-react";
+import { Search, Upload, FileCheck, X, Loader2, Info } from "lucide-react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import { useGetPartnersContract } from "@/hooks/usePartner";
 import Skeleton from "@mui/material/Skeleton";
 import { CustomPagination } from "@/components/custom/CustomPagination";
@@ -56,6 +58,100 @@ export default function ContractList() {
   const totalPages = partnerContractRes?.result.pagination.totalPages;
 
   const partnerContracts = partnerContractRes?.result?.contracts;
+
+  // Driver.js guide
+  const handleStartGuide = useCallback(() => {
+    const steps: any[] = [
+      {
+        element: "#contract-list-page",
+        popover: {
+          title: "Quản lý hợp đồng",
+          description: "Đây là trang quản lý tất cả hợp đồng của bạn với hệ thống.",
+          side: "bottom" as const,
+          align: "center" as const,
+        },
+      },
+      {
+        element: "#contract-filters",
+        popover: {
+          title: "Bộ lọc hợp đồng",
+          description: "Sử dụng bộ lọc trạng thái và ô tìm kiếm để lọc danh sách hợp đồng theo nhu cầu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#contract-status-filter",
+        popover: {
+          title: "Lọc theo trạng thái",
+          description: "Chọn trạng thái để lọc: Tất cả, Hiệu lực, Hết hạn, Chờ ký, hoặc Đã hủy.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#contract-search",
+        popover: {
+          title: "Tìm kiếm hợp đồng",
+          description: "Nhập tên hợp đồng để tìm kiếm nhanh trong danh sách.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    if (partnerContracts && partnerContracts.length > 0) {
+      steps.push(
+        {
+          element: "#contract-grid",
+          popover: {
+            title: "Danh sách hợp đồng",
+            description: "Hiển thị các hợp đồng của bạn dưới dạng thẻ. Mỗi thẻ chứa thông tin cơ bản về hợp đồng.",
+            side: "top" as const,
+            align: "center" as const,
+          },
+        },
+        {
+          element: "#contract-card-0",
+          popover: {
+            title: "Thẻ hợp đồng",
+            description: "Mỗi thẻ hiển thị: tiêu đề, mã hợp đồng, trạng thái, ngày tạo và loại hợp đồng.",
+            side: "right" as const,
+            align: "center" as const,
+          },
+        },
+        {
+          element: "#contract-view-detail-0",
+          popover: {
+            title: "Xem chi tiết",
+            description: "Nhấn để mở chi tiết hợp đồng với đầy đủ thông tin và file PDF.",
+            side: "top" as const,
+            align: "start" as const,
+          },
+        }
+      );
+    }
+
+    steps.push({
+      element: "#contract-pagination",
+      popover: {
+        title: "Phân trang",
+        description: "Sử dụng phân trang để di chuyển giữa các trang hợp đồng.",
+        side: "top" as const,
+        align: "center" as const,
+      },
+    });
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, [partnerContracts]);
 
   const generateSasMutation = useMutation({
     mutationFn: generateSasSignature,
@@ -165,20 +261,26 @@ export default function ContractList() {
   });
 
   return (
-    <div className="min-h-[85vh] text-zinc-100 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
+    <div id="contract-list-page" className="min-h-[85vh] text-zinc-100 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
       {/* Header */}
 
       <div className="flex flex-col h-full justify-around">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8" id="contract-header">
           <h1 className="text-2xl font-semibold">Quản lý hợp đồng của tôi</h1>
-          {/* <Button className="rounded-xl bg-emerald-600 hover:bg-emerald-500">
-            + Tạo hợp đồng mới
-          </Button> */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleStartGuide}
+            className="text-zinc-400 hover:text-zinc-100 gap-1"
+          >
+            <Info className="size-4" />
+            <span className="hidden sm:inline">Hướng dẫn</span>
+          </Button>
         </div>
         <div className="flex flex-col items-baseline gap-3">
           {/* Bộ lọc */}
-          <div className="flex flex-wrap gap-4 items-center mb-8">
-            <div className="flex items-center gap-2">
+          <div id="contract-filters" className="flex flex-wrap gap-4 items-center mb-8">
+            <div id="contract-status-filter" className="flex items-center gap-2">
               <span className="text-sm text-zinc-400">Trạng thái:</span>
               <Select
                 value={statusParams}
@@ -206,7 +308,7 @@ export default function ContractList() {
               </Select>
             </div>
 
-            <div className="relative flex-1 max-w-sm">
+            <div id="contract-search" className="relative flex-1 max-w-sm">
               <Search
                 className="absolute left-2 top-2.5 text-zinc-500"
                 size={18}
@@ -230,7 +332,7 @@ export default function ContractList() {
               </p>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div id="contract-grid" className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {!partnerContracts ? (
                 <div className="flex flex-col items-center justify-center w-full h-[45vh]">
                   <p className="text-zinc-500 text-center mt-10">
@@ -238,9 +340,10 @@ export default function ContractList() {
                   </p>
                 </div>
               ) : (
-                partnerContracts?.map((contract) => (
+                partnerContracts?.map((contract, index) => (
                   <Card
                     key={contract.contractId}
+                    id={index === 0 ? "contract-card-0" : undefined}
                     className="bg-zinc-800 border border-zinc-700 rounded-2xl shadow-md p-4 hover:shadow-lg hover:-translate-y-1 transition-all"
                   >
                     <CardHeader className="flex justify-between items-center p-0">
@@ -273,7 +376,11 @@ export default function ContractList() {
                     <CardFooter className="mt-4 flex justify-between p-0">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            id={index === 0 ? "contract-view-detail-0" : undefined}
+                          >
                             Xem chi tiết
                           </Button>
                         </DialogTrigger>
@@ -317,11 +424,13 @@ export default function ContractList() {
           )}
         </div>
 
-        <CustomPagination
-          totalPages={totalPages ?? 1}
-          currentPage={page}
-          onPageChange={setPage}
-        />
+        <div id="contract-pagination">
+          <CustomPagination
+            totalPages={totalPages ?? 1}
+            currentPage={page}
+            onPageChange={setPage}
+          />
+        </div>
       </div>
 
       {/* Upload PDF Modal */}

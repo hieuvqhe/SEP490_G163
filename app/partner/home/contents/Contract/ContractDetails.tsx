@@ -84,8 +84,8 @@ const ContractDetails = ({ contractId }: ContractDetailsProps) => {
             <h2 className="text-3xl font-bold">{contract.title}</h2>
             <p className="text-zinc-400 mt-1">{contract.contractNumber}</p>
           </div>
-          {getStatusBadge(contract.status)}
-        </div>
+            {getStatusBadge(contract.status)}
+          </div>
         
         {contract.description && (
           <p className="text-zinc-300">{contract.description}</p>

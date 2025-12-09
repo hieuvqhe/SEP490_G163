@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Card,
   CardHeader,
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";  
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,7 +17,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarDays, Clock, Film, Search, User } from "lucide-react";
+import { CalendarDays, Clock, Film, Search, User, Info } from "lucide-react";
 import Skeleton from "@mui/material/Skeleton";
 import { CustomPagination } from "@/components/custom/CustomPagination";
 import { MovieSubmissionResult, useMoviesSubmission } from "@/apis/partner.movies.api";
@@ -26,6 +26,8 @@ import CardContent from "@mui/material/CardContent";
 import Image from "next/image";
 import AddMovieModal from "./AddMovieModal";
 import { MovieSubmissionDetailDialog } from "./MovieSubmissionDetailDialog";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 export default function ManageMovies() {
   const [statusParams, setStatusParams] = useState<
@@ -78,28 +80,103 @@ export default function ManageMovies() {
     }
   };
 
+  const handleStartGuide = useCallback(() => {
+    const steps = [
+      {
+        element: "#movies-page",
+        popover: {
+          title: "Quản lý phim chiếu",
+          description:
+            "Trang quản lý yêu cầu gửi phim để chiếu tại rạp. Bạn có thể tạo, xem, chỉnh sửa và theo dõi trạng thái các yêu cầu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#movies-header",
+        popover: {
+          title: "Tạo yêu cầu mới",
+          description:
+            "Nhấn nút 'Tạo yêu cầu gửi phim mới' để gửi yêu cầu chiếu phim mới. Điền đầy đủ thông tin về phim để quản trị viên xem xét.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#movies-filters",
+        popover: {
+          title: "Lọc và tìm kiếm",
+          description:
+            "Lọc phim theo trạng thái (Bản nháp, Chờ duyệt, Đã duyệt, Từ chối) hoặc tìm kiếm theo tên phim.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#movies-grid",
+        popover: {
+          title: "Danh sách phim",
+          description:
+            "Xem tất cả yêu cầu gửi phim với thông tin chi tiết. Nhấn 'Xem chi tiết' để xem đầy đủ thông tin hoặc chỉnh sửa yêu cầu.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#movies-pagination",
+        popover: {
+          title: "Phân trang",
+          description:
+            "Điều hướng giữa các trang nếu có nhiều yêu cầu gửi phim. Mỗi trang hiển thị tối đa 4 phim.",
+          side: "top" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, []);
+
   return (
-    <div className="">
+    <div className="" id="movies-page">
       <div className="min-h-[85vh] text-zinc-100 rounded-xl border border-[#27272a] bg-[#151518] p-4 shadow-lg shadow-black/40">
         {/* Header */}
 
         <div className="flex flex-col h-full justify-around">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-8" id="movies-header">
             <h1 className="text-2xl font-semibold">Quản lý phim chiếu</h1>
-            <Button
-              onClick={() => {
-                setEditingSubmission(null);
-                setModalMode("create");
-                setIsOpenCreateModal(true);
-              }}
-              className="rounded-xl bg-emerald-600 hover:bg-emerald-500"
-            >
-              + Tạo yêu cầu gửi phim mới
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border border-zinc-600 bg-zinc-700/70 text-zinc-100 hover:bg-zinc-700"
+                onClick={handleStartGuide}
+              >
+                <Info className="mr-1 size-4" /> Hướng dẫn
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditingSubmission(null);
+                  setModalMode("create");
+                  setIsOpenCreateModal(true);
+                }}
+                className="rounded-xl bg-emerald-600 hover:bg-emerald-500"
+              >
+                + Tạo yêu cầu gửi phim mới
+              </Button>
+            </div>
           </div>
           <div className="flex flex-col items-baseline gap-3">
             {/* Bộ lọc */}
-            <div className="flex flex-wrap gap-4 items-center mb-8">
+            <div className="flex flex-wrap gap-4 items-center mb-8" id="movies-filters">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-zinc-400">Trạng thái:</span>
                 <Select
@@ -147,7 +224,7 @@ export default function ManageMovies() {
                 </p>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="movies-grid">
                 {filteredSubmissions.map((submission) => (
                   <Card
                     key={submission.movieSubmissionId}
@@ -227,7 +304,9 @@ export default function ManageMovies() {
             )}
           </div>
 
-          <CustomPagination totalPages={totalPages} currentPage={page} onPageChange={setPage} />
+          <div id="movies-pagination">
+            <CustomPagination totalPages={totalPages} currentPage={page} onPageChange={setPage} />
+          </div>
         </div>
       </div>
       <MovieSubmissionDetailDialog
