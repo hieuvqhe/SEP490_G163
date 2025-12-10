@@ -8,6 +8,10 @@ export interface MovieSubmissionPartner {
   partnerName: string;
 }
 
+export interface MovieSubmissionManagerStaff {
+  managerStaffId: number;
+}
+
 export interface MovieSubmissionSummary {
   movieSubmissionId: number;
   title: string;
@@ -18,6 +22,7 @@ export interface MovieSubmissionSummary {
   createdAt: string;
   updatedAt: string;
   partner: MovieSubmissionPartner;
+  managerStaff: MovieSubmissionManagerStaff | null;
 }
 
 export interface MovieSubmissionActor {

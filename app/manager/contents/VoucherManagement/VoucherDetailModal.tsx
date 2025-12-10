@@ -1,7 +1,9 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, UserSquare2 } from "lucide-react";
 import type { VoucherDetail } from "@/apis/manager.voucher.api";
+import { useGetManagerStaffById } from "@/apis/manager.staff.api";
+import { useAuthStore } from "@/store/authStore";
 
 interface VoucherDetailModalProps {
   open: boolean;
@@ -65,7 +67,13 @@ const VoucherDetailModal = ({ open, voucher, isLoading, onClose }: VoucherDetail
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
-              <InfoItem label="Người tạo" value={voucher.managerName || "-"} />
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wider text-gray-400">Quản lý bởi</p>
+                <VoucherManagerInfo 
+                  managerName={voucher.managerName} 
+                  managerStaffId={voucher.managerStaffId} 
+                />
+              </div>
               <InfoItem label="ID quản lý" value={voucher.managerId ? `#${voucher.managerId}` : "-"} />
             </div>
 
@@ -98,6 +106,43 @@ const InfoItem = ({ label, value }: InfoItemProps) => (
     <p className="text-sm text-white">{value}</p>
   </div>
 );
+
+const VoucherManagerInfo = ({ managerName, managerStaffId }: { managerName: string; managerStaffId: number | null }) => {
+  const { accessToken } = useAuthStore();
+  
+  const { data: staffData } = useGetManagerStaffById(
+    managerStaffId || 0,
+    managerStaffId ? accessToken ?? undefined : undefined
+  );
+
+  if (!managerStaffId) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-white">
+        <UserSquare2 className="h-4 w-4 text-blue-400" />
+        <span>{managerName || 'Manager'}</span>
+      </div>
+    );
+  }
+
+  if (!staffData) {
+    return (
+      <div className="flex items-center gap-2 text-sm">
+        <UserSquare2 className="h-4 w-4 text-gray-400" />
+        <span className="text-gray-400">Đang tải...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1 text-sm">
+      <div className="flex items-center gap-2">
+        <UserSquare2 className="h-4 w-4 text-purple-400" />
+        <span className="text-white">{staffData.result.fullName}</span>
+      </div>
+      <span className="text-xs text-gray-400">Staff #{managerStaffId}</span>
+    </div>
+  );
+};
 
 const formatDate = (value?: string | null) => {
   if (!value) return "-";

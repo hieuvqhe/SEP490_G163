@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Loader2, Mail, Pencil, Send, Trash2, Eye, Users, ToggleRight, MoreHorizontal } from "lucide-react";
+import { Loader2, Mail, Pencil, Send, Trash2, Eye, Users, ToggleRight, MoreHorizontal, UserSquare2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import type { Pagination, VoucherSummary } from "@/apis/manager.voucher.api";
+import { useGetManagerStaffById } from "@/apis/manager.staff.api";
+import { useAuthStore } from "@/store/authStore";
 import clsx from "clsx";
 
 interface VoucherTableProps {
@@ -77,7 +79,7 @@ const VoucherTable = ({
               <th className="px-6 py-3 text-left">Hiệu lực</th>
               <th className="px-6 py-3 text-left">Giới hạn / Đã dùng</th>
               <th className="px-6 py-3 text-left">Trạng thái</th>
-              <th className="px-6 py-3 text-left">Tạo bởi</th>
+              <th className="px-6 py-3 text-left">Quản lý bởi</th>
               <th className="px-6 py-3 text-right">Hành động</th>
             </tr>
           </thead>
@@ -135,7 +137,12 @@ const VoucherTable = ({
                       {voucher.isActive ? 'Hoạt động' : 'Ngưng hoạt động'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-300">{voucher.managerName || '-'}</td>
+                  <td className="px-6 py-4">
+                    <VoucherManagerCell 
+                      managerName={voucher.managerName} 
+                      managerStaffId={voucher.managerStaffId} 
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-end">
                       <DropdownMenu>
@@ -269,6 +276,43 @@ const ActionButton = ({ icon, label, onClick, disabled, variant = 'secondary' }:
       {icon}
       <span>{label}</span>
     </button>
+  );
+};
+
+const VoucherManagerCell = ({ managerName, managerStaffId }: { managerName: string; managerStaffId: number | null }) => {
+  const { accessToken } = useAuthStore();
+  
+  const { data: staffData } = useGetManagerStaffById(
+    managerStaffId || 0,
+    managerStaffId ? accessToken ?? undefined : undefined
+  );
+
+  if (!managerStaffId) {
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        <UserSquare2 className="h-4 w-4 text-blue-400" />
+        <span className="text-gray-300">{managerName || 'Manager'}</span>
+      </div>
+    );
+  }
+
+  if (!staffData) {
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        <UserSquare2 className="h-4 w-4 text-gray-400" />
+        <span className="text-gray-400">Đang tải...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col text-xs">
+      <div className="flex items-center gap-2">
+        <UserSquare2 className="h-4 w-4 text-purple-400" />
+        <span className="text-gray-300">{staffData.result.fullName}</span>
+      </div>
+      <span className="text-gray-400">Staff #{managerStaffId}</span>
+    </div>
   );
 };
 

@@ -1,6 +1,8 @@
 "use client";
 
 import type { MovieSubmissionSummary, Pagination } from "@/apis/manager.movie.api";
+import { useGetManagerStaffById } from "@/apis/manager.staff.api";
+import { useAuthStore } from "@/store/authStore";
 import clsx from "clsx";
 import { Button } from "@/components/ui/button";
 import { Eye, CheckCircle2, XCircle, Film, CalendarDays, UserSquare2 } from "lucide-react";
@@ -72,6 +74,7 @@ const MovieTable = ({
               <th className="px-6 py-3 text-left">Phim</th>
               <th className="px-6 py-3 text-left">Thể loại</th>
               <th className="px-6 py-3 text-left">Đối tác</th>
+              <th className="px-6 py-3 text-left">Người phụ trách</th>
               <th className="px-6 py-3 text-left">Trạng thái</th>
               <th className="px-6 py-3 text-left">Ngày gửi</th>
               <th className="px-6 py-3 text-left">Ngày tạo</th>
@@ -81,7 +84,7 @@ const MovieTable = ({
           <tbody className="divide-y divide-white/5">
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-10">
+                <td colSpan={8} className="px-6 py-10">
                   <div className="flex flex-col items-center justify-center gap-2 text-sm text-gray-200">
                     <Film className="h-5 w-5" />
                     Đang tải danh sách submission...
@@ -90,7 +93,7 @@ const MovieTable = ({
               </tr>
             ) : submissions.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-300">
+                <td colSpan={8} className="px-6 py-10 text-center text-sm text-gray-300">
                   Không có submission nào phù hợp.
                 </td>
               </tr>
@@ -110,6 +113,9 @@ const MovieTable = ({
                       <span>{submission.partner.partnerName}</span>
                       <span className="text-gray-400">#{submission.partner.partnerId}</span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <ManagerStaffCell managerStaffId={submission.managerStaff?.managerStaffId} />
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -237,6 +243,43 @@ const StatusIcon = ({ status }: { status: MovieSubmissionSummary["status"] }) =>
     default:
       return null;
   }
+};
+
+const ManagerStaffCell = ({ managerStaffId }: { managerStaffId?: number }) => {
+  const { accessToken } = useAuthStore();
+  
+  const { data: staffData } = useGetManagerStaffById(
+    managerStaffId || 0,
+    managerStaffId ? accessToken ?? undefined : undefined
+  );
+
+  if (!managerStaffId) {
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        <UserSquare2 className="h-4 w-4 text-blue-400" />
+        <span className="text-gray-300">Manager</span>
+      </div>
+    );
+  }
+
+  if (!staffData) {
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        <UserSquare2 className="h-4 w-4 text-gray-400" />
+        <span className="text-gray-400">Đang tải...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col text-xs">
+      <div className="flex items-center gap-2">
+        <UserSquare2 className="h-4 w-4 text-purple-400" />
+        <span className="text-gray-300">{staffData.result.fullName}</span>
+      </div>
+      <span className="text-gray-400">Staff #{managerStaffId}</span>
+    </div>
+  );
 };
 
 const formatDateTime = (value?: string | null) => {

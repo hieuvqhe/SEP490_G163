@@ -31,6 +31,7 @@ export interface VoucherDetail {
   updatedAt: string | null;
   managerId: number;
   managerName: string;
+  managerStaffId: number | null;
 }
 
 export interface VoucherSummary {
@@ -46,6 +47,7 @@ export interface VoucherSummary {
   isRestricted: boolean;
   createdAt: string;
   managerName: string;
+  managerStaffId: number | null;
 }
 
 export interface Pagination {
