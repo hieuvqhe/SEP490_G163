@@ -21,6 +21,8 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import PeopleIcon from '@mui/icons-material/People';
 import { useRouter } from 'next/navigation';
+import { useGetManagerStaffProfile } from '@/apis/staff.manager.api';
+import { useAuthStore } from '@/store/authStore';
 
 const drawerWidth = 240;
 
@@ -64,6 +66,100 @@ interface SidebarProps {
 export default function PersistentDrawerLeft({ children, open = false, onClose }: SidebarProps) {
   const theme = useTheme();
   const router = useRouter();
+  const { accessToken, role } = useAuthStore();
+  
+  // Chỉ fetch profile nếu là ManagerStaff
+  const { data: managerStaffProfile } = useGetManagerStaffProfile(
+    role === 'ManagerStaff' ? accessToken ?? undefined : undefined
+  );
+
+  // Lấy danh sách permission codes của staff
+  const staffPermissions = React.useMemo(() => {
+    if (role !== 'ManagerStaff' || !managerStaffProfile?.result?.grantedPermissions) {
+      return new Set<string>();
+    }
+    return new Set(
+      managerStaffProfile.result.grantedPermissions
+        .filter(p => p.isActive)
+        .map(p => p.permissionCode)
+    );
+  }, [role, managerStaffProfile]);
+
+  // Helper function để check quyền truy cập module
+  const hasModuleAccess = (requiredPermissions: string[]): boolean => {
+    // Manager có full access
+    if (role === 'Manager') return true;
+    
+    // ManagerStaff check permissions
+    if (role === 'ManagerStaff') {
+      return requiredPermissions.some(permission => staffPermissions.has(permission));
+    }
+    
+    return false;
+  };
+
+  // Định nghĩa menu items với required permissions
+  const menuItems = [
+    { 
+      text: 'Dashboard', 
+      icon: <InboxIcon />, 
+      path: '/manager',
+      requiredPermissions: [] // Dashboard luôn hiển thị
+    },
+    { 
+      text: 'Quản Lý Đăng Ký', 
+      icon: <MailIcon />, 
+      path: '/manager/register',
+      requiredPermissions: ['PARTNER_READ', 'PARTNER_APPROVE', 'PARTNER_REJECT']
+    },
+    { 
+      text: 'Ký Kết Hợp Đồng', 
+      icon: <DescriptionIcon />, 
+      path: '/manager/contract-signing',
+      requiredPermissions: ['CONTRACT_CREATE', 'CONTRACT_READ']
+    },
+    { 
+      text: 'Quản Lý Hợp Đồng', 
+      icon: <AssignmentTurnedInIcon />, 
+      path: '/manager/contract-management',
+      requiredPermissions: ['CONTRACT_READ', 'CONTRACT_UPDATE', 'CONTRACT_DELETE']
+    },
+    { 
+      text: 'Quản Lý Phim', 
+      icon: <MovieCreationIcon />, 
+      path: '/manager/movie-management',
+      requiredPermissions: [] // Manager only feature (no permission for staff)
+    },
+    { 
+      text: 'Quản Lý Voucher', 
+      icon: <CardGiftcardIcon />, 
+      path: '/manager/voucher-management',
+      requiredPermissions: ['VOUCHER_READ', 'VOUCHER_CREATE', 'VOUCHER_UPDATE', 'VOUCHER_DELETE', 'VOUCHER_SEND']
+    },
+    { 
+      text: 'Quản Lý Doanh Thu', 
+      icon: <ReceiptLongIcon />, 
+      path: '/manager/booking-management',
+      requiredPermissions: [] // Manager only feature
+    },
+    { 
+      text: 'Quản Lý Nhân Viên', 
+      icon: <PeopleIcon />, 
+      path: '/manager/staff-management',
+      requiredPermissions: [] // Manager only feature
+    }
+  ];
+
+  // Lọc menu items dựa trên permissions
+  const visibleMenuItems = menuItems.filter(item => {
+    // Dashboard luôn hiển thị
+    if (item.requiredPermissions.length === 0 && item.path === '/manager') {
+      return true;
+    }
+    
+    // Các module khác check permissions
+    return hasModuleAccess(item.requiredPermissions);
+  });
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -90,16 +186,7 @@ export default function PersistentDrawerLeft({ children, open = false, onClose }
         </DrawerHeader>
         <Divider />
         <List>
-          {[
-            { text: 'Dashboard', icon: <InboxIcon />, path: '/manager' },
-            { text: 'Quản Lý Đăng Ký', icon: <MailIcon />, path: '/manager/register' },
-            { text: 'Ký Kết Hợp Đồng', icon: <DescriptionIcon />, path: '/manager/contract-signing' },
-            { text: 'Quản Lý Hợp Đồng', icon: <AssignmentTurnedInIcon />, path: '/manager/contract-management' },
-            { text: 'Quản Lý Phim', icon: <MovieCreationIcon />, path: '/manager/movie-management' },
-            { text: 'Quản Lý Voucher', icon: <CardGiftcardIcon />, path: '/manager/voucher-management' },
-            { text: 'Quản Lý Doanh Thu', icon: <ReceiptLongIcon />, path: '/manager/booking-management' },
-            { text: 'Quản Lý Nhân Viên', icon: <PeopleIcon />, path: '/manager/staff-management' }
-          ].map((item) => (
+          {visibleMenuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton
                 sx={{ color: '#F25912' }}

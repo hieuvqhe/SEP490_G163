@@ -6,5 +6,5 @@ export interface User {
   phone: string
   avatarUrl: string
   email: string
-  role: "User" | "Partner" | "Admin" | "Manager"
+  role: "User" | "Partner" | "Admin" | "Manager" | "ManagerStaff" | "Cashier"
 }

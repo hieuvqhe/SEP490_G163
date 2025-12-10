@@ -22,8 +22,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/403", request.url));
   }
 
-  // ⚙️ Phân quyền cho manager
-  if (pathname.startsWith("/manager") && roleLower !== "manager") {
+  // ⚙️ Phân quyền cho manager và manager staff
+  if (pathname.startsWith("/manager") && roleLower !== "manager" && roleLower !== "managerstaff") {
     return NextResponse.redirect(new URL("/403", request.url));
   }
 

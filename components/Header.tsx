@@ -91,7 +91,7 @@ const Header = () => {
 
     const role = data.result.role;
 
-    // Chỉ redirect nếu là admin/partner/manager/cashier
+    // Chỉ redirect nếu là admin/partner/manager/cashier/managerstaff
     // User thường sẽ ở lại trang hiện tại
     if (role) {
       const roleLower = role.toLowerCase();
@@ -104,6 +104,7 @@ const Header = () => {
           window.location.href = "/partner";
           break;
         case "manager":
+        case "managerstaff":
           window.location.href = "/manager";
           break;
         case "cashier":
