@@ -19,6 +19,7 @@ import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import MovieCreationIcon from '@mui/icons-material/MovieCreation';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import PeopleIcon from '@mui/icons-material/People';
 import { useRouter } from 'next/navigation';
 
 const drawerWidth = 240;
@@ -96,7 +97,8 @@ export default function PersistentDrawerLeft({ children, open = false, onClose }
             { text: 'Quản Lý Hợp Đồng', icon: <AssignmentTurnedInIcon />, path: '/manager/contract-management' },
             { text: 'Quản Lý Phim', icon: <MovieCreationIcon />, path: '/manager/movie-management' },
             { text: 'Quản Lý Voucher', icon: <CardGiftcardIcon />, path: '/manager/voucher-management' },
-            { text: 'Quản Lý Doanh Thu', icon: <ReceiptLongIcon />, path: '/manager/booking-management' }
+            { text: 'Quản Lý Doanh Thu', icon: <ReceiptLongIcon />, path: '/manager/booking-management' },
+            { text: 'Quản Lý Nhân Viên', icon: <PeopleIcon />, path: '/manager/staff-management' }
           ].map((item) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton

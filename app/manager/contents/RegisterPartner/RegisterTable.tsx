@@ -1,4 +1,5 @@
-import { Loader2, CheckCircle, XCircle, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, ChevronLeft, ChevronRight, Eye, MoreVertical, UserPlus } from 'lucide-react';
+import { useState } from 'react';
 
 import type { PendingPartner } from '../../../../apis/manager.register';
 
@@ -11,7 +12,9 @@ interface RegisterTableProps {
   onApprovePartner: (partnerId: number) => void;
   onRejectPartner: (partnerId: number) => void;
   onViewPartner: (partner: PendingPartner) => void;
+  onAssignStaff: (partner: PendingPartner) => void;
   onPageChange: (page: number) => void;
+  getStaffNameById: (staffId: number) => string;
 }
 
 export const RegisterTable = ({
@@ -23,9 +26,12 @@ export const RegisterTable = ({
   onApprovePartner,
   onRejectPartner,
   onViewPartner,
-  onPageChange
+  onAssignStaff,
+  onPageChange,
+  getStaffNameById
 }: RegisterTableProps) => {
   const totalPages = Math.ceil(totalPartners / limit);
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
 
   if (partnersLoading) {
     return (
@@ -49,6 +55,7 @@ export const RegisterTable = ({
               <th scope="col" className="px-6 py-3">Đối tác</th>
               <th scope="col" className="px-6 py-3">Thông tin liên hệ</th>
               <th scope="col" className="px-6 py-3">Thông tin doanh nghiệp</th>
+              <th scope="col" className="px-6 py-3">Staff Quản Lý</th>
               <th scope="col" className="px-6 py-3">Trạng thái</th>
               <th scope="col" className="px-6 py-3">Ngày đăng ký</th>
               <th scope="col" className="px-6 py-3 text-right">Hành động</th>
@@ -86,6 +93,20 @@ export const RegisterTable = ({
                   </div>
                 </td>
                 <td className="px-6 py-4">
+                  {partner.managerStaffId ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-blue-500/30 bg-blue-500/20 text-xs font-semibold text-blue-300">
+                        {getStaffNameById(partner.managerStaffId)?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <span className="text-sm font-medium text-white">
+                        {getStaffNameById(partner.managerStaffId) || 'Không xác định'}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-xs italic text-gray-500">Chưa phân công</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
                   <span
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
                       partner.status === 'pending'
@@ -106,31 +127,76 @@ export const RegisterTable = ({
                   {new Date(partner.createdAt).toLocaleDateString('vi-VN')}
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex items-center justify-end gap-2 text-xs">
-                    <button
-                      onClick={() => onViewPartner(partner)}
-                      className="flex w-28 items-center justify-center gap-2 rounded-lg bg-blue-500/20 px-3 py-2 font-semibold text-blue-200 transition hover:bg-blue-500/30"
-                      title="Xem chi tiết"
-                    >
-                      <Eye size={14} />
-                      Chi tiết
-                    </button>
-                    <button
-                      onClick={() => onApprovePartner(partner.partnerId)}
-                      className="flex w-28 items-center justify-center gap-2 rounded-lg bg-emerald-500/20 px-3 py-2 font-semibold text-emerald-200 transition hover:bg-emerald-500/30"
-                      title="Duyệt đối tác"
-                    >
-                      <CheckCircle size={14} />
-                      Duyệt
-                    </button>
-                    <button
-                      onClick={() => onRejectPartner(partner.partnerId)}
-                      className="flex w-28 items-center justify-center gap-2 rounded-lg bg-red-500/20 px-3 py-2 font-semibold text-red-200 transition hover:bg-red-500/30"
-                      title="Từ chối đối tác"
-                    >
-                      <XCircle size={14} />
-                      Từ chối
-                    </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenDropdownId(openDropdownId === partner.partnerId ? null : partner.partnerId)}
+                        className="flex items-center justify-center rounded-lg border border-white/10 bg-white/5 p-2 text-gray-300 transition hover:bg-white/10 hover:text-white"
+                        title="Hành động"
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+
+                      {openDropdownId === partner.partnerId && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-10" 
+                            onClick={() => setOpenDropdownId(null)}
+                          />
+                          <div className="absolute right-0 top-full z-20 mt-2 w-48 rounded-lg border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-xl">
+                            <div className="py-1">
+                              <button
+                                onClick={() => {
+                                  onViewPartner(partner);
+                                  setOpenDropdownId(null);
+                                }}
+                                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-white/10 hover:text-white"
+                              >
+                                <Eye size={16} />
+                                Xem chi tiết
+                              </button>
+                              
+                              {!partner.managerStaffId && (
+                                <button
+                                  onClick={() => {
+                                    onAssignStaff(partner);
+                                    setOpenDropdownId(null);
+                                  }}
+                                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-blue-300 transition hover:bg-blue-500/20 hover:text-blue-200"
+                                >
+                                  <UserPlus size={16} />
+                                  Phân Staff quản lý
+                                </button>
+                              )}
+
+                              <div className="my-1 border-t border-white/10" />
+
+                              <button
+                                onClick={() => {
+                                  onApprovePartner(partner.partnerId);
+                                  setOpenDropdownId(null);
+                                }}
+                                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-emerald-300 transition hover:bg-emerald-500/20 hover:text-emerald-200"
+                              >
+                                <CheckCircle size={16} />
+                                Duyệt đối tác
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  onRejectPartner(partner.partnerId);
+                                  setOpenDropdownId(null);
+                                }}
+                                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+                              >
+                                <XCircle size={16} />
+                                Từ chối
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </td>
               </tr>

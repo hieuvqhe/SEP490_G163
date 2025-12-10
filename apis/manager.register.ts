@@ -29,6 +29,7 @@ export interface PendingPartner {
   identityCardUrl: string;
   theaterPhotosUrl: string;
   additionalDocumentsUrl?: string;
+  managerStaffId?: number;
 }
 
 export interface PendingPartnersPagination {

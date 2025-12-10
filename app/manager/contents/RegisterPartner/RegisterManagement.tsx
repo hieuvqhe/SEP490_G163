@@ -13,9 +13,13 @@ import type {
   GetPendingPartnersParams
 } from '@/apis/manager.register';
 
+import { useGetManagerStaffs } from '@/apis/manager.staff.api';
+import { useAssignPartnerToStaff } from '@/apis/manager.decentralization.api';
+
 import { RegisterFilters } from './RegisterFilters';
 import { RegisterTable } from './RegisterTable';
 import { PartnerDetailModal, ApproveConfirmModal, RejectConfirmModal } from './RegisterModal';
+import { AssignStaffModal } from './AssignStaffModal';
 
 export const RegisterManagement = () => {
   const { accessToken } = useAuthStore();
@@ -35,6 +39,8 @@ export const RegisterManagement = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [partnerToApprove, setPartnerToApprove] = useState<PendingPartner | null>(null);
   const [partnerToReject, setPartnerToReject] = useState<PendingPartner | null>(null);
+  const [showAssignStaffModal, setShowAssignStaffModal] = useState(false);
+  const [partnerToAssign, setPartnerToAssign] = useState<PendingPartner | null>(null);
 
   // Build query params
   const queryParams: GetPendingPartnersParams = {
@@ -47,13 +53,19 @@ export const RegisterManagement = () => {
 
   // TanStack Query hooks
   const { data: partnersData, isLoading: partnersLoading, refetch: refetchPartners } = useGetPendingPartners(queryParams, accessToken || undefined);
+  const { data: staffData, isLoading: staffLoading } = useGetManagerStaffs(
+    { page: 1, limit: 100, isActive: true },
+    accessToken || undefined
+  );
 
   const approvePartnerMutation = useApprovePartner();
   const rejectPartnerMutation = useRejectPartner();
+  const assignStaffMutation = useAssignPartnerToStaff();
 
   // Extract data
   const partners = partnersData?.result?.partners || [];
   const totalPartners = partnersData?.result?.pagination?.totalCount || 0;
+  const staffList = staffData?.result?.managerStaffs || [];
 
   // Local flag to ensure we only notify once per fetch cycle
   const [hasNotifiedEmpty, setHasNotifiedEmpty] = useState(false);
@@ -152,6 +164,34 @@ export const RegisterManagement = () => {
     handleRejectPartner(partnerId);
   };
 
+  const handleAssignStaff = (partner: PendingPartner) => {
+    setPartnerToAssign(partner);
+    setShowAssignStaffModal(true);
+  };
+
+  const handleConfirmAssignStaff = async (staffId: number) => {
+    if (!partnerToAssign) return;
+
+    try {
+      await assignStaffMutation.mutateAsync({
+        partnerId: partnerToAssign.partnerId,
+        data: { managerStaffId: staffId },
+        accessToken: accessToken || ''
+      });
+      showToast('Phân Staff thành công', undefined, 'success');
+      setShowAssignStaffModal(false);
+      setPartnerToAssign(null);
+      refetchPartners();
+    } catch (error: any) {
+      showToast(error?.message || 'Không thể phân Staff', undefined, 'error');
+    }
+  };
+
+  const getStaffNameById = (staffId: number): string => {
+    const staff = staffList.find(s => s.managerStaffId === staffId);
+    return staff?.fullName || '';
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -194,7 +234,9 @@ export const RegisterManagement = () => {
             onApprovePartner={handleApprovePartnerWrapper}
             onRejectPartner={handleRejectPartnerWrapper}
             onViewPartner={handleViewPartnerWrapper}
+            onAssignStaff={handleAssignStaff}
             onPageChange={handlePageChange}
+            getStaffNameById={getStaffNameById}
           />
         ) : (
           // Inline empty state when no partners found
@@ -234,6 +276,21 @@ export const RegisterManagement = () => {
             setPartnerToReject(null);
           }}
           onConfirm={handleConfirmReject}
+        />
+      )}
+
+      {showAssignStaffModal && partnerToAssign && (
+        <AssignStaffModal
+          isOpen={showAssignStaffModal}
+          onClose={() => {
+            setShowAssignStaffModal(false);
+            setPartnerToAssign(null);
+          }}
+          onConfirm={handleConfirmAssignStaff}
+          staffList={staffList}
+          staffLoading={staffLoading}
+          partnerName={partnerToAssign.partnerName}
+          isAssigning={assignStaffMutation.isPending}
         />
       )}
     </div>
