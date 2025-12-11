@@ -255,24 +255,6 @@ const MovieDetail = ({ movie }: MovieProp) => {
                   )}
                 </div>
               )}
-
-              {/* {showtimeOverviewLoading ? (
-                <Spinner />
-              ) : (
-                <div className="w-full flex flex-col gap-10">
-                  <TheaterSelector
-                    brands={showtimeOverviews?.brands}
-                    onSelect={setBrandCodeSelect}
-                  />
-                  {showtimeOverviews && brandCodeSelect && (
-                    <ShowtimeDetail
-                      brandCode={brandCodeSelect}
-                      showtimeOverview={showtimeOverviews.cinemas.items}
-                      onOutDate={handleOutDate}
-                    />
-                  )}
-                </div>
-              )} */}
             </div>
 
             <div className="flex items-center justify-baseline gap-5">

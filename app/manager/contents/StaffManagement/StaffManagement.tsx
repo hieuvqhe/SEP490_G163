@@ -171,7 +171,7 @@ const StaffManagement = () => {
 
   return (
     <motion.div
-      className="container mx-auto space-y-8"
+      className="container mx-auto space-y-8 mt-10"
       variants={containerVariants}
       initial="hidden"
       animate="visible"

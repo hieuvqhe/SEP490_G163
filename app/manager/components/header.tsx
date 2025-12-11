@@ -187,7 +187,7 @@ export default function ManagerHeader({ onMenuClick, user, onLogout }: ManagerHe
           </div>
         </div>
 
-        <div className="flex-1 max-w-lg mx-6 hidden md:flex">
+        {/* <div className="flex-1 max-w-lg mx-6 hidden md:flex">
           <div className="relative w-full">
             <SearchIconWrapper>
               <SearchIcon sx={{ color: '#F25912' }} />
@@ -198,7 +198,7 @@ export default function ManagerHeader({ onMenuClick, user, onLogout }: ManagerHe
               sx={{ background: 'rgba(255,255,255,0.02)', borderRadius: 1, px: 2, color: '#F25912' }}
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="flex items-center space-x-3">
           <button className="p-2 rounded-full" style={{ color: '#F25912', background: 'rgba(255,255,255,0.02)' }}>

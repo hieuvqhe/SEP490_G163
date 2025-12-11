@@ -74,8 +74,6 @@ const Newsletter = () => {
     additionalDocumentsUrls: [""],
   });
 
-
-
   const [errors, setErrors] = useState<ValidationErrors>({});
 
   const { showToast } = useToast();
@@ -84,24 +82,9 @@ const Newsletter = () => {
     onSuccess: (response) => {
       showToast(response.message ?? "Đăng ký thành công", undefined, "success");
     },
-    onError: (message, fieldErrors) => {
-      if (fieldErrors) {
-        setErrors((prev) => ({
-          ...prev,
-          ...fieldErrors,
-        }));
-      }
-
-      const title = message && message.trim() !== ""
-        ? message
-        : "Đăng ký không thành công";
-      const detailMessage = fieldErrors
-        ? Object.values(fieldErrors)
-            .filter((msg): msg is string => Boolean(msg && msg.trim()))
-            .join("\n")
-        : undefined;
-
-      showToast(title, detailMessage, "error");
+    onError: (error) => {
+      console.log(error);
+      showToast(error, "", "error");
     },
   });
 
@@ -593,7 +576,12 @@ const Newsletter = () => {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => handlePreviewImage(formData.businessRegistrationCertificateUrl, "Giấy phép đăng ký kinh doanh")}
+                          onClick={() =>
+                            handlePreviewImage(
+                              formData.businessRegistrationCertificateUrl,
+                              "Giấy phép đăng ký kinh doanh"
+                            )
+                          }
                           className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
                         >
                           <Eye className="h-4 w-4" />
@@ -637,7 +625,12 @@ const Newsletter = () => {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => handlePreviewImage(formData.identityCardUrl, "CMND/CCCD")}
+                          onClick={() =>
+                            handlePreviewImage(
+                              formData.identityCardUrl,
+                              "CMND/CCCD"
+                            )
+                          }
                           className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
                         >
                           <Eye className="h-4 w-4" />
@@ -681,7 +674,12 @@ const Newsletter = () => {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => handlePreviewImage(formData.taxRegistrationCertificateUrl, "Giấy chứng nhận đăng ký thuế")}
+                          onClick={() =>
+                            handlePreviewImage(
+                              formData.taxRegistrationCertificateUrl,
+                              "Giấy chứng nhận đăng ký thuế"
+                            )
+                          }
                           className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
                         >
                           <Eye className="h-4 w-4" />

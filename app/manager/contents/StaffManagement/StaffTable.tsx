@@ -1,20 +1,38 @@
 "use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Edit, Trash2, User, Mail, Phone, Calendar, CheckCircle, XCircle, ShieldCheck, Ticket, MoreVertical } from 'lucide-react';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  ShieldCheck,
+  Ticket,
+  MoreVertical,
+} from "lucide-react";
 
-import type { GetManagerStaffsResponse } from '@/apis/manager.staff.api';
-import { useAuthStore } from '@/store/authStore';
-import { useToast } from '@/components/ToastProvider';
+import type { GetManagerStaffsResponse } from "@/apis/manager.staff.api";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ToastProvider";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const tableVariants = {
   hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
 interface StaffTableProps {
-  data?: GetManagerStaffsResponse['result'];
+  data?: GetManagerStaffsResponse["result"];
   isLoading: boolean;
   error: Error | null;
   currentPage: number;
@@ -42,7 +60,7 @@ const StaffTable = ({
   onGrantVoucherPermission,
   onRevokeVoucherPermission,
   currentVoucherManagerId,
-  onRefresh
+  onRefresh,
 }: StaffTableProps) => {
   const { accessToken } = useAuthStore();
   const { showToast } = useToast();
@@ -62,7 +80,9 @@ const StaffTable = ({
       >
         <div className="flex flex-col items-center gap-3">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-emerald-500" />
-          <p className="font-body text-sm text-gray-400">Đang tải danh sách nhân viên...</p>
+          <p className="font-body text-sm text-gray-400">
+            Đang tải danh sách nhân viên...
+          </p>
         </div>
       </motion.div>
     );
@@ -79,7 +99,7 @@ const StaffTable = ({
         <div className="text-center">
           <XCircle className="mx-auto h-12 w-12 text-red-400" />
           <p className="mt-3 font-body text-red-300">
-            {(error as any)?.message || 'Không thể tải danh sách nhân viên'}
+            {(error as any)?.message || "Không thể tải danh sách nhân viên"}
           </p>
         </div>
       </motion.div>
@@ -142,10 +162,9 @@ const StaffTable = ({
             </thead>
             <tbody className="divide-y divide-white/10">
               {staffs.map((staff) => (
-                <motion.tr
+                <tr
                   key={staff.managerStaffId}
                   className="transition hover:bg-white/5"
-                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
                 >
                   <td className="px-6 py-4 font-body text-sm text-gray-300">
                     {staff.managerStaffId}
@@ -178,7 +197,7 @@ const StaffTable = ({
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-orange-400" />
                       <span className="font-body text-sm text-gray-300">
-                        {new Date(staff.hireDate).toLocaleDateString('vi-VN')}
+                        {new Date(staff.hireDate).toLocaleDateString("vi-VN")}
                       </span>
                     </div>
                   </td>
@@ -197,122 +216,259 @@ const StaffTable = ({
                   </td>
                   <td className="px-6 py-4">
                     <div className="relative flex items-center justify-center">
-                      <motion.button
-                        onClick={() => setOpenDropdownId(openDropdownId === staff.managerStaffId ? null : staff.managerStaffId)}
-                        className="rounded-lg border border-gray-500/30 bg-gray-500/20 p-2 text-gray-300 transition hover:bg-gray-500/30"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Thêm tùy chọn"
+                      <Popover
+                        open={openDropdownId === staff.managerStaffId}
+                        onOpenChange={(isOpen) =>
+                          setOpenDropdownId(
+                            isOpen ? staff.managerStaffId : null
+                          )
+                        }
                       >
-                        <MoreVertical className="h-4 w-4" />
-                      </motion.button>
-
-                      <AnimatePresence>
-                        {openDropdownId === staff.managerStaffId && (
-                          <>
-                            <div 
-                              className="fixed inset-0 z-40" 
-                              onClick={() => setOpenDropdownId(null)}
-                            />
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                              transition={{ duration: 0.15 }}
-                              className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-2xl"
+                        <PopoverTrigger asChild>
+                          <button
+                            onClick={() =>
+                              setOpenDropdownId(
+                                openDropdownId === staff.managerStaffId
+                                  ? null
+                                  : staff.managerStaffId
+                              )
+                            }
+                            className="rounded-lg border border-gray-500/30 bg-gray-500/20 p-2 text-gray-300 transition hover:bg-gray-500/30"
+                            title="Thêm tùy chọn"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          side="left"
+                          align="end"
+                          sideOffset={5}
+                          avoidCollisions={false}
+                          className="w-56 rounded-xl border border-white/10 bg-gray-900/95 p-2 shadow-2xl backdrop-blur-xl"
+                        >
+                          <div className="flex flex-col gap-1">
+                            {/* Xem chi tiết */}
+                            <button
+                              onClick={() => {
+                                onViewDetail(staff.managerStaffId);
+                                setOpenDropdownId(null);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-blue-500/20 hover:text-blue-300"
                             >
-                              <div className="p-2">
+                              <Eye className="h-4 w-4" />
+                              Xem chi tiết
+                            </button>
+
+                            {/* Chỉnh sửa */}
+                            <button
+                              onClick={() => {
+                                onEdit(staff.managerStaffId);
+                                setOpenDropdownId(null);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-orange-500/20 hover:text-orange-300"
+                            >
+                              <Edit className="h-4 w-4" />
+                              Chỉnh sửa
+                            </button>
+
+                            {/* Phân quyền */}
+                            <button
+                              onClick={() => {
+                                onManagePermissions(
+                                  staff.managerStaffId,
+                                  staff.fullName
+                                );
+                                setOpenDropdownId(null);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-purple-500/20 hover:text-purple-300"
+                            >
+                              <ShieldCheck className="h-4 w-4" />
+                              Phân quyền
+                            </button>
+
+                            {/* Logic quản lý Voucher */}
+                            {currentVoucherManagerId ===
+                              staff.managerStaffId && (
+                              <>
+                                <div className="my-1 h-px bg-white/10" />
+                                <div className="flex items-center gap-2 rounded-lg bg-green-500/20 px-4 py-2.5 text-xs font-semibold text-green-300">
+                                  <Ticket className="h-3.5 w-3.5" />
+                                  Quản lý Voucher
+                                </div>
                                 <button
                                   onClick={() => {
-                                    onViewDetail(staff.managerStaffId);
+                                    onRevokeVoucherPermission(
+                                      staff.managerStaffId,
+                                      staff.fullName
+                                    );
                                     setOpenDropdownId(null);
                                   }}
-                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-blue-500/20 hover:text-blue-300"
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-amber-500/20 hover:text-amber-300"
                                 >
-                                  <Eye className="h-4 w-4" />
-                                  Xem chi tiết
+                                  <Ticket className="h-4 w-4" />
+                                  Thu hồi quyền Voucher
                                 </button>
+                              </>
+                            )}
 
+                            {!currentVoucherManagerId && (
+                              <>
+                                <div className="my-1 h-px bg-white/10" />
                                 <button
                                   onClick={() => {
-                                    onEdit(staff.managerStaffId);
+                                    onGrantVoucherPermission(
+                                      staff.managerStaffId,
+                                      staff.fullName
+                                    );
                                     setOpenDropdownId(null);
                                   }}
-                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-orange-500/20 hover:text-orange-300"
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-pink-500/20 hover:text-pink-300"
                                 >
-                                  <Edit className="h-4 w-4" />
-                                  Chỉnh sửa
+                                  <Ticket className="h-4 w-4" />
+                                  Cấp quyền Voucher
                                 </button>
+                              </>
+                            )}
 
+                            <div className="my-1 h-px bg-white/10" />
+
+                            {/* Xóa */}
+                            <button
+                              onClick={() => {
+                                handleDeleteClick(
+                                  staff.managerStaffId,
+                                  staff.fullName
+                                );
+                                setOpenDropdownId(null);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-red-500/20 hover:text-red-300"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Xóa (vô hiệu hóa)
+                            </button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </td>
+
+                  {/* <AnimatePresence>
+                    {openDropdownId === staff.managerStaffId && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setOpenDropdownId(null)}
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-2xl"
+                        >
+                          <div className="p-2">
+                            <button
+                              onClick={() => {
+                                onViewDetail(staff.managerStaffId);
+                                setOpenDropdownId(null);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-blue-500/20 hover:text-blue-300"
+                            >
+                              <Eye className="h-4 w-4" />
+                              Xem chi tiết
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                onEdit(staff.managerStaffId);
+                                setOpenDropdownId(null);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-orange-500/20 hover:text-orange-300"
+                            >
+                              <Edit className="h-4 w-4" />
+                              Chỉnh sửa
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                onManagePermissions(
+                                  staff.managerStaffId,
+                                  staff.fullName
+                                );
+                                setOpenDropdownId(null);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-purple-500/20 hover:text-purple-300"
+                            >
+                              <ShieldCheck className="h-4 w-4" />
+                              Phân quyền
+                            </button>
+
+                            {currentVoucherManagerId ===
+                              staff.managerStaffId && (
+                              <>
+                                <div className="my-1 h-px bg-white/10" />
+
+                                <div className="flex items-center gap-2 rounded-lg bg-green-500/20 px-4 py-2.5 text-xs font-semibold text-green-300">
+                                  <Ticket className="h-3.5 w-3.5" />
+                                  Quản lý Voucher
+                                </div>
                                 <button
                                   onClick={() => {
-                                    onManagePermissions(staff.managerStaffId, staff.fullName);
+                                    onRevokeVoucherPermission(
+                                      staff.managerStaffId,
+                                      staff.fullName
+                                    );
                                     setOpenDropdownId(null);
                                   }}
-                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-purple-500/20 hover:text-purple-300"
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-amber-500/20 hover:text-amber-300"
                                 >
-                                  <ShieldCheck className="h-4 w-4" />
-                                  Phân quyền
+                                  <Ticket className="h-4 w-4" />
+                                  Thu hồi quyền Voucher
                                 </button>
+                              </>
+                            )}
 
-                                {currentVoucherManagerId === staff.managerStaffId && (
-                                  <>
-                                    <div className="my-1 h-px bg-white/10" />
-                                    
-                                    <div className="flex items-center gap-2 rounded-lg bg-green-500/20 px-4 py-2.5 text-xs font-semibold text-green-300">
-                                      <Ticket className="h-3.5 w-3.5" />
-                                      Quản lý Voucher
-                                    </div>
-                                    <button
-                                      onClick={() => {
-                                        onRevokeVoucherPermission(staff.managerStaffId, staff.fullName);
-                                        setOpenDropdownId(null);
-                                      }}
-                                      className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-amber-500/20 hover:text-amber-300"
-                                    >
-                                      <Ticket className="h-4 w-4" />
-                                      Thu hồi quyền Voucher
-                                    </button>
-                                  </>
-                                )}
-
-                                {!currentVoucherManagerId && (
-                                  <>
-                                    <div className="my-1 h-px bg-white/10" />
-                                    
-                                    <button
-                                      onClick={() => {
-                                        onGrantVoucherPermission(staff.managerStaffId, staff.fullName);
-                                        setOpenDropdownId(null);
-                                      }}
-                                      className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-pink-500/20 hover:text-pink-300"
-                                    >
-                                      <Ticket className="h-4 w-4" />
-                                      Cấp quyền Voucher
-                                    </button>
-                                  </>
-                                )}
-
+                            {!currentVoucherManagerId && (
+                              <>
                                 <div className="my-1 h-px bg-white/10" />
 
                                 <button
                                   onClick={() => {
-                                    handleDeleteClick(staff.managerStaffId, staff.fullName);
+                                    onGrantVoucherPermission(
+                                      staff.managerStaffId,
+                                      staff.fullName
+                                    );
                                     setOpenDropdownId(null);
                                   }}
-                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-red-500/20 hover:text-red-300"
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-pink-500/20 hover:text-pink-300"
                                 >
-                                  <Trash2 className="h-4 w-4" />
-                                  Xóa (vô hiệu hóa)
+                                  <Ticket className="h-4 w-4" />
+                                  Cấp quyền Voucher
                                 </button>
-                              </div>
-                            </motion.div>
-                          </>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </td>
-                </motion.tr>
+                              </>
+                            )}
+
+                            <div className="my-1 h-px bg-white/10" />
+
+                            <button
+                              onClick={() => {
+                                handleDeleteClick(
+                                  staff.managerStaffId,
+                                  staff.fullName
+                                );
+                                setOpenDropdownId(null);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-red-500/20 hover:text-red-300"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Xóa (vô hiệu hóa)
+                            </button>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence> */}
+                </tr>
               ))}
             </tbody>
           </table>
@@ -323,7 +479,8 @@ const StaffTable = ({
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-6 py-4 backdrop-blur-xl">
           <p className="font-body text-sm text-gray-400">
-            Trang {pagination.currentPage} / {pagination.totalPages} • Tổng {pagination.totalCount} nhân viên
+            Trang {pagination.currentPage} / {pagination.totalPages} • Tổng{" "}
+            {pagination.totalCount} nhân viên
           </p>
           <div className="flex items-center gap-2">
             <motion.button
