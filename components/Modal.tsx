@@ -13,6 +13,7 @@ interface ModalProps {
   className?: string;
   contentClassName?: string;
   showExampleButton?: boolean;
+  disableBackdropClick?: boolean;
 }
 
 export default function Modal({ 
@@ -24,7 +25,8 @@ export default function Modal({
   showCloseButton = true,
   className,
   contentClassName,
-  showExampleButton = false
+  showExampleButton = false,
+  disableBackdropClick = false
 }: ModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   
@@ -46,7 +48,7 @@ export default function Modal({
 
       {isOpen && (
         <div
-          onClick={onClose}
+          onClick={disableBackdropClick ? undefined : onClose}
           className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center overflow-y-scroll bg-slate-900/20 p-8 backdrop-blur"
         >
           <div

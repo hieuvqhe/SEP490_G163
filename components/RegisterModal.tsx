@@ -180,6 +180,7 @@ export default function RegisterModal({ isOpen, onClose, onSuccess, onSwitchToLo
         modalSize="lg"
         showCloseButton={true}
         contentClassName="space-y-6"
+        disableBackdropClick={true}
       >
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Đăng Ký</h2>
