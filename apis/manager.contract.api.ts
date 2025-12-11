@@ -31,6 +31,9 @@ export interface Contract {
   managerId: number;
   managerName: string;
   partnerSignatureUrl?: string;
+  managerStaffName: string
+  managerStaffEmail: string
+  hasManagerStaffSignedTemporarily: boolean
 }
 
 export interface ContractsPagination {
@@ -64,7 +67,11 @@ export class ManagerContractApiError extends Error {
 
   constructor(
     message: string,
-    options: { status?: number; detail?: string; errors?: Record<string, unknown> } = {}
+    options: {
+      status?: number;
+      detail?: string;
+      errors?: Record<string, unknown>;
+    } = {}
   ) {
     super(message);
     this.name = "ManagerContractApiError";
@@ -78,7 +85,9 @@ const toManagerContractApiError = (
   response: Response,
   payload: unknown
 ): ManagerContractApiError => {
-  const data = (payload && typeof payload === "object" ? payload : {}) as Record<string, unknown>;
+  const data = (
+    payload && typeof payload === "object" ? payload : {}
+  ) as Record<string, unknown>;
   const message =
     typeof data.message === "string" && data.message.trim() !== ""
       ? data.message
@@ -88,7 +97,9 @@ const toManagerContractApiError = (
       ? data.detail
       : undefined;
   const errorsCandidate =
-    (data.errors && typeof data.errors === "object" ? data.errors : undefined) ??
+    (data.errors && typeof data.errors === "object"
+      ? data.errors
+      : undefined) ??
     (data.Errors && typeof data.Errors === "object" ? data.Errors : undefined);
 
   return new ManagerContractApiError(message, {
@@ -234,24 +245,92 @@ export interface GenerateUploadSasResponse {
   result: GenerateUploadSasResult;
 }
 
+export interface SignTemReq {
+  id: number;
+  body: {
+    managerSignature: string;
+    notes: string;
+  };
+  accessToken: string;
+}
+
+export interface SignTemResponse {
+  message: string;
+  result: {
+    contractId: number;
+    managerId: number;
+    partnerId: number;
+    createdBy: number;
+    contractNumber: string;
+    contractType: string;
+    title: string;
+    description: string;
+    termsAndConditions: string;
+    startDate: string;
+    endDate: string;
+    commissionRate: number;
+    minimumRevenue: number;
+    status: string;
+    isLocked: true;
+    contractHash: string;
+    pdfUrl: string;
+    partnerSignatureUrl: string;
+    managerSignature: string;
+    signedAt: string;
+    partnerSignedAt: string;
+    managerSignedAt: string;
+    managerStaffId: number;
+    managerStaffSignature: string;
+    managerStaffSignedAt: string;
+    lockedAt: string;
+    createdAt: string;
+    updatedAt: string;
+    partnerName: string;
+    partnerAddress: string;
+    partnerTaxCode: string;
+    partnerRepresentative: string;
+    partnerPosition: string;
+    partnerEmail: string;
+    partnerPhone: string;
+    companyName: string;
+    companyAddress: string;
+    companyTaxCode: string;
+    managerName: string;
+    managerPosition: string;
+    managerEmail: string;
+    createdByName: string;
+    managerStaffName: string;
+    managerStaffEmail: string;
+    hasManagerStaffSignedTemporarily: true;
+  };
+}
 
 class ManagerContractService {
   // Backend exposes manager routes under `${BASE_URL}/manager` (no extra `/api` prefix)
   private baseURL = `${BASE_URL}/manager`;
 
-  async getContracts(params: GetContractsParams, accessToken: string): Promise<GetContractsResponse> {
+  async getContracts(
+    params: GetContractsParams,
+    accessToken: string
+  ): Promise<GetContractsResponse> {
     try {
       const queryParams = new URLSearchParams();
-      if (params.page !== undefined) queryParams.append("page", params.page.toString());
-      if (params.limit !== undefined) queryParams.append("limit", params.limit.toString());
-      if (params.managerId !== undefined) queryParams.append("managerId", params.managerId.toString());
-      if (params.partnerId !== undefined) queryParams.append("partnerId", params.partnerId.toString());
+      if (params.page !== undefined)
+        queryParams.append("page", params.page.toString());
+      if (params.limit !== undefined)
+        queryParams.append("limit", params.limit.toString());
+      if (params.managerId !== undefined)
+        queryParams.append("managerId", params.managerId.toString());
+      if (params.partnerId !== undefined)
+        queryParams.append("partnerId", params.partnerId.toString());
       if (params.status) queryParams.append("status", params.status);
       if (params.search) queryParams.append("search", params.search);
       if (params.sortBy) queryParams.append("sortBy", params.sortBy);
       if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
-      const url = `${this.baseURL}/contracts${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const url = `${this.baseURL}/contracts${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -268,19 +347,29 @@ class ManagerContractService {
       return result;
     } catch (error: any) {
       if (error.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
+        throw {
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        } as ManagerApiError;
       }
       throw error;
     }
   }
 
-  async getPartnersWithoutContracts(params: GetPartnersWithoutContractsParams, accessToken: string): Promise<GetPartnersWithoutContractsResponse> {
+  async getPartnersWithoutContracts(
+    params: GetPartnersWithoutContractsParams,
+    accessToken: string
+  ): Promise<GetPartnersWithoutContractsResponse> {
     try {
       const queryParams = new URLSearchParams();
-      if (params.page !== undefined) queryParams.append("page", params.page.toString());
-      if (params.limit !== undefined) queryParams.append("limit", params.limit.toString());
+      if (params.page !== undefined)
+        queryParams.append("page", params.page.toString());
+      if (params.limit !== undefined)
+        queryParams.append("limit", params.limit.toString());
       if (params.search) queryParams.append("search", params.search);
-      const url = `${this.baseURL}/partners/without-contracts${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const url = `${this.baseURL}/partners/without-contracts${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -295,13 +384,19 @@ class ManagerContractService {
       return result;
     } catch (error: any) {
       if (error.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
+        throw {
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        } as ManagerApiError;
       }
       throw error;
     }
   }
 
-  async getContractById(contractId: number, accessToken: string): Promise<GetContractByIdResponse> {
+  async getContractById(
+    contractId: number,
+    accessToken: string
+  ): Promise<GetContractByIdResponse> {
     try {
       const url = `${this.baseURL}/contracts/${contractId}`;
       const response = await fetch(url, {
@@ -318,13 +413,19 @@ class ManagerContractService {
       return result;
     } catch (error: any) {
       if (error.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
+        throw {
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        } as ManagerApiError;
       }
       throw error;
     }
   }
 
-  async createContract(data: CreateContractRequest, accessToken: string): Promise<CreateContractResponse> {
+  async createContract(
+    data: CreateContractRequest,
+    accessToken: string
+  ): Promise<CreateContractResponse> {
     try {
       const url = `${this.baseURL}/contracts`;
       const response = await fetch(url, {
@@ -355,8 +456,12 @@ class ManagerContractService {
 
       if (error && typeof error.message === "string") {
         const errorsCandidate =
-          (error.errors && typeof error.errors === "object" ? error.errors : undefined) ??
-          (error.Errors && typeof error.Errors === "object" ? error.Errors : undefined);
+          (error.errors && typeof error.errors === "object"
+            ? error.errors
+            : undefined) ??
+          (error.Errors && typeof error.Errors === "object"
+            ? error.Errors
+            : undefined);
 
         throw new ManagerContractApiError(error.message, {
           detail: typeof error.detail === "string" ? error.detail : undefined,
@@ -368,7 +473,11 @@ class ManagerContractService {
     }
   }
 
-  async sendContractPdf(contractId: number, data: SendContractPdfRequest, accessToken: string): Promise<SendContractPdfResponse> {
+  async sendContractPdf(
+    contractId: number,
+    data: SendContractPdfRequest,
+    accessToken: string
+  ): Promise<SendContractPdfResponse> {
     try {
       const url = `${this.baseURL}/contracts/${contractId}/send-pdf`;
       const response = await fetch(url, {
@@ -387,7 +496,10 @@ class ManagerContractService {
       return result;
     } catch (error: any) {
       if (error.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
+        throw {
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        } as ManagerApiError;
       }
       throw error;
     }
@@ -445,13 +557,20 @@ class ManagerContractService {
       return { message: undefined, result: undefined };
     } catch (error: any) {
       if (error.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
+        throw {
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        } as ManagerApiError;
       }
       throw error;
     }
   }
 
-  async finalizeContract(contractId: number, data: FinalizeContractRequest, accessToken: string): Promise<FinalizeContractResponse> {
+  async finalizeContract(
+    contractId: number,
+    data: FinalizeContractRequest,
+    accessToken: string
+  ): Promise<FinalizeContractResponse> {
     try {
       const url = `${this.baseURL}/contracts/${contractId}/finalize`;
       const response = await fetch(url, {
@@ -470,13 +589,51 @@ class ManagerContractService {
       return result;
     } catch (error: any) {
       if (error.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
+        throw {
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        } as ManagerApiError;
       }
       throw error;
     }
   }
 
-  async generateUploadSas(data: GenerateUploadSasRequest, accessToken: string): Promise<GenerateUploadSasResponse> {
+  async signTemporarily({
+    id,
+    body,
+    accessToken,
+  }: SignTemReq): Promise<SignTemResponse> {
+    try {
+      const url = `${this.baseURL}/contracts/${id}/sign-temporarily`;
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw result as ManagerApiError;
+      }
+      return result;
+    } catch (error: any) {
+      if (error.name === "TypeError") {
+        throw {
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        } as ManagerApiError;
+      }
+      throw error;
+    }
+  }
+
+  async generateUploadSas(
+    data: GenerateUploadSasRequest,
+    accessToken: string
+  ): Promise<GenerateUploadSasResponse> {
     try {
       const url = `${this.baseURL}/contracts/generate-upload-sas`;
       const response = await fetch(url, {
@@ -496,7 +653,10 @@ class ManagerContractService {
       return result as GenerateUploadSasResponse;
     } catch (error: any) {
       if (error.name === "TypeError") {
-        throw { message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng." } as ManagerApiError;
+        throw {
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        } as ManagerApiError;
       }
       throw error;
     }
@@ -505,7 +665,10 @@ class ManagerContractService {
 
 export const managerContractService = new ManagerContractService();
 
-export const useGetContracts = (params: GetContractsParams, accessToken?: string) => {
+export const useGetContracts = (
+  params: GetContractsParams,
+  accessToken?: string
+) => {
   return useQuery({
     queryKey: ["manager-contracts", params],
     queryFn: () => managerContractService.getContracts(params, accessToken!),
@@ -515,20 +678,28 @@ export const useGetContracts = (params: GetContractsParams, accessToken?: string
   });
 };
 
-export const useGetPartnersWithoutContracts = (params: GetPartnersWithoutContractsParams, accessToken?: string) => {
+export const useGetPartnersWithoutContracts = (
+  params: GetPartnersWithoutContractsParams,
+  accessToken?: string
+) => {
   return useQuery({
     queryKey: ["manager-partners-without-contracts", params],
-    queryFn: () => managerContractService.getPartnersWithoutContracts(params, accessToken!),
+    queryFn: () =>
+      managerContractService.getPartnersWithoutContracts(params, accessToken!),
     enabled: !!accessToken,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 };
 
-export const useGetContractById = (contractId: number, accessToken?: string) => {
+export const useGetContractById = (
+  contractId: number,
+  accessToken?: string
+) => {
   return useQuery({
     queryKey: ["manager-contract-detail", contractId],
-    queryFn: () => managerContractService.getContractById(contractId, accessToken!),
+    queryFn: () =>
+      managerContractService.getContractById(contractId, accessToken!),
     enabled: !!accessToken && !!contractId,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -538,8 +709,13 @@ export const useGetContractById = (contractId: number, accessToken?: string) => 
 export const useCreateContract = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ data, accessToken }: { data: CreateContractRequest; accessToken: string }) =>
-      managerContractService.createContract(data, accessToken),
+    mutationFn: ({
+      data,
+      accessToken,
+    }: {
+      data: CreateContractRequest;
+      accessToken: string;
+    }) => managerContractService.createContract(data, accessToken),
     onSuccess: () => {
       // Invalidate contracts list after creating new contract
       queryClient.invalidateQueries({ queryKey: ["manager-contracts"] });
@@ -550,8 +726,15 @@ export const useCreateContract = () => {
 export const useSendContract = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ contractId, data, accessToken }: { contractId: number; data: SendContractPdfRequest; accessToken: string }) =>
-      managerContractService.sendContractPdf(contractId, data, accessToken),
+    mutationFn: ({
+      contractId,
+      data,
+      accessToken,
+    }: {
+      contractId: number;
+      data: SendContractPdfRequest;
+      accessToken: string;
+    }) => managerContractService.sendContractPdf(contractId, data, accessToken),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["manager-contracts"] });
     },
@@ -573,7 +756,8 @@ export const useActivateContract = () => {
       contractId: number;
       data: ActivateContractRequest;
       accessToken: string;
-    }) => managerContractService.activateContract(contractId, data, accessToken),
+    }) =>
+      managerContractService.activateContract(contractId, data, accessToken),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["manager-contracts"] });
     },
@@ -582,16 +766,36 @@ export const useActivateContract = () => {
 
 export const useFinalizeContract = () => {
   return useMutation({
-    mutationFn: ({ contractId, data, accessToken }: { contractId: number; data: FinalizeContractRequest; accessToken: string }) =>
+    mutationFn: ({
+      contractId,
+      data,
+      accessToken,
+    }: {
+      contractId: number;
+      data: FinalizeContractRequest;
+      accessToken: string;
+    }) =>
       managerContractService.finalizeContract(contractId, data, accessToken),
+  });
+};
+
+export const useSignTemporarily = () => {
+  return useMutation({
+    mutationFn: ({ accessToken, body, id }: SignTemReq) =>
+      managerContractService.signTemporarily({ accessToken, body, id }),
   });
 };
 
 export const useGenerateUploadSas = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ data, accessToken }: { data: GenerateUploadSasRequest; accessToken: string }) =>
-      managerContractService.generateUploadSas(data, accessToken),
+    mutationFn: ({
+      data,
+      accessToken,
+    }: {
+      data: GenerateUploadSasRequest;
+      accessToken: string;
+    }) => managerContractService.generateUploadSas(data, accessToken),
     onSuccess: (res) => {
       // Optionally invalidate related queries if needed (contracts list or details)
       queryClient.invalidateQueries({ queryKey: ["manager-contracts"] });

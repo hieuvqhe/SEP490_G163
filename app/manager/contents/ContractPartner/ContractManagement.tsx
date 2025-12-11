@@ -1,56 +1,58 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, Lock, RefreshCcw, Send, FileText, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Eye, Lock, RefreshCcw, Send, FileText, Loader2 } from "lucide-react";
 
 import {
   useGetContracts,
   useActivateContract,
   type Contract,
-  type ActivateContractRequest
-} from '@/apis/manager.contract.api';
-import { useAuthStore } from '@/store/authStore';
-import { useToast } from '@/components/ToastProvider';
+  type ActivateContractRequest,
+  useSignTemporarily,
+} from "@/apis/manager.contract.api";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ToastProvider";
 
-import ContractDetailModal from './ContractDetailModal';
-import SendContractModal from './SendContractModal';
-import ConfirmActivationModal from './ConfirmActivationModal';
-import SignedContractModal from './SignedContractModal';
+import ContractDetailModal from "./ContractDetailModal";
+import SendContractModal from "./SendContractModal";
+import ConfirmActivationModal from "./ConfirmActivationModal";
+import SignedContractModal from "./SignedContractModal";
 
 const tableVariants = {
   hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
 const statusBadgeMap: Record<string, { label: string; className: string }> = {
   draft: {
-    label: 'Bản nháp',
-    className: 'bg-gray-500/20 text-gray-200 border border-gray-500/30'
+    label: "Bản nháp",
+    className: "bg-gray-500/20 text-gray-200 border border-gray-500/30",
   },
   pending_signature: {
-    label: 'Chờ ký',
-    className: 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+    label: "Chờ ký",
+    className: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
   },
   pending: {
-    label: 'Partner đã ký',
-    className: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+    label: "Partner đã ký",
+    className: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
   },
   active: {
-    label: 'Đã kích hoạt',
-    className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+    label: "Đã kích hoạt",
+    className:
+      "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
   },
   expired: {
-    label: 'Đã hết hạn',
-    className: 'bg-red-500/20 text-red-300 border border-red-500/30'
-  }
+    label: "Đã hết hạn",
+    className: "bg-red-500/20 text-red-300 border border-red-500/30",
+  },
 };
 
 const getStatusBadge = (status: string) => {
   return (
     statusBadgeMap[status] || {
       label: status,
-      className: 'bg-slate-500/20 text-slate-200 border border-slate-500/30'
+      className: "bg-slate-500/20 text-slate-200 border border-slate-500/30",
     }
   );
 };
@@ -62,10 +64,10 @@ const toStartOfDay = (date: Date) => {
 };
 
 const getOperationalStatus = (contract: Contract) => {
-  if (contract.status !== 'active') {
+  if (contract.status !== "active") {
     return {
-      label: 'Chưa kích hoạt',
-      className: 'bg-gray-500/20 text-gray-200 border border-gray-500/30'
+      label: "Chưa kích hoạt",
+      className: "bg-gray-500/20 text-gray-200 border border-gray-500/30",
     };
   }
 
@@ -75,15 +77,16 @@ const getOperationalStatus = (contract: Contract) => {
 
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
     return {
-      label: 'Đang hoạt động',
-      className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+      label: "Đang hoạt động",
+      className:
+        "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
     };
   }
 
   if (end < today) {
     return {
-      label: 'Đã hết hạn',
-      className: 'bg-red-500/20 text-red-300 border border-red-500/30'
+      label: "Đã hết hạn",
+      className: "bg-red-500/20 text-red-300 border border-red-500/30",
     };
   }
 
@@ -92,64 +95,73 @@ const getOperationalStatus = (contract: Contract) => {
 
   if (start > today) {
     return {
-      label: 'Sắp diễn ra',
-      className: 'bg-sky-500/20 text-sky-200 border border-sky-500/30'
+      label: "Sắp diễn ra",
+      className: "bg-sky-500/20 text-sky-200 border border-sky-500/30",
     };
   }
 
   if (daysUntilEnd <= 30) {
     return {
-      label: 'Sắp hết hạn',
-      className: 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+      label: "Sắp hết hạn",
+      className: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
     };
   }
 
   return {
-    label: 'Đang hoạt động',
-    className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+    label: "Đang hoạt động",
+    className:
+      "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
   };
 };
 
 const formatDateRange = (startDate?: string, endDate?: string) => {
   if (!startDate || !endDate) {
-    return 'Không xác định';
+    return "Không xác định";
   }
 
   const start = new Date(startDate);
   const end = new Date(endDate);
 
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    return 'Không xác định';
+    return "Không xác định";
   }
 
-  return `${start.toLocaleDateString('vi-VN')} - ${end.toLocaleDateString('vi-VN')}`;
+  return `${start.toLocaleDateString("vi-VN")} - ${end.toLocaleDateString(
+    "vi-VN"
+  )}`;
 };
 
 const ContractManagement = () => {
-  const { accessToken } = useAuthStore();
+  const { accessToken, role } = useAuthStore();
   const { showToast } = useToast();
 
-  const [selectedContractId, setSelectedContractId] = useState<number | null>(null);
+  const [selectedContractId, setSelectedContractId] = useState<number | null>(
+    null
+  );
   const [sendContractId, setSendContractId] = useState<number | null>(null);
-  const [activationContractId, setActivationContractId] = useState<number | null>(null);
-  const [signedContractToView, setSignedContractToView] = useState<Contract | null>(null);
+  const [activationContractId, setActivationContractId] = useState<
+    number | null
+  >(null);
+  const [signedContractToView, setSignedContractToView] =
+    useState<Contract | null>(null);
 
   const queryParams = useMemo(() => ({ page: 1, limit: 10 }), []);
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    refetch
-  } = useGetContracts(queryParams, accessToken || undefined);
+  const { data, isLoading, isError, error, refetch } = useGetContracts(
+    queryParams,
+    accessToken || undefined
+  );
 
   const hasShownErrorRef = useRef(false);
 
   useEffect(() => {
     if (isError && !hasShownErrorRef.current) {
       const apiError = error as { message?: string } | undefined;
-      showToast(apiError?.message || 'Không thể tải danh sách hợp đồng', undefined, 'error');
+      showToast(
+        apiError?.message || "Không thể tải danh sách hợp đồng",
+        undefined,
+        "error"
+      );
       hasShownErrorRef.current = true;
     }
 
@@ -158,7 +170,16 @@ const ContractManagement = () => {
     }
   }, [isError, error, showToast]);
 
-  const contracts = data?.result?.contracts || [];
+  let contracts = [];
+
+  if (role === "ManagerStaff") {
+    contracts =
+      data?.result?.contracts.filter(
+        (item) => item.hasManagerStaffSignedTemporarily === false
+      ) || [];
+  } else {
+    contracts = data?.result?.contracts || [];
+  }
 
   const handleViewDetails = (contractId: number) => {
     setSelectedContractId(contractId);
@@ -177,6 +198,7 @@ const ContractManagement = () => {
   };
 
   const activateContractMutation = useActivateContract();
+  const signTempContractMutation = useSignTemporarily();
 
   const handleActivateContract = (contractId: number) => {
     setActivationContractId(contractId);
@@ -188,7 +210,7 @@ const ContractManagement = () => {
 
   const handleConfirmActivate = (payload: ActivateContractRequest) => {
     if (!accessToken) {
-      showToast('Vui lòng đăng nhập lại', undefined, 'error');
+      showToast("Vui lòng đăng nhập lại", undefined, "error");
       return;
     }
 
@@ -196,25 +218,65 @@ const ContractManagement = () => {
       return;
     }
 
-    activateContractMutation.mutate(
-      { contractId: activationContractId, accessToken, data: payload },
-      {
-        onSuccess: () => {
-          showToast('Kích hoạt HĐ thành công!', undefined, 'success');
-          setActivationContractId(null);
+    if (role === "ManagerStaff") {
+      console.log(`Staff sign contract: ${activationContractId}`);
 
-          refetch();
+      signTempContractMutation.mutate(
+        {
+          accessToken: accessToken,
+          body: {
+            managerSignature: payload.managerSignature ?? "",
+            notes: payload.notes ?? "",
+          },
+          id: activationContractId,
         },
-        onError: (error: any) => {
-          showToast(error?.message || 'Kích hoạt hợp đồng thất bại', undefined, 'error');
+        {
+          onSuccess: (res) => {
+            showToast(
+              "Kí xác nhận thành công, Hợp đồng sẽ được gửi đến Manager",
+              undefined,
+              "success"
+            );
+            console.log(res.result);
+            setActivationContractId(null);
+            refetch();
+          },
+          onError: (error: any) => {
+            console.log(error);
+
+            showToast(
+              error?.message || "Kí xác nhận thất bại",
+              undefined,
+              "error"
+            );
+          },
         }
-      }
-    );
+      );
+    } else {
+      activateContractMutation.mutate(
+        { contractId: activationContractId, accessToken, data: payload },
+        {
+          onSuccess: () => {
+            showToast("Kích hoạt HĐ thành công!", undefined, "success");
+            setActivationContractId(null);
+
+            refetch();
+          },
+          onError: (error: any) => {
+            showToast(
+              error?.message || "Kích hoạt hợp đồng thất bại",
+              undefined,
+              "error"
+            );
+          },
+        }
+      );
+    }
   };
 
   const handleViewSignedContract = (contract: Contract) => {
     if (!contract.partnerSignatureUrl) {
-      showToast('Không tìm thấy file hợp đồng đã ký', undefined, 'warning');
+      showToast("Không tìm thấy file hợp đồng đã ký", undefined, "warning");
       return;
     }
     setSignedContractToView(contract);
@@ -233,7 +295,9 @@ const ContractManagement = () => {
     >
       <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
         <div>
-          <h2 className="text-2xl font-semibold text-white">Quản lý hợp đồng</h2>
+          <h2 className="text-2xl font-semibold text-white">
+            Quản lý hợp đồng
+          </h2>
           <p className="mt-2 text-sm text-gray-400">
             Theo dõi danh sách hợp đồng, trạng thái và các hành động liên quan.
           </p>
@@ -261,11 +325,15 @@ const ContractManagement = () => {
         )}
 
         {!isLoading && !accessToken && (
-          <p className="p-6 text-sm text-gray-300">Vui lòng đăng nhập để xem danh sách hợp đồng.</p>
+          <p className="p-6 text-sm text-gray-300">
+            Vui lòng đăng nhập để xem danh sách hợp đồng.
+          </p>
         )}
 
         {!isLoading && accessToken && contracts.length === 0 && (
-          <p className="p-6 text-sm text-gray-300">Hiện chưa có hợp đồng nào.</p>
+          <p className="p-6 text-sm text-gray-300">
+            Hiện chưa có hợp đồng nào.
+          </p>
         )}
 
         {!isLoading && accessToken && contracts.length > 0 && (
@@ -273,57 +341,105 @@ const ContractManagement = () => {
             <table className="min-w-full divide-y divide-white/10 text-left text-sm text-gray-200">
               <thead className="bg-white/5 text-xs uppercase tracking-wider text-gray-400">
                 <tr>
-                  <th scope="col" className="px-6 py-3">Tên hợp đồng</th>
-                  <th scope="col" className="px-6 py-3">Đối tác</th>
-                  <th scope="col" className="px-6 py-3">Thời gian</th>
-                  <th scope="col" className="px-6 py-3">% Hoa hồng</th>
-                  <th scope="col" className="px-6 py-3">Loại hợp đồng</th>
-                  <th scope="col" className="px-6 py-3">Trạng thái</th>
-                  <th scope="col" className="px-6 py-3">Trạng thái hoạt động</th>
-                  <th scope="col" className="px-6 py-3 text-right">Hành động</th>
+                  <th scope="col" className="px-6 py-3">
+                    Tên hợp đồng
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Đối tác
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Thời gian
+                  </th>
+                  {/* <th scope="col" className="px-6 py-3">
+                    % Hoa hồng
+                  </th> */}
+                  <th scope="col" className="px-6 py-3">
+                    Loại hợp đồng
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Nhân viên xác nhận
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Trạng thái
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Trạng thái hoạt động
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right">
+                    Hành động
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {contracts.map((contract) => {
                   const statusBadge = getStatusBadge(contract.status);
                   const operationalStatus = getOperationalStatus(contract);
-                  
+
                   // Debug: Log contract info
-                  const shouldShowSignedButton = 
-                    (contract.status === 'pending' || contract.status === 'active' || contract.status === 'expired') 
-                    && !!contract.partnerSignatureUrl;
+                  const shouldShowSignedButton =
+                    (contract.status === "pending" ||
+                      contract.status === "active" ||
+                      contract.status === "expired") &&
+                    !!contract.partnerSignatureUrl;
 
                   return (
-                    <tr key={contract.contractId} className="transition hover:bg-white/10">
+                    <tr
+                      key={contract.contractId}
+                      className="transition hover:bg-white/10"
+                    >
                       <td className="px-6 py-4 font-medium text-white">
                         <div className="flex flex-col">
-                          <span>{contract.title || contract.contractNumber}</span>
-                          <span className="text-xs text-gray-400">#{contract.contractNumber}</span>
+                          <span>
+                            {contract.title || contract.contractNumber}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            #{contract.contractNumber}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="text-white">{contract.partnerName}</span>
-                          <span className="text-xs text-gray-400">ID: {contract.partnerId}</span>
+                          <span className="text-white">
+                            {contract.partnerName}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            ID: {contract.partnerId}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-300">{formatDateRange(contract.startDate, contract.endDate)}</td>
-                      <td className="px-6 py-4 text-gray-300">{contract.commissionRate}%</td>
-                      <td className="px-6 py-4 text-gray-300 capitalize">{contract.contractType}</td>
+                      <td className="px-6 py-4 text-gray-300">
+                        {formatDateRange(contract.startDate, contract.endDate)}
+                      </td>
+                      {/* <td className="px-6 py-4 text-gray-300">
+                        {contract.commissionRate}%
+                      </td> */}
+
+                      <td className="px-6 py-4 text-gray-300 capitalize">
+                        {contract.contractType}
+                      </td>
+                      <td className="px-6 py-4 text-gray-300 capitalize">
+                        {contract.managerStaffName}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ${statusBadge.className}`}>
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ${statusBadge.className}`}
+                        >
                           {statusBadge.label}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ${operationalStatus.className}`}>
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ${operationalStatus.className}`}
+                        >
                           {operationalStatus.label}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1.5 text-xs">
                           <button
-                            onClick={() => handleViewDetails(contract.contractId)}
+                            onClick={() =>
+                              handleViewDetails(contract.contractId)
+                            }
                             className="flex items-center justify-center gap-1.5 rounded-lg bg-blue-500/20 px-2.5 py-1.5 font-medium text-blue-200 transition hover:bg-blue-500/30 whitespace-nowrap"
                           >
                             <Eye size={13} />
@@ -339,22 +455,28 @@ const ContractManagement = () => {
                               <span className="hidden xl:inline">HĐ đã ký</span>
                             </button>
                           )}
-                          {contract.status === 'draft' && (
+                          {contract.status === "draft" && (
                             <button
-                              onClick={() => handleOpenSendModal(contract.contractId)}
+                              onClick={() =>
+                                handleOpenSendModal(contract.contractId)
+                              }
                               className="flex items-center justify-center gap-1.5 rounded-lg bg-orange-500/20 px-2.5 py-1.5 font-medium text-orange-200 transition hover:bg-orange-500/30 whitespace-nowrap"
                             >
                               <Send size={13} />
                               <span className="hidden xl:inline">Gửi HĐ</span>
                             </button>
                           )}
-                          {contract.status === 'pending' && (
+                          {contract.status === "pending" && (
                             <button
-                              onClick={() => handleActivateContract(contract.contractId)}
+                              onClick={() =>
+                                handleActivateContract(contract.contractId)
+                              }
                               className="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500/20 px-2.5 py-1.5 font-medium text-emerald-200 transition hover:bg-emerald-500/30 whitespace-nowrap"
                             >
                               <Lock size={13} />
-                              <span className="hidden xl:inline">Kích hoạt</span>
+                              <span className="hidden xl:inline">
+                                Kí xác nhận
+                              </span>
                             </button>
                           )}
                         </div>
@@ -405,7 +527,9 @@ const ContractManagement = () => {
         {signedContractToView !== null && (
           <SignedContractModal
             contractId={signedContractToView.contractId}
-            contractTitle={signedContractToView.title || signedContractToView.contractNumber}
+            contractTitle={
+              signedContractToView.title || signedContractToView.contractNumber
+            }
             partnerSignatureUrl={signedContractToView.partnerSignatureUrl!}
             onClose={handleCloseSignedContractModal}
           />
