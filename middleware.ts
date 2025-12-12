@@ -9,6 +9,7 @@ function getHomePageForRole(role: string | undefined): string {
     case "admin":
       return "/admin";
     case "partner":
+    case "staff":
       return "/partner/home";
     case "manager":
     case "managerstaff":
@@ -39,8 +40,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(homePage, request.url));
   }
 
-  // ⚙️ Phân quyền cho partner
-  if (pathname.startsWith("/partner") && roleLower !== "partner") {
+  // ⚙️ Phân quyền cho partner (chỉ protect /partner/home và các route con, không protect /partner landing page)
+  // Partner và Staff đều có thể truy cập /partner/home
+  if (pathname.startsWith("/partner/home") && roleLower !== "partner" && roleLower !== "staff") {
     const homePage = getHomePageForRole(role);
     return NextResponse.redirect(new URL(homePage, request.url));
   }
@@ -65,7 +67,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/admin/:path*",
-    "/partner/:path*",
+    "/partner/home/:path*",
     "/manager/:path*",
     "/cashier/:path*",
   ],
