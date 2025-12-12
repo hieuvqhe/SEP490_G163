@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ChevronsUpDown, Tickets } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
 const pacifico = Pacifico({
   subsets: ["latin"],
@@ -20,6 +21,20 @@ export interface Team {
 }
 
 export function TeamSwitcher({ ...props }: Team) {
+  const { user } = useAuthStore();
+  
+  // Get role display name
+  const getRoleDisplay = (role: string | undefined) => {
+    const roleLower = role?.toLowerCase();
+    switch (roleLower) {
+      case "partner":
+        return "Đối Tác";
+      case "staff":
+        return "Nhân Viên";
+      default:
+        return role || "Người Dùng";
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -40,7 +55,7 @@ export function TeamSwitcher({ ...props }: Team) {
               {"TicketXpress"}
             </span>
             <span className="truncate text-xs text-zinc-200/60">
-              {"Quản Lý - Đối Tác"}
+              {user?.fullname || "Quản Lý"} • {getRoleDisplay(user?.role)}
             </span>
           </div>
           <ChevronsUpDown className="ml-auto" />
