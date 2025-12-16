@@ -181,7 +181,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegis
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-opacity-15 flex items-center justify-center z-50">
       {/* Logo Section - Outside Modal */}
-      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 text-center z-60 ">
+      {/* <div className="absolute top-20 left-1/2 transform -translate-x-1/2 text-center z-60 ">
         <h1 
           className="text-white font-pacifico mb-2"
           style={{ 
@@ -192,7 +192,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess, onSwitchToRegis
         >
           TicketXpress
         </h1>
-      </div>
+      </div> */}
 
       {/* Modal Content */}
       <Modal
