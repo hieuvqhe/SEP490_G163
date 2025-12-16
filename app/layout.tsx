@@ -20,9 +20,9 @@ export const metadata: Metadata = {
   title: "TicketXpress",
   description: "Watch movies, book tickets, and enjoy the show with TicketXpress!",
   icons: {
-    icon: "/logo.svg",
-    shortcut: "/logo.svg",
-    apple: "/logo.svg",
+    icon: "/logo2.svg",
+    shortcut: "/logo2.svg",
+    apple: "/logo2.svg",
   },
 };
 

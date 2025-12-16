@@ -172,7 +172,7 @@ const TheaterSchedule = () => {
   };
 
   return (
-    <section className="px-6 md:px-16 lg:px-24 xl:px-44 overflow-hidden relative">
+    <section className="px-6 md:px-16 lg:px-24 xl:px-44 overflow-hidden relative pt-10">
       <BlurCircle top="50px" left="-80px" />
       <BlurCircle right="0px" top="400px" />
 
