@@ -71,6 +71,22 @@ export default function ManagerHeader({ onMenuClick, user, onLogout }: ManagerHe
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     React.useState<null | HTMLElement>(null);
   const [isScrolled, setIsScrolled] = React.useState(false);
+  
+  // Get user info from auth store
+  const { user: authUser } = useAuthStore();
+
+  // Get role display name
+  const getRoleDisplay = (role: string | undefined) => {
+    const roleLower = role?.toLowerCase();
+    switch (roleLower) {
+      case "manager":
+        return "QUẢN LÝ";
+      case "managerstaff":
+        return "NHÂN VIÊN QUẢN LÝ";
+      default:
+        return "MANAGER";
+    }
+  };
 
   // Track scroll position
   React.useEffect(() => {
@@ -210,8 +226,12 @@ export default function ManagerHeader({ onMenuClick, user, onLogout }: ManagerHe
             <NotificationsIcon />
           </button>
           <div className="text-right">
-            <p className="text-sm" style={{ color: '#F25912' }}>{user?.name || 'Manager'}</p>
-            <span className="text-xs" style={{ color: '#F25912', background: 'rgba(255,255,255,0.02)', padding: '2px 8px', borderRadius: 9999 }}>MANAGER</span>
+            <p className="text-sm font-medium" style={{ color: '#F25912' }}>
+              {authUser?.fullname || user?.name || 'Manager'}
+            </p>
+            <span className="text-xs" style={{ color: '#F25912', background: 'rgba(255,255,255,0.02)', padding: '2px 8px', borderRadius: 9999 }}>
+              {getRoleDisplay(authUser?.role)}
+            </span>
           </div>
           <div>
             <Button onClick={handleLogout} variant="ghost">

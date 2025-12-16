@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { CreditCardIcon, LogOutIcon, User2Icon } from "lucide-react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { BiDotsVertical, BiNotification } from "react-icons/bi";
 
 interface NavUserProps {
@@ -31,9 +31,13 @@ interface NavUserProps {
 
 export function NavUser({ user, logout }: NavUserProps) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
+  
   const handleLogOut = () => {
-    logout;
-    redirect("/partner");
+    if (logout) {
+      logout();
+    }
+    router.push("/partner");
   };
 
   return (
