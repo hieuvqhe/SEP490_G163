@@ -113,7 +113,7 @@ const CombosDialog = ({
     return sum + (item?.quantity ?? 0) * c.price;
   }, 0);
 
-  const currentCombos = counts;
+  const currentCombos = counts; 
 
   const handleGetPreview = () => {
     previewOrderMutate.mutate(

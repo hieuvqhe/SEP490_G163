@@ -46,7 +46,7 @@ const MovieCard = ({ movie }: { movie: Movie }) => {
             {movie.genre}
           </span>
         </div>
-        <h3 className="font-bold text-2xl tracking-wide mb-2">{movie.title}</h3>
+        <h3 className="font-bold text-2xl tracking-wide mb-2 line-clamp-2">{movie.title}</h3>
         <div className="flex items-center gap-3 text-sm text-gray-300">
           <span className="flex items-center gap-1">
             ⭐ {movie.averageRating?.toFixed(1) || "N/A"}

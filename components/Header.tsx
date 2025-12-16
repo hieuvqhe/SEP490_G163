@@ -1,9 +1,13 @@
 "use client";
 
 import { IoIosSearch } from "react-icons/io";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { getAllMovies } from "@/apis/movie.api";
+import type { Movie } from "@/types/movie.type";
 import {
   InputGroup,
   InputGroupAddon,
@@ -24,6 +28,8 @@ const pacifico = Pacifico({
 });
 
 const Header = () => {
+  const router = useRouter();
+  const searchRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -31,6 +37,8 @@ const Header = () => {
     useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const { user, accessToken, isLoading, isHydrated, clearAuth } =
     useAuthStore();
 
@@ -44,6 +52,34 @@ const Header = () => {
     handleScroll(); // Check initial position
 
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Search suggestions API call
+  const { data: searchResults, isFetching: isSearching } = useQuery({
+    queryKey: ["search-suggestions", searchQuery],
+    queryFn: () => getAllMovies({
+      search: searchQuery,
+      limit: 5,
+      status: "now_showing",
+      sort_by: "average_rating",
+      sort_order: "desc",
+    }),
+    enabled: searchQuery.trim().length > 0,
+    staleTime: 1000 * 60,
+  });
+
+  const searchSuggestions = searchResults?.result?.movies || [];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Handle case when there's no data in localStorage
@@ -131,6 +167,42 @@ const Header = () => {
     setShowRegisterModal(true);
   };
 
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      router.push(`/movies?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      setShowSearchDropdown(false);
+    }
+  };
+
+  const handleSearchClick = () => {
+    if (searchQuery.trim()) {
+      router.push(`/movies?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      setShowSearchDropdown(false);
+    }
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setShowSearchDropdown(value.trim().length > 0);
+  };
+
+  const handleMovieClick = (movieId: number) => {
+    setSearchQuery("");
+    setShowSearchDropdown(false);
+    router.push(`/movie/${movieId}`);
+  };
+
+  const handleViewAllResults = () => {
+    if (searchQuery.trim()) {
+      router.push(`/movies?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      setShowSearchDropdown(false);
+    }
+  };
+
   const navigationItems = [
     { title: "Xem Ngay", link: "/" },
     { title: "Điểm Thưởng", link: "/movies", requiresAuth: true },
@@ -149,7 +221,7 @@ const Header = () => {
     backdrop-blur-xl transition-all duration-500
     ${isScrolled 
       ? 'bg-zinc-800/90 border border-white/10' 
-      : 'bg-transparent border border-transparent'
+      : ' bg-zinc-800/30 border border-white/0'
     }`}
       >
         {/* Left Section: Logo + Search */}
@@ -162,20 +234,73 @@ const Header = () => {
             </h1>
           </Link>
 
-          <InputGroup
-            className="hidden md:flex h-11 w-[20rem] xl:w-[28rem] rounded-full backdrop-blur-md 
-      bg-white/10 border border-white/20 overflow-hidden 
-      focus-within:border-blue-400 transition-all duration-300"
-          >
-            <InputGroupInput
-              placeholder="Tìm tên phim, diễn viên..."
-              className="border-0 bg-transparent text-white placeholder:text-gray-400 
-        focus:ring-0 focus:outline-none px-4"
-            />
-            <InputGroupAddon>
-              <SearchIcon className="text-gray-300 hover:text-blue-400 transition-colors duration-300" />
-            </InputGroupAddon>
-          </InputGroup>
+          <div ref={searchRef} className="relative">
+            <InputGroup
+              className="hidden md:flex h-11 w-[20rem] xl:w-[28rem] rounded-full backdrop-blur-md 
+        bg-white/10 border border-white/20 overflow-hidden 
+        focus-within:border-blue-400 transition-all duration-300"
+            >
+              <InputGroupInput
+                placeholder="Tìm tên phim"
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                onKeyDown={handleSearch}
+                onFocus={() => searchQuery.trim() && setShowSearchDropdown(true)}
+                className="border-0 bg-transparent text-white placeholder:text-gray-400 
+          focus:ring-0 focus:outline-none px-4"
+              />
+              <InputGroupAddon className="cursor-pointer" onClick={handleSearchClick}>
+                <SearchIcon className="text-gray-300 hover:text-blue-400 transition-colors duration-300" />
+              </InputGroupAddon>
+            </InputGroup>
+
+            {/* Search Dropdown */}
+            {showSearchDropdown && searchQuery.trim() && (
+             <div className="absolute top-full mt-2 w-full bg-black border border-white/20 rounded-2xl overflow-hidden shadow-2xl z-50">
+                {isSearching ? (
+                  <div className="p-4 text-center text-gray-400">
+                    <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full mx-auto" />
+                  </div>
+                ) : searchSuggestions.length > 0 ? (
+                  <>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {searchSuggestions.map((movie: Movie) => (
+                        <div
+                          key={movie.movieId}
+                          onClick={() => handleMovieClick(movie.movieId)}
+                          className="flex items-center gap-3 p-3 hover:bg-white/10 cursor-pointer transition-colors border-b border-white/5 last:border-b-0"
+                        >
+                          <img
+                            src={movie.posterUrl}
+                            alt={movie.title}
+                            className="w-12 h-16 object-cover rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-white font-medium truncate">{movie.title}</h4>
+                            <p className="text-xs text-gray-400 truncate">{movie.genre}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-yellow-400">⭐ {movie.averageRating?.toFixed(1)}</span>
+                              <span className="text-xs text-gray-500">{movie.durationMinutes} phút</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={handleViewAllResults}
+                      className="w-full p-3 text-center text-primary hover:bg-white/5 transition-colors font-medium text-sm"
+                    >
+                      Xem tất cả kết quả →
+                    </button>
+                  </>
+                ) : (
+                  <div className="p-4 text-center text-gray-400 text-sm">
+                    Không tìm thấy phim nào
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <div>
           <div className="flex items-center gap-4">

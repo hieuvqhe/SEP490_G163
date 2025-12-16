@@ -6,6 +6,8 @@ import TheaterSelector from "./TheaterSelector";
 import TheaterByName from "./TheaterByName";
 import ShowtimeDetail from "./ShowtimeDetail";
 
+export { default as TheaterSchedule } from "./TheaterSchedule";
+
 const TheaterShowtime = () => {
   const [theaterLocation, setTheaterLocation] = useState("Hà Nội");
 

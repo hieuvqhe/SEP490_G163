@@ -67,25 +67,32 @@ export default function AssignCinemaModal({
     })),
   });
 
-  // 5. Aggregate assignments from other employees
+  // 5. Aggregate assignments from other employees with SAME role type
+  // 1 rạp có thể có 1 staff VÀ 1 cashier
+  // => Chỉ filter ra các rạp đã có nhân viên CÙNG role
   const assignedToOthers = useMemo(() => {
     const assigned = new Set<number>();
     const assignmentMap = new Map<number, string>(); // cinemaId -> employeeName
 
     otherAssignmentsQueries.forEach((query, index) => {
       if (query.data?.result) {
-        const empName = otherEmployees[index]?.fullName || "Unknown";
-        query.data.result.forEach((assignment) => {
-          if (assignment.isActive) {
-            assigned.add(assignment.cinemaId);
-            assignmentMap.set(assignment.cinemaId, empName);
-          }
-        });
+        const otherEmployee = otherEmployees[index];
+        const empName = otherEmployee?.fullName || "Unknown";
+        
+        // Chỉ kiểm tra assignments của nhân viên CÙNG role type
+        if (otherEmployee?.roleType === employee.roleType) {
+          query.data.result.forEach((assignment) => {
+            if (assignment.isActive) {
+              assigned.add(assignment.cinemaId);
+              assignmentMap.set(assignment.cinemaId, empName);
+            }
+          });
+        }
       }
     });
 
     return { set: assigned, map: assignmentMap };
-  }, [otherAssignmentsQueries, otherEmployees]);
+  }, [otherAssignmentsQueries, otherEmployees, employee.roleType]);
   
   const { data: cinemasData, isLoading: loadingCinemas } = useGetPartnerCinemas({
     page: 1,
