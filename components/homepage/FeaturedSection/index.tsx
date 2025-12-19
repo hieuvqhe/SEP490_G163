@@ -18,7 +18,7 @@ const FeaturedSection = () => {
   const [activeTitle, setActiveTitle] = useState("Đang Chiếu");
 
   const { data: movieResponse, isLoading } = useGetFullMovies({
-    limit: 30,
+    limit: 10,
     sort_order: "desc",
     sort_by: "average_rating",
     page: page,

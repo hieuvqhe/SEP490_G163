@@ -41,6 +41,8 @@ interface ShowtimeOverviews {
   district: string;
   brandCode: string;
   logoUrl: string;
+  latitude: number;
+  longitude: number;
   screens: Screen[];
 }
 
@@ -186,36 +188,64 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
     }
   }, [isOutDate]);
 
+  const handleOpenGoogleMaps = () => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${cinema.latitude},${cinema.longitude}`;
+    window.open(url, "_blank");
+  };
+
   return (
     <div className="w-full bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col gap-5 hover:bg-white/10 transition-all duration-200">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        {cinema.logoUrl && (
-          <div className="relative w-14 h-14 rounded-md overflow-hidden bg-white/10 flex-shrink-0">
-            <Image
-              src={cinema.logoUrl}
-              alt={cinema.cinemaName}
-              fill
-              className="object-contain p-2"
-              unoptimized
-            />
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          {cinema.logoUrl && (
+            <div className="relative w-14 h-14 rounded-md overflow-hidden bg-white/10 flex-shrink-0">
+              <Image
+                src={cinema.logoUrl}
+                alt={cinema.cinemaName}
+                fill
+                className="object-contain p-2"
+                unoptimized
+              />
+            </div>
+          )}
+          {!cinema.logoUrl && (
+            <div className="w-14 h-14 rounded-md bg-white/10 flex-shrink-0 flex items-center justify-center">
+              <span className="text-xs font-bold text-white/40">
+                {cinema.cinemaName.substring(0, 2).toUpperCase()}
+              </span>
+            </div>
+          )}
+          <div>
+            <h2 className="font-semibold text-lg text-white">
+              {cinema.cinemaName}
+            </h2>
+            <p className="text-sm text-gray-400">
+              {cinema.address}, {cinema.district}, {cinema.city}
+            </p>
           </div>
-        )}
-        {!cinema.logoUrl && (
-          <div className="w-14 h-14 rounded-md bg-white/10 flex-shrink-0 flex items-center justify-center">
-            <span className="text-xs font-bold text-white/40">
-              {cinema.cinemaName.substring(0, 2).toUpperCase()}
-            </span>
-          </div>
-        )}
-        <div>
-          <h2 className="font-semibold text-lg text-white">
-            {cinema.cinemaName}
-          </h2>
-          <p className="text-sm text-gray-400">
-            {cinema.address}, {cinema.district}, {cinema.city}
-          </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={handleOpenGoogleMaps}
+          className="text-sm rounded-lg px-4 py-2 hover:bg-primary hover:text-white flex items-center gap-2 flex-shrink-0"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          Xem bản đồ
+        </Button>
       </div>
 
       {/* Screens and Showtimes */}

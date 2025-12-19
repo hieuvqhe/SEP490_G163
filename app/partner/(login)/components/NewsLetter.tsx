@@ -82,9 +82,25 @@ const Newsletter = () => {
     onSuccess: (response) => {
       showToast(response.message ?? "Đăng ký thành công", undefined, "success");
     },
-    onError: (error) => {
-      console.log(error);
-      showToast(error, "", "error");
+    onError: (message, fieldErrors) => {
+      console.log("Error message:", message);
+      console.log("Field errors:", fieldErrors);
+      
+      // Set validation errors for form fields if available
+      if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
+        
+        // Collect all field error messages
+        const errorMessages = Object.values(fieldErrors);
+        const displayMessage = errorMessages.length > 0 
+          ? errorMessages.join(', ') 
+          : message;
+        
+        showToast(displayMessage, "", "error");
+      } else {
+        // No field errors, just show the main message
+        showToast(message, "", "error");
+      }
     },
   });
 
@@ -116,6 +132,15 @@ const Newsletter = () => {
   ): string | undefined => {
     if (!confirmPassword) return "Xác nhận mật khẩu là bắt buộc";
     if (confirmPassword !== password) return "Mật khẩu xác nhận không khớp";
+    return undefined;
+  };
+
+  const validateTaxCode = (taxCode: string): string | undefined => {
+    if (!taxCode) return "Mã số thuế là bắt buộc";
+    const taxCodeRegex = /^\d{10,14}$/;
+    if (!taxCodeRegex.test(taxCode)) {
+      return "Mã số thuế phải từ 10-14 chữ số";
+    }
     return undefined;
   };
 
@@ -168,6 +193,12 @@ const Newsletter = () => {
         ...prev,
         confirmPassword: confirmPasswordError,
       }));
+    } else if (name === "taxCode") {
+      const taxCodeError = validateTaxCode(value);
+      setErrors((prev) => ({
+        ...prev,
+        taxCode: taxCodeError,
+      }));
     }
   };
 
@@ -180,10 +211,12 @@ const Newsletter = () => {
       formData.confirmPassword,
       formData.password
     );
+    const taxCodeError = validateTaxCode(formData.taxCode);
 
     if (emailError) newErrors.email = emailError;
     if (passwordError) newErrors.password = passwordError;
     if (confirmPasswordError) newErrors.confirmPassword = confirmPasswordError;
+    if (taxCodeError) newErrors.taxCode = taxCodeError;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
