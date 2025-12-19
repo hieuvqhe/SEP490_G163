@@ -1,5 +1,21 @@
-import { RefreshCw, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { RefreshCw, Search } from "lucide-react";
+import { motion } from "framer-motion";
+import { IoMdAdd } from "react-icons/io";
+import { useEffect, useState } from "react";
+import {
+  AdminUser,
+  CreateNewUserBody,
+  useCreateNewUserMutate,
+  useGetUsers,
+} from "@/apis/admin.api";
+
+// Import Shadcn UI Components
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+
+import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ToastProvider";
+import AddUserDialog from "./AddUserDialog";
 
 interface UserFiltersProps {
   totalUsers: number;
@@ -9,8 +25,8 @@ interface UserFiltersProps {
   setRoleFilter: (role: string) => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
-  sortOrder: 'asc' | 'desc';
-  setSortOrder: (order: 'asc' | 'desc') => void;
+  sortOrder: "asc" | "desc";
+  setSortOrder: (order: "asc" | "desc") => void;
   onSearch: (e: React.FormEvent) => void;
   onRefresh: () => void;
 }
@@ -26,23 +42,24 @@ export const UserFilters = ({
   sortOrder,
   setSortOrder,
   onSearch,
-  onRefresh
 }: UserFiltersProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <motion.div 
+    <motion.div
       className="bg-gradient-to-r from-slate-800/90 to-slate-900/90 p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm shadow-2xl"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
       {/* Header with animated elements */}
-      <motion.div 
+      <motion.div
         className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
       >
-        <motion.h2 
+        <motion.h2
           className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent font-heading"
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -50,9 +67,9 @@ export const UserFilters = ({
         >
           Quản lý người dùng
         </motion.h2>
-        
+
         <div className="flex items-center gap-4">
-          <motion.span 
+          <motion.span
             className="text-gray-300 flex items-center gap-2 font-body"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -61,30 +78,36 @@ export const UserFilters = ({
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             Tổng số người dùng: {totalUsers}
           </motion.span>
-          
-          <motion.button
-            onClick={onRefresh}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-blue-500/25 font-body"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
-            <motion.div
-              animate={{ rotate: 0 }}
-              whileHover={{ rotate: 180 }}
-              transition={{ duration: 0.5 }}
-            >
-              <RefreshCw size={16} />
-            </motion.div>
-            Làm mới
-          </motion.button>
+
+          {/* Dialog Thêm Người Dùng */}
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <motion.button
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-blue-500/25 font-body"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                <motion.div
+                  animate={{ rotate: 0 }}
+                  whileHover={{ rotate: 180 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <IoMdAdd size={16} />
+                </motion.div>
+                Thêm người dùng
+              </motion.button>
+            </DialogTrigger>
+
+            <AddUserDialog setIsOpen={setIsOpen} />
+          </Dialog>
         </div>
       </motion.div>
 
       {/* Search and Filters with stagger animation */}
-      <motion.div 
+      <motion.div
         className="grid grid-cols-1 md:grid-cols-4 gap-4"
         initial="hidden"
         animate="visible"
@@ -94,17 +117,17 @@ export const UserFilters = ({
             opacity: 1,
             transition: {
               staggerChildren: 0.1,
-              delayChildren: 0.6
-            }
-          }
+              delayChildren: 0.6,
+            },
+          },
         }}
       >
-        <motion.form 
-          onSubmit={onSearch} 
+        <motion.form
+          onSubmit={onSearch}
           className="flex"
           variants={{
             hidden: { opacity: 0, x: -20 },
-            visible: { opacity: 1, x: 0 }
+            visible: { opacity: 1, x: 0 },
           }}
         >
           <input
@@ -130,14 +153,15 @@ export const UserFilters = ({
           className="px-4 py-3 bg-slate-700/50 text-white rounded-xl border border-slate-600/50 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 backdrop-blur-sm cursor-pointer font-body"
           variants={{
             hidden: { opacity: 0, x: -20 },
-            visible: { opacity: 1, x: 0 }
+            visible: { opacity: 1, x: 0 },
           }}
           whileHover={{ scale: 1.02 }}
         >
           <option value="">Tất cả vai trò</option>
-          <option value="admin">Quản trị viên</option>
-          <option value="customer">Khách hàng</option>
-          <option value="staff">Nhân viên</option>
+          <option value="admin">Admin</option>
+          <option value="manager">Quản lí</option>
+          <option value="User">Khách hàng</option>
+          <option value="managerstaff">Nhân viên</option>
         </motion.select>
 
         <motion.select
@@ -146,7 +170,7 @@ export const UserFilters = ({
           className="px-4 py-3 bg-slate-700/50 text-white rounded-xl border border-slate-600/50 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 backdrop-blur-sm cursor-pointer font-body"
           variants={{
             hidden: { opacity: 0, x: -20 },
-            visible: { opacity: 1, x: 0 }
+            visible: { opacity: 1, x: 0 },
           }}
           whileHover={{ scale: 1.02 }}
         >
@@ -158,11 +182,11 @@ export const UserFilters = ({
 
         <motion.select
           value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+          onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
           className="px-4 py-3 bg-slate-700/50 text-white rounded-xl border border-slate-600/50 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 backdrop-blur-sm cursor-pointer font-body"
           variants={{
             hidden: { opacity: 0, x: -20 },
-            visible: { opacity: 1, x: 0 }
+            visible: { opacity: 1, x: 0 },
           }}
           whileHover={{ scale: 1.02 }}
         >

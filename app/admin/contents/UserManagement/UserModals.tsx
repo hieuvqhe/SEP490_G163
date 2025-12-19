@@ -366,29 +366,7 @@ export const UserDetailModal = ({ user, onClose }: UserDetailModalProps) => {
               </div>
             </div>
           )}
-
-          {/* Avatar URL */}
-          {detailData?.avataUrl && (
-            <div className="mt-6">
-              <h4 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-2 mb-4 font-heading">
-                Avatar
-              </h4>
-
-              <div className="bg-slate-700/50 rounded-lg p-4">
-                <p className="text-gray-400 text-sm font-body mb-2">
-                  URL Avatar
-                </p>
-                <a
-                  href={detailData.avataUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 break-all text-sm font-body underline"
-                >
-                  {detailData.avataUrl}
-                </a>
-              </div>
-            </div>
-          )}
+          
         </motion.div>
       </motion.div>
     </motion.div>

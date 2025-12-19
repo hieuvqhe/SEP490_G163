@@ -91,7 +91,7 @@ export const AdminSidebar = ({
 
   return (
     <motion.div
-      className="relative h-screen bg-slate-900/95 backdrop-blur-xl border-r border-slate-700/50 shadow-2xl flex flex-col"
+      className="relative bg-slate-900/95 backdrop-blur-xl border-r border-slate-700/50 shadow-2xl flex flex-col"
       variants={sidebarVariants}
       animate={isCollapsed ? "collapsed" : "expanded"}
       initial="expanded"
@@ -248,102 +248,6 @@ export const AdminSidebar = ({
         </motion.nav>
       </div>
 
-      {/* Bottom Menu */}
-      <div className="p-3 border-t border-slate-700/50">
-        {bottomMenuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-
-          return (
-            <motion.button
-              key={item.id}
-              onClick={() => onTabChange(item.id)}
-              className={`
-                group w-full flex items-center gap-3 px-4 py-3 rounded-xl 
-                transition-all duration-300 text-left
-                ${
-                  isActive
-                    ? "bg-gradient-to-r from-gray-500/20 to-slate-500/20 border border-gray-500/30"
-                    : "hover:bg-slate-800/50 border border-transparent"
-                }
-              `}
-              whileHover={{ scale: 1.02, x: 4 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {/* Icon */}
-              <div
-                className={`
-                p-2 rounded-lg transition-all duration-300
-                ${
-                  isActive
-                    ? `bg-gradient-to-r ${item.color}`
-                    : "bg-slate-800/50 group-hover:bg-slate-700/50"
-                }
-              `}
-              >
-                <Icon
-                  size={20}
-                  className={`
-                    transition-colors duration-300
-                    ${
-                      isActive
-                        ? "text-white"
-                        : "text-gray-400 group-hover:text-gray-300"
-                    }
-                  `}
-                />
-              </div>
-
-              {/* Label */}
-              <AnimatePresence>
-                {!isCollapsed && (
-                  <motion.span
-                    className={`
-                      font-medium transition-colors duration-300
-                      ${
-                        isActive
-                          ? "text-white"
-                          : "text-gray-300 group-hover:text-white"
-                      }
-                    `}
-                    variants={contentVariants}
-                    initial="collapsed"
-                    animate="expanded"
-                    exit="collapsed"
-                  >
-                    {item.label}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
-          );
-        })}
-      </div>
-
-      {/* Bottom Decoration */}
-      <AnimatePresence>
-        {!isCollapsed && (
-          <motion.div
-            className="p-4"
-            variants={contentVariants}
-            initial="collapsed"
-            animate="expanded"
-            exit="collapsed"
-          >
-            <div className="bg-gradient-to-r from-purple-500/10 to-cyan-500/10 rounded-xl p-4 border border-purple-500/20">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <BarChart3 size={16} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white">Pro Features</p>
-                  <p className="text-xs text-gray-400">Advanced Analytics</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 };

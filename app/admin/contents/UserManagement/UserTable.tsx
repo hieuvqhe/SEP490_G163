@@ -36,7 +36,9 @@ export const UserTable = ({
   if (usersLoading) {
     return (
       <motion.div 
-        className="bg-gradient-to-r from-slate-800/90 to-slate-900/90 rounded-2xl border border-slate-700/50 overflow-hidden backdrop-blur-sm shadow-2xl"
+        className="bg-gradient-to-r from-slate-800/90 to-slate-900/90 
+        rounded-2xl border border-slate-700/50 
+        overflow-hidden backdrop-blur-sm shadow-2xl"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}

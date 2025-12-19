@@ -1,8 +1,8 @@
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
-import { useToast } from '@/components/ToastProvider';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthStore } from '@/store/authStore';
+import { useState } from "react";
+import { useToast } from "@/components/ToastProvider";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from "@/store/authStore";
 import {
   useGetUsers,
   // useGetUserById,
@@ -11,16 +11,22 @@ import {
   useBanUser,
   useUnbanUser,
   // useUpdateUserRole
-} from '@/apis/admin.api';
+} from "@/apis/admin.api";
 import type {
   AdminUser,
   GetUsersParams,
-  UpdateUserRequest
-} from '@/apis/admin.api';
+  UpdateUserRequest,
+} from "@/apis/admin.api";
 
-import { UserFilters } from './UserFilters';
-import { UserTable } from './UserTable';
-import { UserDetailModal, EditUserModal, DeleteConfirmModal, UnbanConfirmModal, BanConfirmModal } from './UserModals';
+import { UserFilters } from "./UserFilters";
+import { UserTable } from "./UserTable";
+import {
+  UserDetailModal,
+  EditUserModal,
+  DeleteConfirmModal,
+  UnbanConfirmModal,
+  BanConfirmModal,
+} from "./UserModals";
 
 export const UserManagement = () => {
   const { accessToken } = useAuthStore();
@@ -29,10 +35,10 @@ export const UserManagement = () => {
   // User Management States
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>('');
-  const [sortBy, setSortBy] = useState<string>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Modal states
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
@@ -50,13 +56,17 @@ export const UserManagement = () => {
     page: currentPage,
     limit,
     search: searchTerm || undefined,
-    role: roleFilter as GetUsersParams['role'] || undefined,
+    role: (roleFilter as GetUsersParams["role"]) || undefined,
     sort_by: sortBy,
-    sort_order: sortOrder
+    sort_order: sortOrder,
   };
 
   // TanStack Query hooks
-  const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useGetUsers(queryParams, accessToken || undefined);
+  const {
+    data: usersData,
+    isLoading: usersLoading,
+    refetch: refetchUsers,
+  } = useGetUsers(queryParams, accessToken || undefined);
   // const { data: userDetailData } = useGetUserById(selectedUser?.id || 0, accessToken || undefined);
 
   const updateUserMutation = useUpdateUser();
@@ -91,14 +101,14 @@ export const UserManagement = () => {
     try {
       await deleteUserMutation.mutateAsync({
         userId: userToDelete.id,
-        accessToken: accessToken || ''
+        accessToken: accessToken || "",
       });
-      showToast('User deleted successfully', undefined, 'success');
+      showToast("User deleted successfully", undefined, "success");
       setShowDeleteModal(false);
       setUserToDelete(null);
       refetchUsers();
     } catch (error) {
-      showToast('Failed to delete user' + "" + error, undefined);
+      showToast("Failed to delete user" + "" + error, undefined);
     }
   };
 
@@ -113,14 +123,14 @@ export const UserManagement = () => {
     try {
       await banUserMutation.mutateAsync({
         userId: userToBan.id,
-        accessToken: accessToken || ''
+        accessToken: accessToken || "",
       });
-      showToast('User banned successfully', undefined, 'success');
+      showToast("User banned successfully", undefined, "success");
       setShowBanModal(false);
       setUserToBan(null);
       refetchUsers();
     } catch (error) {
-      showToast('Failed to ban user' + "" + error, undefined, 'error');
+      showToast("Failed to ban user" + "" + error, undefined, "error");
     }
   };
 
@@ -135,51 +145,61 @@ export const UserManagement = () => {
     try {
       await unbanUserMutation.mutateAsync({
         userId: userToUnban.id,
-        accessToken: accessToken || ''
+        accessToken: accessToken || "",
       });
-      showToast('User unbanned successfully', undefined, 'success');
+      showToast("User unbanned successfully", undefined, "success");
       setShowUnbanModal(false);
       setUserToUnban(null);
       refetchUsers();
     } catch (error) {
-      showToast('Failed to unban user' + "" + error, undefined, 'error');
+      showToast("Failed to unban user" + "" + error, undefined, "error");
     }
   };
 
-  const handleUpdateUser = async (userId: number, userData: UpdateUserRequest) => {
+  const handleUpdateUser = async (
+    userId: number,
+    userData: UpdateUserRequest
+  ) => {
     try {
       await updateUserMutation.mutateAsync({
         userId,
         data: userData,
-        accessToken: accessToken || ''
+        accessToken: accessToken || "",
       });
-      showToast('User updated successfully', undefined, 'success');
+      showToast("User updated successfully", undefined, "success");
       setShowEditModal(false);
       setSelectedUser(null);
       refetchUsers();
     } catch (error) {
-      showToast('Failed to update user' + "" + error, undefined, 'error');
+      showToast("Failed to update user" + "" + error, undefined, "error");
     }
   };
 
-  const handleToggleUserStatus = async (userId: number, isCurrentlyActive: boolean) => {
+  const handleToggleUserStatus = async (
+    userId: number,
+    isCurrentlyActive: boolean
+  ) => {
     try {
       if (isCurrentlyActive) {
         await banUserMutation.mutateAsync({
           userId,
-          accessToken: accessToken || ''
+          accessToken: accessToken || "",
         });
-        showToast('User banned successfully', undefined, 'success');
+        showToast("User banned successfully", undefined, "success");
       } else {
         await unbanUserMutation.mutateAsync({
           userId,
-          accessToken: accessToken || ''
+          accessToken: accessToken || "",
         });
-        showToast('User unbanned successfully', undefined, 'success');
+        showToast("User unbanned successfully", undefined, "success");
       }
       refetchUsers();
     } catch (error) {
-      showToast('Failed to update user status' + "" + error, undefined, 'error');
+      showToast(
+        "Failed to update user status" + "" + error,
+        undefined,
+        "error"
+      );
     }
   };
 
@@ -196,7 +216,7 @@ export const UserManagement = () => {
   //     showToast('Failed to update user role', undefined, 'error');
   //   }
   // };
-  
+
   // const handleRoleFilter = (role: string) => {
   //   setRoleFilter(role);
   //   setCurrentPage(1);
@@ -211,38 +231,42 @@ export const UserManagement = () => {
     setCurrentPage(1);
   };
 
-
-
   const handleViewUserWrapper = (userId: string) => {
-    const user = users.find(u => u.id.toString() === userId);
+    const user = users.find((u) => u.id.toString() === userId);
     if (user) {
       handleViewUser(user);
     }
   };
 
-  const handleToggleUserStatusWrapper = (userId: string, isCurrentlyActive: boolean) => {
-    const user = users.find(u => u.id.toString() === userId);
+  const handleToggleUserStatusWrapper = (
+    userId: string,
+    isCurrentlyActive: boolean
+  ) => {
+    const user = users.find((u) => u.id.toString() === userId);
     if (user) {
       handleToggleUserStatus(user.id, isCurrentlyActive);
     }
   };
 
-  const handleUpdateUserWrapper = (userId: string, userData: UpdateUserRequest) => {
-    const user = users.find(u => u.id.toString() === userId);
+  const handleUpdateUserWrapper = (
+    userId: string,
+    userData: UpdateUserRequest
+  ) => {
+    const user = users.find((u) => u.id.toString() === userId);
     if (user) {
       handleUpdateUser(user.id, userData);
     }
   };
 
   const handleBanUserWrapper = (userId: string) => {
-    const user = users.find(u => u.id.toString() === userId);
+    const user = users.find((u) => u.id.toString() === userId);
     if (user) {
       handleBanUser(user);
     }
   };
 
   const handleUnbanUserWrapper = (userId: string) => {
-    const user = users.find(u => u.id.toString() === userId);
+    const user = users.find((u) => u.id.toString() === userId);
     if (user) {
       handleUnbanUser(user);
     }
@@ -255,9 +279,9 @@ export const UserManagement = () => {
       opacity: 1,
       transition: {
         duration: 0.3,
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -266,13 +290,15 @@ export const UserManagement = () => {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.4
-      }
-    }
+        duration: 0.4,
+      },
+    },
   };
 
+  const handleAddUser = () => {};
+
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6"
       variants={containerVariants}
       initial="hidden"
@@ -291,6 +317,7 @@ export const UserManagement = () => {
           setSortOrder={setSortOrder}
           onSearch={handleSearch}
           onRefresh={refetchUsers}
+          // handleAddUser={handleAddUser}
         />
       </motion.div>
 

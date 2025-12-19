@@ -26,7 +26,7 @@ const Sidebar = ({ activeSection, setActiveSection }: SidebarProps) => {
     { id: "profile", label: "Thông tin cá nhân", icon: User },
     { id: "tickets", label: "Vé đã mua", icon: Ticket },
     { id: "orders", label: "Lịch sử giao dịch", icon: CreditCard },
-    { id: "favorites", label: "Hạng thành viên", icon: Award },
+    // { id: "favorites", label: "Hạng thành viên", icon: Award },
   ];
 
   const renderMenu = (
