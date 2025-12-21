@@ -1,17 +1,20 @@
 "use client";
 
 import { Movie } from "@/types/movie.type";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { CiFolderOff, CiPlay1 } from "react-icons/ci";
 import DateSelector from "./DateSelector";
 import TheaterSelector from "./TheaterSelector";
 import ShowtimeDetail from "./ShowtimeDetail";
-import { Star, X } from "lucide-react";
+import { Star, X, Info } from "lucide-react";
 import { useGetShowtimesOverview } from "@/apis/user.catalog.api";
 import dayjs from "dayjs";
 import { Spinner } from "@/components/ui/spinner";
 import { TfiCommentAlt } from "react-icons/tfi";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+import { Button } from "@/components/ui/button";
 import Comment from "./comment-review/Comment";
 
 interface MovieProp {
@@ -68,6 +71,79 @@ const MovieDetail = ({ movie }: MovieProp) => {
     window.scrollTo({ top: y, behavior: "smooth" });
   };
 
+  const handleStartGuide = useCallback(() => {
+    const steps = [
+      {
+        element: "#movie-detail-tour-poster",
+        popover: {
+          title: "Poster & Trailer",
+          description: "Click vào poster hoặc nút 'Xem trailer' để xem trailer phim.",
+          side: "right" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#movie-detail-tour-actions",
+        popover: {
+          title: "Các thao tác",
+          description: "Xem trailer ngay hoặc đọc đánh giá từ những người đã xem.",
+          side: "bottom" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#movie-detail-tour-info",
+        popover: {
+          title: "Thông tin phim",
+          description: "Xem chi tiết về nội dung, thời lượng, quốc gia và các thông tin khác của phim.",
+          side: "right" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#movie-detail-tour-showtime",
+        popover: {
+          title: "Chọn suất chiếu",
+          description: "Chọn ngày chiếu, rạp và giờ chiếu phù hợp để đặt vé xem phim.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#movie-detail-tour-review",
+        popover: {
+          title: "Đánh giá phim",
+          description: "Đọc và chia sẻ cảm nhận của bạn về bộ phim cùng cộng đồng.",
+          side: "top" as const,
+          align: "start" as const,
+        },
+      },
+    ];
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, []);
+
+  // Tự động mở hướng dẫn khi mới vào trang
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem(`movie-detail-tour-${movie.movieId}`);
+    if (!hasSeenTour) {
+      // Delay một chút để đảm bảo trang đã load xong
+      const timer = setTimeout(() => {
+        handleStartGuide();
+        localStorage.setItem(`movie-detail-tour-${movie.movieId}`, "true");
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [movie.movieId, handleStartGuide]);
+
   return (
     <div className="relative min-h-screen w-full bg-black">
       {/* Background Image with Gradient Overlay */}
@@ -89,6 +165,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
           <div className="flex flex-col items-start lg:w-1/3 space-y-6">
             {/* Poster */}
             <div
+              id="movie-detail-tour-poster"
               onClick={() => setTrailerModal(true)}
               className="relative w-full max-w-sm aspect-[2/3] group cursor-pointer"
             >
@@ -113,7 +190,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
               <p className="text-lg text-amber-400">{movie.genre}</p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4">
+            <div id="movie-detail-tour-actions" className="flex flex-wrap items-center gap-4">
               <button
                 type="button"
                 onClick={() => setTrailerModal(true)}
@@ -132,10 +209,19 @@ const MovieDetail = ({ movie }: MovieProp) => {
                 />
                 Xem review
               </button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStartGuide}
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black px-6 py-2 text-sm font-semibold text-white transition hover:border-amber-500 hover:bg-amber-500/10 hover:text-amber-500"
+              >
+                <Info className="h-4 w-4" />
+                Hướng dẫn
+              </Button>
             </div>
 
             {/* Movie Details */}
-            <div className="w-full space-y-4">
+            <div id="movie-detail-tour-info" className="w-full space-y-4">
               <div>
                 <h2 className="text-lg font-semibold text-white mb-2">
                   Giới thiệu
@@ -214,6 +300,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
               Chọn suất chiếu
             </h2>
             <div
+              id="movie-detail-tour-showtime"
               className="bg-white/5 w-full backdrop-blur-sm rounded-lg p-6 
             border border-white/10 flex flex-col items-baseline gap-10
             "
@@ -263,7 +350,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
             </div>
 
             {/* Content */}
-            <div>
+            <div id="movie-detail-tour-review">
               {activeTab === "comment" && <Comment movieId={movie.movieId} />}
               {/* {activeTab === "review" && <p>Nội dung tab Đánh giá...</p>} */}
             </div>

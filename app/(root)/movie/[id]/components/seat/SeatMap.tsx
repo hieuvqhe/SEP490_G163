@@ -27,6 +27,10 @@ import { Spinner } from "@/components/ui/spinner";
 import { useShowtimeSeat } from "@/hooks/useShowtimeSeatHub";
 import { useToast } from "@/components/ToastProvider";
 import { useRouter } from "next/navigation";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+import { Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface RealtimeSeat {
   SeatId: number;
@@ -305,6 +309,87 @@ const SeatMap = ({
 
     return { canDeselect: true };
   };
+
+  const handleStartGuide = useCallback(() => {
+    const steps = [
+      {
+        element: "#seat-map-tour-timer",
+        popover: {
+          title: "Thời gian giữ ghế",
+          description: "Bạn có 10 phút để chọn ghế và hoàn tất thanh toán. Hãy nhanh tay!",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-map-tour-screen",
+        popover: {
+          title: "Màn hình chiếu",
+          description: "Đây là vị trí màn hình chiếu. Chọn ghế phù hợp với tầm nhìn của bạn.",
+          side: "bottom" as const,
+          align: "center" as const,
+        },
+      },
+      {
+        element: "#seat-map-tour-seats",
+        popover: {
+          title: "Sơ đồ ghế",
+          description: "Click vào ghế để chọn. Ghế màu xanh là ghế bạn đang chọn, ghế có sọc chéo là ghế đã được đặt.",
+          side: "top" as const,
+          align: "center" as const,
+        },
+      },
+      {
+        element: "#seat-map-tour-legend",
+        popover: {
+          title: "Chú thích loại ghế",
+          description: "Xem màu sắc và ý nghĩa của từng loại ghế. Mỗi loại có giá khác nhau.",
+          side: "top" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-map-tour-selected",
+        popover: {
+          title: "Ghế đã chọn",
+          description: "Xem danh sách ghế bạn đã chọn và tổng tiền tạm tính.",
+          side: "top" as const,
+          align: "start" as const,
+        },
+      },
+      {
+        element: "#seat-map-tour-checkout",
+        popover: {
+          title: "Thanh toán",
+          description: "Sau khi chọn xong ghế, nhấn nút này để tiếp tục chọn combo và thanh toán.",
+          side: "top" as const,
+          align: "end" as const,
+        },
+      },
+    ];
+
+    driver({
+      showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.65,
+      nextBtnText: "Tiếp tục",
+      prevBtnText: "Quay lại",
+      doneBtnText: "Hoàn tất",
+      steps,
+    }).drive();
+  }, []);
+
+  // Tự động mở hướng dẫn khi mới vào modal chọn ghế
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem(`seat-map-tour-${showtimeId}`);
+    if (!hasSeenTour && showtimeId) {
+      const timer = setTimeout(() => {
+        handleStartGuide();
+        localStorage.setItem(`seat-map-tour-${showtimeId}`, "true");
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showtimeId, handleStartGuide]);
 
   // ==================== END GAP VALIDATION LOGIC ====================
   const {
@@ -916,8 +1001,20 @@ const SeatMap = ({
             />
           </DialogClose>
 
+          {/* Guide Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleStartGuide}
+            className="absolute left-12 inline-flex items-center gap-2 rounded-lg border border-zinc-600 bg-zinc-700/50 px-3 py-1.5 text-xs font-semibold text-white transition hover:border-amber-500 hover:bg-amber-500/10 hover:text-amber-500"
+          >
+            <Info className="h-3.5 w-3.5" />
+            Hướng dẫn
+          </Button>
+
           {/* Countdown Timer */}
           <div
+            id="seat-map-tour-timer"
             className={`absolute right-3 flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
               timeLeft <= 60
                 ? "bg-red-500/20 border-red-500/50 animate-pulse"
@@ -973,9 +1070,9 @@ const SeatMap = ({
                   wrapperClass="!w-full !h-[50vh]"
                   contentClass="!w-auto !h-auto"
                 >
-                  <div className="flex w-full flex-col items-center justify-center gap-2 p-8">
+                  <div id="seat-map-tour-seats" className="flex w-full flex-col items-center justify-center gap-2 p-8">
                     {/* Screen */}
-                    <div className="flex w-full flex-col items-center pt-6 pb-6 select-none">
+                    <div id="seat-map-tour-screen" className="flex w-full flex-col items-center pt-6 pb-6 select-none">
                       <div className="relative w-2/4 h-2 bg-gradient-to-t from-zinc-400/70 to-transparent rounded-t-full" />
                       <span className="mt-3 text-gray-200 text-sm tracking-wide font-medium">
                         Màn hình
@@ -1003,7 +1100,7 @@ const SeatMap = ({
           </div>
 
           {/* Legend */}
-          <div className="px-3 py-2 flex flex-wrap gap-2 justify-center">
+          <div id="seat-map-tour-legend" className="px-3 py-2 flex flex-wrap gap-2 justify-center">
             {seatFilterDisable?.map((seat) => (
               <div key={seat.SeatId} className="flex items-center gap-2">
                 <div
@@ -1044,7 +1141,7 @@ const SeatMap = ({
             </div>
           </div>
 
-          <div className="pt-2">
+          <div id="seat-map-tour-selected" className="pt-2">
             <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
               Ghế đã chọn
             </p>
@@ -1081,7 +1178,7 @@ const SeatMap = ({
               </p>
             </div>
             <Dialog>
-              <DialogTrigger asChild>
+              <DialogTrigger asChild id="seat-map-tour-checkout">
                 <button
                   onClick={handlePurchase}
                   disabled={selectedSeats.length === 0}

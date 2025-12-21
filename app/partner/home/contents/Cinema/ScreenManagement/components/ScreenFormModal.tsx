@@ -132,9 +132,36 @@ const ScreenFormModal = ({
 
     if (!values.screenName.trim()) nextErrors.screenName = "Vui lòng nhập tên phòng";
     if (!values.code.trim()) nextErrors.code = "Vui lòng nhập mã phòng";
-    if (!values.capacity.trim()) nextErrors.capacity = "Vui lòng nhập sức chứa";
-    if (!values.seatRows.trim()) nextErrors.seatRows = "Vui lòng nhập số hàng ghế";
-    if (!values.seatColumns.trim()) nextErrors.seatColumns = "Vui lòng nhập số ghế mỗi hàng";
+    
+    // Validate capacity (0-500)
+    if (!values.capacity.trim()) {
+      nextErrors.capacity = "Vui lòng nhập sức chứa";
+    } else {
+      const capacity = parseInt(values.capacity);
+      if (isNaN(capacity) || capacity < 0 || capacity > 500) {
+        nextErrors.capacity = "Sức chứa phải từ 0 đến 500";
+      }
+    }
+
+    // Validate seat rows (1-30)
+    if (!values.seatRows.trim()) {
+      nextErrors.seatRows = "Vui lòng nhập số hàng ghế";
+    } else {
+      const rows = parseInt(values.seatRows);
+      if (isNaN(rows) || rows < 1 || rows > 30) {
+        nextErrors.seatRows = "Số hàng phải từ 1 đến 30";
+      }
+    }
+
+    // Validate seat columns (1-20)
+    if (!values.seatColumns.trim()) {
+      nextErrors.seatColumns = "Vui lòng nhập số ghế mỗi hàng";
+    } else {
+      const columns = parseInt(values.seatColumns);
+      if (isNaN(columns) || columns < 1 || columns > 20) {
+        nextErrors.seatColumns = "Số ghế mỗi hàng phải từ 1 đến 20";
+      }
+    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -242,14 +269,16 @@ const ScreenFormModal = ({
             </label>
             <Input
               type="number"
-              min={1}
+              min={0}
               max={500}
               value={values.capacity}
               onChange={(event) => handleChange("capacity", event.target.value)}
               className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
             />
-            {errors.capacity && (
+            {errors.capacity ? (
               <p className="text-xs text-rose-400">{errors.capacity}</p>
+            ) : (
+              <p className="text-xs text-[#9e9ea2]">Từ 0 đến 500 ghế</p>
             )}
           </div>
           <div className="space-y-2" id="screen-form-tour-seat-rows">
@@ -259,12 +288,15 @@ const ScreenFormModal = ({
             <Input
               type="number"
               min={1}
+              max={30}
               value={values.seatRows}
               onChange={(event) => handleChange("seatRows", event.target.value)}
               className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
             />
-            {errors.seatRows && (
+            {errors.seatRows ? (
               <p className="text-xs text-rose-400">{errors.seatRows}</p>
+            ) : (
+              <p className="text-xs text-[#9e9ea2]">Từ 1 đến 30 hàng</p>
             )}
           </div>
           <div className="space-y-2" id="screen-form-tour-seat-columns">
@@ -279,8 +311,10 @@ const ScreenFormModal = ({
               onChange={(event) => handleChange("seatColumns", event.target.value)}
               className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
             />
-            {errors.seatColumns && (
+            {errors.seatColumns ? (
               <p className="text-xs text-rose-400">{errors.seatColumns}</p>
+            ) : (
+              <p className="text-xs text-[#9e9ea2]">Từ 1 đến 20 ghế</p>
             )}
           </div>
         </div>
