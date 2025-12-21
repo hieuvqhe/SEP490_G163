@@ -8,6 +8,7 @@ import { useGetManagerStaffs, useGetManagerStaffById } from '@/apis/manager.staf
 import { useGetCurrentVoucherManager, useGrantVoucherPermissions, useRevokeVoucherPermissions } from '@/apis/manager.decentralization.api';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/components/ToastProvider';
+import { usePermissions } from '@/hooks/usePermissions';
 
 import StaffFilters from './StaffFilters';
 import StaffTable from './StaffTable';
@@ -26,6 +27,10 @@ const containerVariants = {
 const StaffManagement = () => {
   const { accessToken } = useAuthStore();
   const { showToast } = useToast();
+  const { isManager } = usePermissions();
+
+  // Only Manager can manage staff, ManagerStaff can only view
+  const canManageStaff = isManager;
 
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(10);
@@ -208,15 +213,17 @@ const StaffManagement = () => {
             Làm mới
           </motion.button>
 
-          <motion.button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2 font-body font-semibold text-white shadow-lg transition hover:from-emerald-600 hover:to-teal-700"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Plus className="h-5 w-5" />
-            Tạo nhân viên mới
-          </motion.button>
+          {canManageStaff && (
+            <motion.button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2 font-body font-semibold text-white shadow-lg transition hover:from-emerald-600 hover:to-teal-700"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Plus className="h-5 w-5" />
+              Tạo nhân viên mới
+            </motion.button>
+          )}
         </div>
       </div>
 
@@ -238,6 +245,7 @@ const StaffManagement = () => {
         isLoading={isLoading}
         error={error}
         currentPage={currentPage}
+        canManageStaff={canManageStaff}
         onPageChange={setCurrentPage}
         onViewDetail={handleViewDetail}
         onEdit={handleEdit}

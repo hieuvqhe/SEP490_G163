@@ -21,6 +21,7 @@ import {
 } from "@/apis/manager.voucher.api";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/ToastProvider";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Loader2 } from "lucide-react";
 import VoucherFilters, { type VoucherFilterState } from "./VoucherFilters";
 import VoucherTable from "./VoucherTable";
@@ -42,8 +43,15 @@ const DEFAULT_FILTERS: VoucherFilterState = {
 const VoucherManagement = () => {
   const { accessToken } = useAuthStore();
   const { showToast } = useToast();
+  const { canCreate, canUpdate, canDelete, canSend } = usePermissions();
 
   const token = accessToken ?? undefined;
+
+  // Check voucher permissions
+  const canCreateVoucher = canCreate('VOUCHER');
+  const canUpdateVoucher = canUpdate('VOUCHER');
+  const canDeleteVoucher = canDelete('VOUCHER');
+  const canSendVoucher = canSend('VOUCHER');
 
   const [filters, setFilters] = useState<VoucherFilterState>(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
@@ -318,6 +326,7 @@ const VoucherManagement = () => {
             isRefreshing={isFetching}
             onRefresh={refetch}
             onCreate={handleOpenCreateForm}
+            canCreate={canCreateVoucher}
           />
         </div>
       </div>
@@ -343,6 +352,9 @@ const VoucherManagement = () => {
           onSendAll={(voucherId: number) => setSendAllVoucherId(voucherId)}
           onSendSpecific={(voucherId: number) => setSendSpecificVoucherId(voucherId)}
           onViewEmailHistory={(voucherId: number) => setEmailHistoryVoucherId(voucherId)}
+          canEdit={canUpdateVoucher}
+          canDelete={canDeleteVoucher}
+          canSend={canSendVoucher}
         />
       </div>
 
@@ -404,6 +416,7 @@ const VoucherManagement = () => {
         <VoucherSendSpecificModal
           open={sendSpecificVoucherId !== null}
           isSubmitting={sendSpecificMutation.isPending}
+          voucherData={vouchers.find(v => v.voucherId === sendSpecificVoucherId) || null}
           onClose={() => setSendSpecificVoucherId(null)}
           onSubmit={(payload: SendVoucherToSpecificUsersRequest) =>
             sendSpecificVoucherId !== null

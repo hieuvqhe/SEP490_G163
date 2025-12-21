@@ -36,6 +36,7 @@ interface StaffTableProps {
   isLoading: boolean;
   error: Error | null;
   currentPage: number;
+  canManageStaff?: boolean;
   onPageChange: (page: number) => void;
   onViewDetail: (staffId: number) => void;
   onEdit: (staffId: number) => void;
@@ -52,6 +53,7 @@ const StaffTable = ({
   isLoading,
   error,
   currentPage,
+  canManageStaff = true,
   onPageChange,
   onViewDetail,
   onEdit,
@@ -259,93 +261,97 @@ const StaffTable = ({
                               Xem chi tiết
                             </button>
 
-                            {/* Chỉnh sửa */}
-                            <button
-                              onClick={() => {
-                                onEdit(staff.managerStaffId);
-                                setOpenDropdownId(null);
-                              }}
-                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-orange-500/20 hover:text-orange-300"
-                            >
-                              <Edit className="h-4 w-4" />
-                              Chỉnh sửa
-                            </button>
-
-                            {/* Phân quyền */}
-                            <button
-                              onClick={() => {
-                                onManagePermissions(
-                                  staff.managerStaffId,
-                                  staff.fullName
-                                );
-                                setOpenDropdownId(null);
-                              }}
-                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-purple-500/20 hover:text-purple-300"
-                            >
-                              <ShieldCheck className="h-4 w-4" />
-                              Phân quyền
-                            </button>
-
-                            {/* Logic quản lý Voucher */}
-                            {currentVoucherManagerId ===
-                              staff.managerStaffId && (
+                            {canManageStaff && (
                               <>
-                                <div className="my-1 h-px bg-white/10" />
-                                <div className="flex items-center gap-2 rounded-lg bg-green-500/20 px-4 py-2.5 text-xs font-semibold text-green-300">
-                                  <Ticket className="h-3.5 w-3.5" />
-                                  Quản lý Voucher
-                                </div>
+                                {/* Chỉnh sửa */}
                                 <button
                                   onClick={() => {
-                                    onRevokeVoucherPermission(
+                                    onEdit(staff.managerStaffId);
+                                    setOpenDropdownId(null);
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-orange-500/20 hover:text-orange-300"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                  Chỉnh sửa
+                                </button>
+
+                                {/* Phân quyền */}
+                                <button
+                                  onClick={() => {
+                                    onManagePermissions(
                                       staff.managerStaffId,
                                       staff.fullName
                                     );
                                     setOpenDropdownId(null);
                                   }}
-                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-amber-500/20 hover:text-amber-300"
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-purple-500/20 hover:text-purple-300"
                                 >
-                                  <Ticket className="h-4 w-4" />
-                                  Thu hồi quyền Voucher
+                                  <ShieldCheck className="h-4 w-4" />
+                                  Phân quyền
                                 </button>
-                              </>
-                            )}
 
-                            {!currentVoucherManagerId && (
-                              <>
+                                {/* Logic quản lý Voucher */}
+                                {currentVoucherManagerId ===
+                                  staff.managerStaffId && (
+                                  <>
+                                    <div className="my-1 h-px bg-white/10" />
+                                    <div className="flex items-center gap-2 rounded-lg bg-green-500/20 px-4 py-2.5 text-xs font-semibold text-green-300">
+                                      <Ticket className="h-3.5 w-3.5" />
+                                      Quản lý Voucher
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        onRevokeVoucherPermission(
+                                          staff.managerStaffId,
+                                          staff.fullName
+                                        );
+                                        setOpenDropdownId(null);
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-amber-500/20 hover:text-amber-300"
+                                    >
+                                      <Ticket className="h-4 w-4" />
+                                      Thu hồi quyền Voucher
+                                    </button>
+                                  </>
+                                )}
+
+                                {!currentVoucherManagerId && (
+                                  <>
+                                    <div className="my-1 h-px bg-white/10" />
+                                    <button
+                                      onClick={() => {
+                                        onGrantVoucherPermission(
+                                          staff.managerStaffId,
+                                          staff.fullName
+                                        );
+                                        setOpenDropdownId(null);
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-pink-500/20 hover:text-pink-300"
+                                    >
+                                      <Ticket className="h-4 w-4" />
+                                      Cấp quyền Voucher
+                                    </button>
+                                  </>
+                                )}
+
                                 <div className="my-1 h-px bg-white/10" />
+
+                                {/* Xóa */}
                                 <button
                                   onClick={() => {
-                                    onGrantVoucherPermission(
+                                    handleDeleteClick(
                                       staff.managerStaffId,
                                       staff.fullName
                                     );
                                     setOpenDropdownId(null);
                                   }}
-                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-pink-500/20 hover:text-pink-300"
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-red-500/20 hover:text-red-300"
                                 >
-                                  <Ticket className="h-4 w-4" />
-                                  Cấp quyền Voucher
+                                  <Trash2 className="h-4 w-4" />
+                                  Xóa (vô hiệu hóa)
                                 </button>
                               </>
                             )}
-
-                            <div className="my-1 h-px bg-white/10" />
-
-                            {/* Xóa */}
-                            <button
-                              onClick={() => {
-                                handleDeleteClick(
-                                  staff.managerStaffId,
-                                  staff.fullName
-                                );
-                                setOpenDropdownId(null);
-                              }}
-                              className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-red-500/20 hover:text-red-300"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Xóa (vô hiệu hóa)
-                            </button>
                           </div>
                         </PopoverContent>
                       </Popover>

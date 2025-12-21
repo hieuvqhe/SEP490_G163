@@ -128,7 +128,7 @@ export default function PersistentDrawerLeft({ children, open = false, onClose }
       text: 'Quản Lý Phim', 
       icon: <MovieCreationIcon />, 
       path: '/manager/movie-management',
-      requiredPermissions: [] // Manager only feature (no permission for staff)
+      requiredPermissions: ['MOVIE_SUBMISSION_READ', 'MOVIE_SUBMISSION_APPROVE', 'MOVIE_SUBMISSION_REJECT']
     },
     { 
       text: 'Quản Lý Voucher', 

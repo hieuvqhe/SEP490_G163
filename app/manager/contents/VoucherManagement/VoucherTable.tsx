@@ -32,6 +32,9 @@ interface VoucherTableProps {
   onSendSpecific: (voucherId: number) => void;
   onViewEmailHistory: (voucherId: number) => void;
   disableActions?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canSend?: boolean;
 }
 
 const limitOptions = [5, 10, 20, 50];
@@ -53,6 +56,9 @@ const VoucherTable = ({
   onSendSpecific,
   onViewEmailHistory,
   disableActions,
+  canEdit = true,
+  canDelete = true,
+  canSend = true,
 }: VoucherTableProps) => {
   const totalPages = pagination?.totalPages ?? 1;
   const totalCount = pagination?.totalCount ?? vouchers.length;
@@ -162,35 +168,47 @@ const VoucherTable = ({
                             <Eye className="h-4 w-4" />
                             Chi tiết
                           </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => onEdit(voucher.voucherId)}>
-                            <Pencil className="h-4 w-4" />
-                            Sửa
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => onToggleStatus(voucher.voucherId)}>
-                            <ToggleRight className="h-4 w-4" />
-                            {voucher.isActive ? 'Tắt hoạt động' : 'Bật hoạt động'}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onSelect={() => onSendAll(voucher.voucherId)}>
-                            <Mail className="h-4 w-4" />
-                            Gửi cho tất cả
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => onSendSpecific(voucher.voucherId)}>
-                            <Users className="h-4 w-4" />
-                            Gửi cho người cụ thể
-                          </DropdownMenuItem>
+                          {canEdit && (
+                            <>
+                              <DropdownMenuItem onSelect={() => onEdit(voucher.voucherId)}>
+                                <Pencil className="h-4 w-4" />
+                                Sửa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => onToggleStatus(voucher.voucherId)}>
+                                <ToggleRight className="h-4 w-4" />
+                                {voucher.isActive ? 'Tắt hoạt động' : 'Bật hoạt động'}
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {canSend && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onSelect={() => onSendAll(voucher.voucherId)}>
+                                <Mail className="h-4 w-4" />
+                                Gửi cho tất cả
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => onSendSpecific(voucher.voucherId)}>
+                                <Users className="h-4 w-4" />
+                                Gửi cho người cụ thể
+                              </DropdownMenuItem>
+                            </>
+                          )}
                           <DropdownMenuItem onSelect={() => onViewEmailHistory(voucher.voucherId)}>
                             <Send className="h-4 w-4" />
                             Lịch sử email
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-red-300 focus:text-red-200"
-                            onSelect={() => onDelete(voucher.voucherId)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Xoá voucher
-                          </DropdownMenuItem>
+                          {canDelete && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-300 focus:text-red-200"
+                                onSelect={() => onDelete(voucher.voucherId)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Xoá voucher
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>

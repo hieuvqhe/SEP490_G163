@@ -23,6 +23,8 @@ interface RegisterTableProps {
   currentPage: number;
   totalPartners: number;
   limit: number;
+  canAssignStaff?: boolean;
+  checkPermissionForPartner?: (permissionCode: string, partnerId: number) => boolean;
   onApprovePartner: (partnerId: number) => void;
   onRejectPartner: (partnerId: number) => void;
   onViewPartner: (partner: PendingPartner) => void;
@@ -37,6 +39,8 @@ export const RegisterTable = ({
   currentPage,
   totalPartners,
   limit,
+  canAssignStaff = true,
+  checkPermissionForPartner,
   onApprovePartner,
   onRejectPartner,
   onViewPartner,
@@ -205,7 +209,7 @@ export const RegisterTable = ({
                               Xem chi tiết
                             </button>
 
-                            {!partner.managerStaffId && (
+                            {canAssignStaff && !partner.managerStaffId && (
                               <button
                                 onClick={() => {
                                   onAssignStaff(partner);
@@ -218,29 +222,37 @@ export const RegisterTable = ({
                               </button>
                             )}
 
-                            <div className="my-1 border-t border-white/10" />
+                            {(checkPermissionForPartner?.('PARTNER_APPROVE', partner.partnerId) || checkPermissionForPartner?.('PARTNER_REJECT', partner.partnerId)) && (
+                              <>
+                                <div className="my-1 border-t border-white/10" />
 
-                            <button
-                              onClick={() => {
-                                onApprovePartner(partner.partnerId);
-                                setOpenDropdownId(null);
-                              }}
-                              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-emerald-300 transition hover:bg-emerald-500/20 hover:text-emerald-200"
-                            >
-                              <CheckCircle size={16} />
-                              Duyệt đối tác
-                            </button>
+                                {checkPermissionForPartner?.('PARTNER_APPROVE', partner.partnerId) && (
+                                  <button
+                                    onClick={() => {
+                                      onApprovePartner(partner.partnerId);
+                                      setOpenDropdownId(null);
+                                    }}
+                                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-emerald-300 transition hover:bg-emerald-500/20 hover:text-emerald-200"
+                                  >
+                                    <CheckCircle size={16} />
+                                    Duyệt đối tác
+                                  </button>
+                                )}
 
-                            <button
-                              onClick={() => {
-                                onRejectPartner(partner.partnerId);
-                                setOpenDropdownId(null);
-                              }}
-                              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
-                            >
-                              <XCircle size={16} />
-                              Từ chối
-                            </button>
+                                {checkPermissionForPartner?.('PARTNER_REJECT', partner.partnerId) && (
+                                  <button
+                                    onClick={() => {
+                                      onRejectPartner(partner.partnerId);
+                                      setOpenDropdownId(null);
+                                    }}
+                                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+                                  >
+                                    <XCircle size={16} />
+                                    Từ chối
+                                  </button>
+                                )}
+                              </>
+                            )}
                           </div>
                         </PopoverContent>
                       </Popover>

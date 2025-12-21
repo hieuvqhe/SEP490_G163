@@ -13,8 +13,8 @@ const ManagerPage = () => {
 
   return (
     <Sidebar open={sidebarOpen} onClose={closeSidebar}>
-      <Header onMenuClick={toggleSidebar} />
-      <div className="min-h-screen bg-[#09090b] py-6 px-4 relative @container/main">
+      <Header  onMenuClick={toggleSidebar}  />
+      <div className="min-h-screen bg-[#09090b] py-6 px-4 pt-20 relative @container/main">
 
         <div className="relative z-10 max-w-7xl mx-auto mt-16">
           <div className="text-center mb-8">

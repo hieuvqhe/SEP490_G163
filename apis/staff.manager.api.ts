@@ -113,7 +113,7 @@ export const getUniquePermissionCodes = (permissions: ManagerGrantedPermission[]
 };
 
 /**
- * Kiểm tra nhân viên có quyền cụ thể không
+ * Kiểm tra nhân viên có quyền cụ thể không (bất kỳ partner nào)
  */
 export const hasPermission = (
   permissions: ManagerGrantedPermission[],
@@ -125,6 +125,22 @@ export const hasPermission = (
 };
 
 /**
+ * Kiểm tra nhân viên có quyền cụ thể cho một partner cụ thể
+ * Sẽ trả về true nếu có quyền global (partnerId = 0) hoặc có quyền cho partner đó
+ */
+export const hasPermissionForPartner = (
+  permissions: ManagerGrantedPermission[],
+  permissionCode: string,
+  partnerId: number
+): boolean => {
+  return permissions.some(
+    p => p.permissionCode === permissionCode && 
+         p.isActive && 
+         (p.partnerId === partnerId || p.partnerId === 0)
+  );
+};
+
+/**
  * Kiểm tra nhân viên có bất kỳ quyền nào trong danh sách không
  */
 export const hasAnyPermission = (
@@ -132,6 +148,17 @@ export const hasAnyPermission = (
   permissionCodes: string[]
 ): boolean => {
   return permissionCodes.some(code => hasPermission(permissions, code));
+};
+
+/**
+ * Kiểm tra nhân viên có bất kỳ quyền nào trong danh sách cho partner cụ thể
+ */
+export const hasAnyPermissionForPartner = (
+  permissions: ManagerGrantedPermission[],
+  permissionCodes: string[],
+  partnerId: number
+): boolean => {
+  return permissionCodes.some(code => hasPermissionForPartner(permissions, code, partnerId));
 };
 
 /**

@@ -24,8 +24,7 @@ interface VoucherFiltersProps {
   onChange: (value: Partial<VoucherFilterState>) => void;
   isRefreshing?: boolean;
   onRefresh: () => void;
-  onCreate: () => void;
-}
+  onCreate: () => void;  canCreate?: boolean;}
 
 const sortOptions: { label: string; value: VoucherSortBy }[] = [
   { label: "Ngày tạo", value: "createdat" },
@@ -40,7 +39,7 @@ const sortOptions: { label: string; value: VoucherSortBy }[] = [
 
 const limitOptions = [5, 10, 20, 50];
 
-const VoucherFilters = ({ filters, onChange, isRefreshing, onRefresh, onCreate }: VoucherFiltersProps) => {
+const VoucherFilters = ({ filters, onChange, isRefreshing, onRefresh, onCreate, canCreate = true }: VoucherFiltersProps) => {
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ search: event.target.value });
   };
@@ -133,13 +132,15 @@ const VoucherFilters = ({ filters, onChange, isRefreshing, onRefresh, onCreate }
           {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
           Làm mới
         </button>
-        <button
-          onClick={onCreate}
-          className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-orange-400"
-        >
-          <Plus className="h-4 w-4" />
-          Tạo voucher
-        </button>
+        {canCreate && (
+          <button
+            onClick={onCreate}
+            className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-orange-400"
+          >
+            <Plus className="h-4 w-4" />
+            Tạo voucher
+          </button>
+        )}
       </div>
     </div>
   );

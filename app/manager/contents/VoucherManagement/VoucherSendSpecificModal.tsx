@@ -4,17 +4,25 @@ import { useState, useMemo } from "react";
 import type { SendVoucherToSpecificUsersRequest } from "@/apis/manager.voucher.api";
 import { useGetTopCustomers, type GetTopCustomersParams } from "@/apis/manager.register";
 import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/components/ToastProvider";
 import { Loader2, Search, X } from "lucide-react";
 
 interface VoucherSendSpecificModalProps {
   open: boolean;
   isSubmitting?: boolean;
+  voucherData?: { usageLimit: number; usedCount: number } | null;
   onClose: () => void;
   onSubmit: (payload: SendVoucherToSpecificUsersRequest) => Promise<void>;
 }
 
-const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: VoucherSendSpecificModalProps) => {
+const VoucherSendSpecificModal = ({ open, isSubmitting, voucherData, onClose, onSubmit }: VoucherSendSpecificModalProps) => {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { showToast } = useToast();
+  
+  // Calculate remaining usage limit
+  const remainingLimit = voucherData 
+    ? voucherData.usageLimit - voucherData.usedCount 
+    : null;
   
   const [subject, setSubject] = useState("Đừng Bỏ Lỡ Voucher Đặc Biệt Dành Cho Bạn");
   const [customMessage, setCustomMessage] = useState(
@@ -121,7 +129,13 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
     }
 
     if (selectedUserIds.size === 0) {
-      setError("Vui lòng chọn ít nhất một người dùng");
+      showToast("Vui lòng chọn ít nhất một người dùng", undefined, "error");
+      return;
+    }
+
+    // Validate usage limit
+    if (remainingLimit !== null && selectedUserIds.size > remainingLimit) {
+      showToast(`Voucher chỉ còn ${remainingLimit} lượt sử dụng. Bạn đang chọn ${selectedUserIds.size} người.`, undefined, "error");
       return;
     }
 
@@ -197,7 +211,8 @@ const VoucherSendSpecificModal = ({ open, isSubmitting, onClose, onSubmit }: Vou
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <label className="block text-sm font-medium text-gray-200">
-                Danh sách khách hàng ({selectedUserIds.size} đã chọn)
+                Danh sách khách hàng ({selectedUserIds.size} đã chọn
+                {remainingLimit !== null && ` / ${remainingLimit} lượt còn lại`})
               </label>
               <div className="flex flex-wrap items-center gap-2">
                 {/* Booking count filter */}

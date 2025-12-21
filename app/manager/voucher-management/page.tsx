@@ -14,7 +14,7 @@ const ManagerVoucherManagementPage = () => {
   return (
     <Sidebar open={sidebarOpen} onClose={closeSidebar}>
       <Header onMenuClick={toggleSidebar} />
-      <div className="relative min-h-screen bg-[#09090b] py-12 px-4">
+      <div className="relative min-h-screen bg-[#09090b] pt-20 py-12 px-4">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 via-yellow-900/10 to-red-900/20" aria-hidden />
 
         <div className="relative z-10 mx-auto max-w-7xl">

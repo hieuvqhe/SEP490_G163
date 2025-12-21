@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ToastProvider';
 import { useAuthStore } from '@/store/authStore';
+import { usePermissions } from '@/hooks/usePermissions';
 
 import {
   useGetPendingPartners,
@@ -24,6 +25,10 @@ import { AssignStaffModal } from './AssignStaffModal';
 export const RegisterManagement = () => {
   const { accessToken } = useAuthStore();
   const { showToast } = useToast();
+  const { isManager, checkPermissionForPartner } = usePermissions();
+
+  // Only Manager can assign staff
+  const canAssignStaff = isManager;
 
   // Partner Management States
   const [currentPage, setCurrentPage] = useState(1);
@@ -231,6 +236,8 @@ export const RegisterManagement = () => {
             currentPage={currentPage}
             totalPartners={totalPartners}
             limit={limit}
+            canAssignStaff={canAssignStaff}
+            checkPermissionForPartner={checkPermissionForPartner}
             onApprovePartner={handleApprovePartnerWrapper}
             onRejectPartner={handleRejectPartnerWrapper}
             onViewPartner={handleViewPartnerWrapper}
