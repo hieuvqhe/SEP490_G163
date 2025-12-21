@@ -3,7 +3,6 @@
 import { IoIosSearch } from "react-icons/io";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getAllMovies } from "@/apis/movie.api";
@@ -21,6 +20,16 @@ import UserAvatar from "@/components/UserAvatar";
 import { useAuthStore } from "@/store/authStore";
 import { useGetUserInfo } from "@/hooks/useAuth";
 import { Pacifico } from "next/font/google";
+import { LuMenu } from "react-icons/lu";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet";
+import { Separator } from "./ui/separator";
 
 const pacifico = Pacifico({
   subsets: ["latin"],
@@ -48,22 +57,23 @@ const Header = () => {
       setIsScrolled(window.scrollY > 50);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     handleScroll(); // Check initial position
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Search suggestions API call
   const { data: searchResults, isFetching: isSearching } = useQuery({
     queryKey: ["search-suggestions", searchQuery],
-    queryFn: () => getAllMovies({
-      search: searchQuery,
-      limit: 5,
-      status: "now_showing",
-      sort_by: "average_rating",
-      sort_order: "desc",
-    }),
+    queryFn: () =>
+      getAllMovies({
+        search: searchQuery,
+        limit: 5,
+        status: "now_showing",
+        sort_by: "average_rating",
+        sort_order: "desc",
+      }),
     enabled: searchQuery.trim().length > 0,
     staleTime: 1000 * 60,
   });
@@ -73,7 +83,10 @@ const Header = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setShowSearchDropdown(false);
       }
     };
@@ -131,7 +144,7 @@ const Header = () => {
     // User thường sẽ ở lại trang hiện tại
     if (role) {
       const roleLower = role.toLowerCase();
-      
+
       switch (roleLower) {
         case "admin":
           window.location.href = "/admin";
@@ -203,7 +216,11 @@ const Header = () => {
     }
   };
 
-  const navigationItems: Array<{ title: string; link: string; requiresAuth?: boolean }> = [
+  const navigationItems: Array<{
+    title: string;
+    link: string;
+    requiresAuth?: boolean;
+  }> = [
     { title: "Trang chủ", link: "/" },
     { title: "Lịch chiếu", link: "/showtimes" },
     // { title: "Điểm Thưởng", link: "/movies", requiresAuth: true },
@@ -211,18 +228,114 @@ const Header = () => {
     { title: "Đang chiếu", link: "/movies" },
   ];
 
+  const [showQuickAccess, setShowQuickAccess] = useState<boolean>(false);
+
   return (
     <>
+      <div className="flex w-full justify-between items-center px-5 py-4 sm:hidden bg-zinc-900/90 backdrop-blur-md sticky top-0 z-50 border-b border-white/10">
+        <Link href="/">
+          <h1
+            className={`${pacifico.className} text-xl font-bold text-white drop-shadow-lg`}
+          >
+            TicketXpress
+          </h1>
+        </Link>
+
+        <Sheet>
+          {/* Nút Mở Menu */}
+          <SheetTrigger asChild>
+            <button className="p-2 -mr-2 text-white hover:bg-white/10 rounded-full transition-colors">
+              <LuMenu size={28} />
+            </button>
+          </SheetTrigger>
+
+          {/* Nội dung Menu Trượt ra */}
+          <SheetContent
+            side="right"
+            className="w-[320px] bg-zinc-900 border-l border-white/10 text-white overflow-y-auto"
+          >
+            <div className="flex flex-col gap-6">
+              <Separator className="bg-white/10" />
+              {/* 2. NAVIGATION LINKS */}
+              <div className="flex flex-col gap-4 px-5">
+                {navigationItems
+                  .filter((item) => !item.requiresAuth || !!user)
+                  .map((item, index) => (
+                    <SheetClose asChild key={index}>
+                      <Link
+                        href={item.link}
+                        className="text-lg font-medium text-gray-300 hover:text-white hover:pl-2 transition-all duration-300"
+                      >
+                        {item.title}
+                      </Link>
+                    </SheetClose>
+                  ))}
+
+                {!user && (
+                  <SheetClose asChild>
+                    <Link
+                      href="/partner"
+                      className="text-lg font-medium bg-gradient-to-r from-[#F84565] to-[#FF7A45] bg-clip-text text-transparent"
+                    >
+                      Đăng ký làm đối tác
+                    </Link>
+                  </SheetClose>
+                )}
+              </div>
+
+              <Separator className="bg-white/10" />
+
+              {/* 3. AUTH ACTION BUTTONS */}
+              <div className="mt-auto px-5">
+                {isLoading ? (
+                  <div className="w-full h-10 bg-gray-500/20 rounded-lg animate-pulse" />
+                ) : user ? (
+                  <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
+                    <UserAvatar /> {/* Component UserAvatar của bạn */}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white">
+                        Xin chào,
+                      </span>
+                      <span className="text-xs text-gray-400">Thành viên</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <SheetClose asChild>
+                      <button
+                        onClick={() => setShowLoginModal(true)}
+                        className="w-full py-3 rounded-xl font-medium border border-white/20 text-white hover:bg-white/10 transition-all"
+                      >
+                        Đăng Nhập
+                      </button>
+                    </SheetClose>
+
+                    <SheetClose asChild>
+                      <button
+                        onClick={() => setShowRegisterModal(true)}
+                        className="w-full py-3 rounded-xl font-medium bg-gradient-to-r from-pink-500 to-red-500 text-white shadow-lg"
+                      >
+                        Đăng Ký
+                      </button>
+                    </SheetClose>
+                  </div>
+                )}
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
       <div
         className={`fixed top-0 left-0 right-0 z-50 
     flex items-center justify-between
     mx-5 mt-3 px-8 py-3
     rounded-full
     [box-shadow:var(--shadow-m-inner)]
-    backdrop-blur-xl transition-all duration-500
-    ${isScrolled 
-      ? 'bg-zinc-800/90 border border-white/10' 
-      : ' bg-zinc-800/30 border border-white/0'
+    backdrop-blur-xl transition-all duration-500 max-sm:hidden
+    ${
+      isScrolled
+        ? "bg-zinc-800/90 border border-white/10"
+        : " bg-zinc-800/30 border border-white/0"
     }`}
       >
         {/* Left Section: Logo + Search */}
@@ -246,18 +359,23 @@ const Header = () => {
                 value={searchQuery}
                 onChange={handleSearchInputChange}
                 onKeyDown={handleSearch}
-                onFocus={() => searchQuery.trim() && setShowSearchDropdown(true)}
+                onFocus={() =>
+                  searchQuery.trim() && setShowSearchDropdown(true)
+                }
                 className="border-0 bg-transparent text-white placeholder:text-gray-400 
           focus:ring-0 focus:outline-none px-4"
               />
-              <InputGroupAddon className="cursor-pointer" onClick={handleSearchClick}>
+              <InputGroupAddon
+                className="cursor-pointer"
+                onClick={handleSearchClick}
+              >
                 <SearchIcon className="text-gray-300 hover:text-blue-400 transition-colors duration-300" />
               </InputGroupAddon>
             </InputGroup>
 
             {/* Search Dropdown */}
             {showSearchDropdown && searchQuery.trim() && (
-             <div className="absolute top-full mt-2 w-full bg-black border border-white/20 rounded-2xl overflow-hidden shadow-2xl z-50">
+              <div className="absolute top-full mt-2 w-full bg-black border border-white/20 rounded-2xl overflow-hidden shadow-2xl z-50">
                 {isSearching ? (
                   <div className="p-4 text-center text-gray-400">
                     <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full mx-auto" />
@@ -277,11 +395,19 @@ const Header = () => {
                             className="w-12 h-16 object-cover rounded"
                           />
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-white font-medium truncate">{movie.title}</h4>
-                            <p className="text-xs text-gray-400 truncate">{movie.genre}</p>
+                            <h4 className="text-white font-medium truncate">
+                              {movie.title}
+                            </h4>
+                            <p className="text-xs text-gray-400 truncate">
+                              {movie.genre}
+                            </p>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-yellow-400">⭐ {movie.averageRating?.toFixed(1)}</span>
-                              <span className="text-xs text-gray-500">{movie.durationMinutes} phút</span>
+                              <span className="text-xs text-yellow-400">
+                                ⭐ {movie.averageRating?.toFixed(1)}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {movie.durationMinutes} phút
+                              </span>
                             </div>
                           </div>
                         </div>

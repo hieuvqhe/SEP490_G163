@@ -107,7 +107,7 @@ const FeaturedSection = () => {
           </nav>
 
           {/* Search Input */}
-          <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2 hover:bg-white/20 transition-colors duration-300">
+          <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2 hover:bg-white/20 transition-colors duration-300 max-sm:hidden">
             <input
               type="text"
               placeholder="Search movies..."

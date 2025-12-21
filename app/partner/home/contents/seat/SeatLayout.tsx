@@ -1184,6 +1184,7 @@ const SeatLayout = () => {
                       id="col"
                       type="number"
                       min={1}
+                      max={20}
                       value={cols}
                       onChange={(event) => setCols(Number(event.target.value))}
                       className="bg-zinc-800"

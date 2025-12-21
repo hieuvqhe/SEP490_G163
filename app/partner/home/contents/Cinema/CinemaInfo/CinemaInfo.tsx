@@ -14,6 +14,12 @@ import {
   useUpdatePartnerCinema,
 } from "@/apis/partner.cinema.api";
 import { useToast } from "@/components/ToastProvider";
+
+import {
+  usePermission,
+  PERMISSION_CODES,
+} from "@/app/partner/home/contexts/PermissionContext";
+import { CinemaFilters, CinemaFormValues, CinemaLike } from "./types";
 import {
   CinemaDeleteDialog,
   CinemaDetailModal,
@@ -21,8 +27,6 @@ import {
   CinemaTable,
   CinemaToolbar,
 } from "./components";
-import type { CinemaFilters, CinemaFormValues, CinemaLike } from "./types";
-import { usePermission, PERMISSION_CODES } from "@/app/partner/home/contexts/PermissionContext";
 
 const defaultFilters: CinemaFilters = {
   search: "",
@@ -61,8 +65,10 @@ const mapCinemaToFormValues = (cinema: CinemaLike = {}): CinemaFormValues => ({
   email: cinema?.email ?? "",
   isActive: cinema?.isActive ?? true,
   logoUrl: cinema?.logoUrl ?? "",
-  totalScreens: cinema?.totalScreens !== undefined ? String(cinema.totalScreens) : "",
-  activeScreens: cinema?.activeScreens !== undefined ? String(cinema.activeScreens) : "",
+  totalScreens:
+    cinema?.totalScreens !== undefined ? String(cinema.totalScreens) : "",
+  activeScreens:
+    cinema?.activeScreens !== undefined ? String(cinema.activeScreens) : "",
 });
 
 const mapFormValuesToPayload = (values: CinemaFormValues) => {
@@ -91,8 +97,14 @@ const mapFormValuesToPayload = (values: CinemaFormValues) => {
   const totalScreens = toOptionalNumber(values.totalScreens);
   const activeScreens = toOptionalNumber(values.activeScreens);
 
-  if (totalScreens !== undefined && activeScreens !== undefined && activeScreens > totalScreens) {
-    throw new Error("Số phòng chiếu đang hoạt động không thể lớn hơn tổng số phòng chiếu");
+  if (
+    totalScreens !== undefined &&
+    activeScreens !== undefined &&
+    activeScreens > totalScreens
+  ) {
+    throw new Error(
+      "Số phòng chiếu đang hoạt động không thể lớn hơn tổng số phòng chiếu"
+    );
   }
 
   const trimmedLogo = values.logoUrl.trim();
@@ -134,37 +146,41 @@ const CinemaInfo = () => {
   const canDeleteCinema = checkPermission(PERMISSION_CODES.CINEMA_DELETE);
 
   const [filters, setFilters] = useState<CinemaFilters>(defaultFilters);
-  const [pagination, setPagination] = useState<{ page: number; limit: number }>({ page: 1, limit: 10 });
+  const [pagination, setPagination] = useState<{ page: number; limit: number }>(
+    { page: 1, limit: 10 }
+  );
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [formInitialValues, setFormInitialValues] = useState<CinemaFormValues>(defaultFormValues);
+  const [formInitialValues, setFormInitialValues] =
+    useState<CinemaFormValues>(defaultFormValues);
   const [editingCinemaId, setEditingCinemaId] = useState<number | null>(null);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [cinemaToDelete, setCinemaToDelete] = useState<PartnerCinema | null>(null);
+  const [cinemaToDelete, setCinemaToDelete] = useState<PartnerCinema | null>(
+    null
+  );
 
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [detailCinemaId, setDetailCinemaId] = useState<number | null>(null);
 
-  const queryParams = useMemo(() => ({
-    page: pagination.page,
-    limit: pagination.limit,
-    search: filters.search.trim() || undefined,
-    city: filters.city.trim() || undefined,
-    district: filters.district.trim() || undefined,
-    isActive: filters.status === "all" ? undefined : filters.status === "active",
-    sortBy: filters.sortBy || undefined,
-    sortOrder: filters.sortOrder,
-  }), [filters, pagination]);
+  const queryParams = useMemo(
+    () => ({
+      page: pagination.page,
+      limit: pagination.limit,
+      search: filters.search.trim() || undefined,
+      city: filters.city.trim() || undefined,
+      district: filters.district.trim() || undefined,
+      isActive:
+        filters.status === "all" ? undefined : filters.status === "active",
+      sortBy: filters.sortBy || undefined,
+      sortOrder: filters.sortOrder,
+    }),
+    [filters, pagination]
+  );
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useGetPartnerCinemas(queryParams);
+  const { data, isLoading, isFetching, error, refetch } =
+    useGetPartnerCinemas(queryParams);
 
   const detailQuery = useGetPartnerCinemaById(detailCinemaId ?? undefined);
 
@@ -173,7 +189,8 @@ const CinemaInfo = () => {
   const deleteMutation = useDeletePartnerCinema();
 
   const cinemas = data?.result.cinemas ?? [];
-  const paginationInfo: PartnerCinemasPagination | undefined = data?.result.pagination;
+  const paginationInfo: PartnerCinemasPagination | undefined =
+    data?.result.pagination;
   const queryError = error as PartnerCinemaApiError | undefined;
 
   const handleStartGuide = useCallback(() => {
@@ -192,7 +209,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-toolbar",
         popover: {
           title: "Bộ lọc & thao tác nhanh",
-          description: "Điều chỉnh tìm kiếm, làm mới dữ liệu và truy cập các hành động quản lý tại khu vực này.",
+          description:
+            "Điều chỉnh tìm kiếm, làm mới dữ liệu và truy cập các hành động quản lý tại khu vực này.",
           side: "bottom" as const,
           align: "start" as const,
         },
@@ -201,7 +219,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-filters",
         popover: {
           title: "Bộ lọc nâng cao",
-          description: "Lọc theo tên rạp, khu vực và trạng thái hoạt động để thu hẹp danh sách.",
+          description:
+            "Lọc theo tên rạp, khu vực và trạng thái hoạt động để thu hẹp danh sách.",
           side: "bottom" as const,
           align: "start" as const,
         },
@@ -210,7 +229,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-toolbar-actions",
         popover: {
           title: "Hành động nhanh",
-          description: "Bắt đầu tour hướng dẫn, đặt lại bộ lọc hoặc làm mới dữ liệu chỉ với một cú nhấp chuột.",
+          description:
+            "Bắt đầu tour hướng dẫn, đặt lại bộ lọc hoặc làm mới dữ liệu chỉ với một cú nhấp chuột.",
           side: "left" as const,
           align: "start" as const,
         },
@@ -219,7 +239,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-create-btn",
         popover: {
           title: "Tạo rạp mới",
-          description: "Nhấn để mở biểu mẫu thêm rạp chiếu mới và bổ sung thông tin chi tiết.",
+          description:
+            "Nhấn để mở biểu mẫu thêm rạp chiếu mới và bổ sung thông tin chi tiết.",
           side: "left" as const,
           align: "start" as const,
         },
@@ -228,7 +249,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-refresh-btn",
         popover: {
           title: "Đồng bộ dữ liệu",
-          description: "Tải lại danh sách rạp để cập nhật những thay đổi mới nhất.",
+          description:
+            "Tải lại danh sách rạp để cập nhật những thay đổi mới nhất.",
           side: "left" as const,
           align: "start" as const,
         },
@@ -237,7 +259,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-table",
         popover: {
           title: "Danh sách rạp",
-          description: "Theo dõi thông tin chung, trạng thái hoạt động và số phòng chiếu của từng rạp.",
+          description:
+            "Theo dõi thông tin chung, trạng thái hoạt động và số phòng chiếu của từng rạp.",
           side: "top" as const,
           align: "start" as const,
         },
@@ -246,7 +269,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-table-sort",
         popover: {
           title: "Sắp xếp linh hoạt",
-          description: "Nhấn tiêu đề cột để sắp xếp danh sách theo tên rạp, mã rạp hoặc các tiêu chí khác.",
+          description:
+            "Nhấn tiêu đề cột để sắp xếp danh sách theo tên rạp, mã rạp hoặc các tiêu chí khác.",
           side: "bottom" as const,
           align: "start" as const,
         },
@@ -255,7 +279,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-row",
         popover: {
           title: "Chi tiết từng rạp",
-          description: "Mỗi hàng thể hiện thông tin đầy đủ của một rạp bao gồm trạng thái, số phòng chiếu và thời gian cập nhật.",
+          description:
+            "Mỗi hàng thể hiện thông tin đầy đủ của một rạp bao gồm trạng thái, số phòng chiếu và thời gian cập nhật.",
           side: "top" as const,
           align: "start" as const,
         },
@@ -267,7 +292,8 @@ const CinemaInfo = () => {
         element: "#cinema-tour-row-actions",
         popover: {
           title: "Thao tác trên từng rạp",
-          description: "Sử dụng các nút xem chi tiết, chỉnh sửa hoặc xoá để quản lý từng rạp cụ thể.",
+          description:
+            "Sử dụng các nút xem chi tiết, chỉnh sửa hoặc xoá để quản lý từng rạp cụ thể.",
           side: "left" as const,
           align: "start" as const,
         },
@@ -278,7 +304,8 @@ const CinemaInfo = () => {
       element: "#cinema-tour-pagination",
       popover: {
         title: "Điều hướng trang",
-        description: "Di chuyển giữa các trang kết quả và theo dõi trạng thái tải dữ liệu tại đây.",
+        description:
+          "Di chuyển giữa các trang kết quả và theo dõi trạng thái tải dữ liệu tại đây.",
         side: "top" as const,
         align: "start" as const,
       },
@@ -309,7 +336,8 @@ const CinemaInfo = () => {
     setFilters((prev) => ({
       ...prev,
       sortBy,
-      sortOrder: prev.sortBy === sortBy && prev.sortOrder === "asc" ? "desc" : "asc",
+      sortOrder:
+        prev.sortBy === sortBy && prev.sortOrder === "asc" ? "desc" : "asc",
     }));
   };
 
@@ -380,7 +408,7 @@ const CinemaInfo = () => {
           onError: (err) => {
             showToast(getErrorMessage(err), undefined, "error");
           },
-        },
+        }
       );
     } catch (err) {
       showToast(getErrorMessage(err), undefined, "error");
