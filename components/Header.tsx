@@ -203,7 +203,7 @@ const Header = () => {
     }
   };
 
-  const navigationItems = [
+  const navigationItems: Array<{ title: string; link: string; requiresAuth?: boolean }> = [
     { title: "Trang chủ", link: "/" },
     { title: "Lịch chiếu", link: "/showtimes" },
     // { title: "Điểm Thưởng", link: "/movies", requiresAuth: true },

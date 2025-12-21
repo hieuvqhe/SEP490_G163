@@ -23,6 +23,7 @@ import TheaterImgsUpload from "./TheaterImageUpload";
 import { useUploadToCloudinary } from "@/apis/cloudinary.api";
 import ImagePreviewModal from "./ImagePreviewModal";
 import { Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -57,6 +58,7 @@ const itemVariants: Variants = {
 type ValidationErrors = Record<string, string | undefined>;
 
 const Newsletter = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState<PartnerCreateRequest>({
     email: "",
     password: "",
@@ -71,7 +73,7 @@ const Newsletter = () => {
     taxRegistrationCertificateUrl: "",
     identityCardUrl: "",
     theaterPhotosUrls: [""],
-    additionalDocumentsUrls: [""],
+    additionalDocumentsUrls: [], // Optional - người dùng có thể bỏ trống
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -81,6 +83,7 @@ const Newsletter = () => {
   const { mutate: createPartner, isPending } = useCreatePartner({
     onSuccess: (response) => {
       showToast(response.message ?? "Đăng ký thành công", undefined, "success");
+      router.push('/');
     },
     onError: (message, fieldErrors) => {
       console.log("Error message:", message);
@@ -227,9 +230,10 @@ const Newsletter = () => {
 
     if (!validateForm()) {
       console.log("Form validation failed");
+     
       return;
     }
-
+    
     console.log("Form data:", formData);
     createPartner(formData);
   };
@@ -742,7 +746,7 @@ const Newsletter = () => {
               {/* Additional Documents */}
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">
-                  Giấy tờ liên quan khác
+                  Giấy tờ liên quan khác <span className="text-gray-500 text-xs">(Tùy chọn)</span>
                 </label>
                 <TheaterImgsUpload
                   handleTheaterFileSelect={handleAdditionalDocumentsSelect}
