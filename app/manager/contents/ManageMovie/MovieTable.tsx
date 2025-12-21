@@ -94,7 +94,7 @@ const MovieTable = ({
             ) : submissions.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-6 py-10 text-center text-sm text-gray-300">
-                  Không có submission nào phù hợp.
+                  Không có submission nào.
                 </td>
               </tr>
             ) : (

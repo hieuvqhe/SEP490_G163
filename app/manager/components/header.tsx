@@ -217,11 +217,7 @@ export default function ManagerHeader({ onMenuClick, user, onLogout }: ManagerHe
         </div> */}
 
         <div className="flex items-center space-x-3">
-          <button className="p-2 rounded-full" style={{ color: '#F25912', background: 'rgba(255,255,255,0.02)' }}>
-            <Badge badgeContent={4} color="error">
-              <MailIcon />
-            </Badge>
-          </button>
+        
           <button className="p-2 rounded-full" style={{ color: '#F25912', background: 'rgba(255,255,255,0.02)' }}>
             <NotificationsIcon />
           </button>

@@ -14,7 +14,6 @@ interface ScreenToolbarProps {
   onCreate: () => void;
   cinemaName?: string;
   onStartGuide?: () => void;
-  /** Có quyền tạo phòng chiếu không */
   canCreate?: boolean;
 }
 

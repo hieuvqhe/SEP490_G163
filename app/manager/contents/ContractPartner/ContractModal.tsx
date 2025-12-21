@@ -47,7 +47,7 @@ const contractFormBaseSchema = z.object({
   contractType: z.enum(CONTRACT_TYPES, { required_error: 'Vui lòng chọn loại hợp đồng' }),
   title: z.string().min(1, 'Không được để trống'),
   description: z.string().min(1, 'Không được để trống'),
-  termsAndConditions: z.string().optional(),
+  termsAndConditions: z.string().min(1, 'Không được để trống'),
   startDate: z.string().min(1, 'Không được để trống'),
   endDate: z.string().min(1, 'Không được để trống'),
   commissionRate: z.coerce.number({ invalid_type_error: 'Tỷ lệ không hợp lệ' }).min(0.01, 'Tỷ lệ phải lớn hơn 0').max(100, 'Tỷ lệ không thể vượt quá 100%'),
@@ -462,7 +462,7 @@ const CreateContractModal = ({ partner, open, onClose }: CreateContractModalProp
           </div>
 
           <div className="space-y-3">
-            <label className="font-body text-sm text-gray-300">Chú thích hợp đồng (không bắt buộc)</label>
+            <label className="font-body text-sm text-gray-300">Chú thích hợp đồng </label>
             <div className="relative">
               <Scroll className="absolute left-4 top-4 h-5 w-5 text-indigo-300" />
               <textarea

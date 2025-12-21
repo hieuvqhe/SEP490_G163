@@ -629,43 +629,78 @@ export default function StaffPermissionModal({
                     <div className="flex gap-2">
                       <button
                         onClick={selectAllPartners}
-                        className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-3 py-1.5 text-xs font-semibold text-blue-300 transition hover:bg-blue-500/30"
+                        disabled={selectedPartnerIds.size === managedPartners.length}
+                        className={cn(
+                          "rounded-lg border px-3 py-1.5 text-xs font-semibold transition",
+                          selectedPartnerIds.size === managedPartners.length
+                            ? "cursor-not-allowed border-white/10 bg-white/5 text-gray-500"
+                            : "border-blue-500/30 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30"
+                        )}
                       >
                         Chọn tất cả
                       </button>
                       <button
                         onClick={deselectAllPartners}
-                        className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:bg-white/10"
+                        disabled={selectedPartnerIds.size === 0}
+                        className={cn(
+                          "rounded-lg border px-3 py-1.5 text-xs font-semibold transition",
+                          selectedPartnerIds.size === 0
+                            ? "cursor-not-allowed border-white/10 bg-white/5 text-gray-500"
+                            : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
+                        )}
                       >
                         Bỏ chọn
                       </button>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {managedPartners.map((partner) => (
-                      <button
-                        key={partner.partnerId}
-                        onClick={() => togglePartner(partner.partnerId)}
-                        className={cn(
-                          "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition",
-                          selectedPartnerIds.has(partner.partnerId)
-                            ? "border-blue-500/50 bg-blue-500/20 text-blue-200"
-                            : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
-                        )}
-                      >
-                        <Building2 size={16} />
-                        <div className="text-left">
-                          <div className="font-medium">{partner.partnerName}</div>
-                          <div className="text-xs text-gray-400">
-                            {partner.permissions.length} quyền
+                  <div className="max-h-[200px] overflow-y-auto rounded-lg border border-white/10 bg-white/5 p-2">
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+                      {managedPartners.map((partner) => (
+                        <button
+                          key={partner.partnerId}
+                          onClick={() => togglePartner(partner.partnerId)}
+                          className={cn(
+                            "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition",
+                            selectedPartnerIds.has(partner.partnerId)
+                              ? "border-blue-500/50 bg-blue-500/20 text-blue-200"
+                              : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
+                          )}
+                        >
+                          <Building2 size={16} className="flex-shrink-0" />
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="font-medium truncate">{partner.partnerName}</div>
+                            <div className="text-xs text-gray-400">
+                              {partner.permissions.length} quyền
+                            </div>
                           </div>
-                        </div>
-                        {selectedPartnerIds.has(partner.partnerId) && (
-                          <CheckCheck size={16} className="text-blue-400" />
-                        )}
-                      </button>
-                    ))}
+                          {selectedPartnerIds.has(partner.partnerId) && (
+                            <CheckCheck size={16} className="flex-shrink-0 text-blue-400" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                  {selectedPartnerIds.size > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="text-xs text-gray-400">Đã chọn:</span>
+                      {managedPartners
+                        .filter((p) => selectedPartnerIds.has(p.partnerId))
+                        .map((partner) => (
+                          <span
+                            key={partner.partnerId}
+                            className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/20 px-2 py-1 text-xs text-blue-300"
+                          >
+                            {partner.partnerName}
+                            <button
+                              onClick={() => togglePartner(partner.partnerId)}
+                              className="ml-1 hover:text-blue-100"
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Permissions List */}
