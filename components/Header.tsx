@@ -204,9 +204,10 @@ const Header = () => {
   };
 
   const navigationItems = [
-    { title: "Lịch Chiếu", link: "/showtimes" },
-    { title: "Điểm Thưởng", link: "/movies", requiresAuth: true },
-    { title: "Yêu Thích", link: "/movies", requiresAuth: true },
+    { title: "Trang chủ", link: "/" },
+    { title: "Lịch chiếu", link: "/showtimes" },
+    // { title: "Điểm Thưởng", link: "/movies", requiresAuth: true },
+    // { title: "Yêu Thích", link: "/movies", requiresAuth: true },
     { title: "Đang chiếu", link: "/movies" },
   ];
 

@@ -55,21 +55,18 @@ const MovieDetail = ({ movie }: MovieProp) => {
   const [activeTab, setActiveTab] = useState<"comment" | "review">("comment");
   const [outDateShowtime, setOutDateShowtime] = useState<boolean>(false);
 
-  // const [outDateShowtime, setOutDateShowtime] = useState(false);
-
   const handleOutDate = (id: number) => {
     setOutDateShowtime(true); // hoặc logic khác
   };
 
-  // console.log(`Date selector: ${dateSelectorValue}`);
-  // console.log(
-  //   `Theater avaiable: ${showtimeOverviews?.cinemas.items.map(
-  //     (i) => i.cinemaName
-  //   )}`
-  // );
+  const handleShowReview = () => {
+    const el = document.getElementById("review");
+    if (!el) return;
 
-  // console.log(showtimeOverviews?.brands);
-  // console.log(showtimeOverviews?.brands.length);
+    const y = el.getBoundingClientRect().top + window.pageYOffset - 100;
+
+    window.scrollTo({ top: y, behavior: "smooth" });
+  };
 
   return (
     <div className="relative min-h-screen w-full bg-black">
@@ -126,7 +123,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
               </button>
               <button
                 type="button"
-                onClick={() => {}}
+                onClick={handleShowReview}
                 className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-black px-6 py-2 text-sm font-semibold text-white transition hover:border-white hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <Star
@@ -228,7 +225,7 @@ const MovieDetail = ({ movie }: MovieProp) => {
                   <Spinner className="size-8" />
                 </div>
               ) : !showtimeOverviews?.brands ||
-                showtimeOverviews?.brands.length === 0  ? (
+                showtimeOverviews?.brands.length === 0 ? (
                 <div className="w-full flex flex-col gap-4 h-[30vh] items-center justify-center">
                   <CiFolderOff size={100} />
                   <div className="flex flex-col gap-3 items-center justify-center">
@@ -257,7 +254,10 @@ const MovieDetail = ({ movie }: MovieProp) => {
               )}
             </div>
 
-            <div className="flex items-center justify-baseline gap-5">
+            <div
+              id="review"
+              className="flex items-center justify-baseline gap-5"
+            >
               <TfiCommentAlt size={25} />
               <h2 className="text-3xl font-bold text-white">Đánh giá phim</h2>
             </div>
