@@ -243,6 +243,7 @@ const ScreenFormModal = ({
             <Input
               type="number"
               min={1}
+              max={500}
               value={values.capacity}
               onChange={(event) => handleChange("capacity", event.target.value)}
               className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"
@@ -273,6 +274,7 @@ const ScreenFormModal = ({
             <Input
               type="number"
               min={1}
+              max={20}
               value={values.seatColumns}
               onChange={(event) => handleChange("seatColumns", event.target.value)}
               className="border border-[#3a3a3d] bg-[#27272a] text-[#f5f5f5] focus-visible:border-[#ff7a45] focus-visible:ring-[#ff7a45]/30"

@@ -43,7 +43,10 @@ import { useToast } from "@/components/ToastProvider";
 import { Info } from "lucide-react";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
-import { usePermission, PERMISSION_CODES } from "@/app/partner/home/contexts/PermissionContext";
+import {
+  usePermission,
+  PERMISSION_CODES,
+} from "@/app/partner/home/contexts/PermissionContext";
 
 type GuideStep = {
   element: string;
@@ -99,14 +102,14 @@ const SeatLayout = () => {
   const seatLayoutContext = usePartnerHomeStore(
     (state) => state.seatLayoutContext
   );
-  
+
   // Permission checks
   const cinemaId = seatLayoutContext.cinemaId ?? undefined;
-  const canCreateSeatLayout = cinemaId 
-    ? canPerform(PERMISSION_CODES.SEAT_LAYOUT_CREATE, cinemaId) 
+  const canCreateSeatLayout = cinemaId
+    ? canPerform(PERMISSION_CODES.SEAT_LAYOUT_CREATE, cinemaId)
     : checkPermission(PERMISSION_CODES.SEAT_LAYOUT_CREATE);
-  const canUpdateSeatLayout = cinemaId 
-    ? canPerform(PERMISSION_CODES.SEAT_LAYOUT_UPDATE, cinemaId) 
+  const canUpdateSeatLayout = cinemaId
+    ? canPerform(PERMISSION_CODES.SEAT_LAYOUT_UPDATE, cinemaId)
     : checkPermission(PERMISSION_CODES.SEAT_LAYOUT_UPDATE);
   const canSaveSeatLayout = canCreateSeatLayout || canUpdateSeatLayout;
 
@@ -233,8 +236,8 @@ const SeatLayout = () => {
     }).drive();
   }, [screenId]);
 
-  const [rows, setRows] = useState<number>(5);
-  const [cols, setCols] = useState<number>(5);
+  const [rows, setRows] = useState<number>(seatLayoutContext.rows ?? 0);
+  const [cols, setCols] = useState<number>(seatLayoutContext.cols ?? 0);
   const [seats, setSeats] = useState<SeatData[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [isPreview, setIsPreview] = useState<boolean>(false);
@@ -605,7 +608,7 @@ const SeatLayout = () => {
         "couple",
         "double",
         "COUPLE",
-        "Ghế Đôi"
+        "Ghế Đôi",
       ];
 
       return keywords.some(
@@ -721,7 +724,14 @@ const SeatLayout = () => {
 
       return nodes;
     },
-    [columns, isCoupleSeatType, isPreview, seatLookup, selectedSeats, toggleSelect]
+    [
+      columns,
+      isCoupleSeatType,
+      isPreview,
+      seatLookup,
+      selectedSeats,
+      toggleSelect,
+    ]
   );
 
   const sanitizedSeatData = (() => {
@@ -737,7 +747,8 @@ const SeatLayout = () => {
     return sortedSeats.map(({ colorCode, ...rest }) => {
       const currentCount = seatCounters.get(rest.row) ?? 0;
       // Ghế Maintenance hoặc Blocked đều hiển thị Z0 và không đếm số thứ tự
-      const isHiddenSeat = rest.status === "Maintenance" || rest.status === "Blocked";
+      const isHiddenSeat =
+        rest.status === "Maintenance" || rest.status === "Blocked";
       const nextCount = isHiddenSeat ? currentCount : currentCount + 1;
       seatCounters.set(rest.row, nextCount);
 
@@ -843,7 +854,7 @@ const SeatLayout = () => {
       );
       if (hasTemplateSeat) {
         showToast(
-          "Không được tạo sơ đồ ghế có chứa \"Ghế mẫu\". Vui lòng thay đổi loại ghế cho các ghế mẫu hoặc tạo lại sơ đồ.",
+          'Không được tạo sơ đồ ghế có chứa "Ghế mẫu". Vui lòng thay đổi loại ghế cho các ghế mẫu hoặc tạo lại sơ đồ.',
           undefined,
           "error"
         );
@@ -953,7 +964,9 @@ const SeatLayout = () => {
   const normalizeText = (value?: string) =>
     value?.trim().toLowerCase().normalize("NFC") ?? "";
 
-  const findSeatTypeByKeywords = (keywords: string[]): SeatTypeOption | null => {
+  const findSeatTypeByKeywords = (
+    keywords: string[]
+  ): SeatTypeOption | null => {
     if (!keywords.length) return null;
 
     const normalizedKeywords = keywords.map((keyword) =>

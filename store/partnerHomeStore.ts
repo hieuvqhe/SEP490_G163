@@ -5,6 +5,8 @@ interface SeatLayoutContextState {
   cinemaName: string | null;
   screenId: number | null;
   screenName: string | null;
+  rows: number | null;
+  cols: number | null;
 }
 
 interface PartnerHomeState {
@@ -20,6 +22,8 @@ const initialSeatLayoutContext: SeatLayoutContextState = {
   cinemaName: null,
   screenId: null,
   screenName: null,
+  rows: null,
+  cols: null,
 };
 
 export const usePartnerHomeStore = create<PartnerHomeState>((set) => ({
@@ -37,7 +41,8 @@ export const usePartnerHomeStore = create<PartnerHomeState>((set) => ({
     set((state) => ({
       seatLayoutContext: { ...state.seatLayoutContext, ...context },
     })),
-  resetSeatLayoutContext: () => set({ seatLayoutContext: { ...initialSeatLayoutContext } }),
+  resetSeatLayoutContext: () =>
+    set({ seatLayoutContext: { ...initialSeatLayoutContext } }),
 }));
 
 export type { SeatLayoutContextState };
