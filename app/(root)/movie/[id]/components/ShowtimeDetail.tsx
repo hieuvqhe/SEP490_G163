@@ -138,7 +138,7 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
 
   // Tạo session booking mới nhưng dựa trên showtimeID, chỉ tạo session mới khi có showtimeID mới
   const handleCreateNewSession = (showtimeId: number) => {
-    if (user) {
+    // if (user) {
       setShowtimeId(showtimeId); // rất quan trọng
 
       if (currentSessionId && sessionStillOnTime) {
@@ -168,9 +168,9 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
           console.error("Create new session failed", err);
         },
       });
-    } else {
-      showToast("Bạn cần đăng nhập để thực hiện tính năng này", "", "warning");
-    }
+    // } else {
+    //   showToast("Bạn cần đăng nhập để thực hiện tính năng này", "", "warning");
+    // }
   };
 
   const isOutDate = cinema.screens.every((screen) => {

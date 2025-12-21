@@ -113,7 +113,7 @@ const CombosDialog = ({
     return sum + (item?.quantity ?? 0) * c.price;
   }, 0);
 
-  const currentCombos = counts; 
+  const currentCombos = counts;
 
   const handleGetPreview = () => {
     previewOrderMutate.mutate(
@@ -146,19 +146,21 @@ const CombosDialog = ({
       quantity: c.quantity,
     }));
 
-    console.log(items);
-
-    upsertComboMutate.mutate(
-      { id: sessionId ?? "", items: items.map((i) => i) },
-      {
-        onSuccess: () => handleGetPreview(),
-        onError: () => {
-          console.log(`handleCheckout failed`);
-          showToast("Lỗi lấy thông tin chi tiết đơn hàng", "", "error");
-          return;
-        },
-      }
-    );
+    if (user) {
+      upsertComboMutate.mutate(
+        { id: sessionId ?? "", items: items.map((i) => i) },
+        {
+          onSuccess: () => handleGetPreview(),
+          onError: () => {
+            console.log(`handleCheckout failed`);
+            showToast("Lỗi lấy thông tin chi tiết đơn hàng", "", "error");
+            return;
+          },
+        }
+      );
+    } else {
+      showToast("Bạn cần đăng nhập để thực hiện tính năng này", "", "warning");
+    }
   };
 
   return (
