@@ -138,39 +138,35 @@ const ShowtimeDetailCard = ({ cinema, onOutDate }: ShowtimeDetailCardProps) => {
 
   // Tạo session booking mới nhưng dựa trên showtimeID, chỉ tạo session mới khi có showtimeID mới
   const handleCreateNewSession = (showtimeId: number) => {
-    // if (user) {
-      setShowtimeId(showtimeId); // rất quan trọng
+    setShowtimeId(showtimeId); // rất quan trọng
 
-      if (currentSessionId && sessionStillOnTime) {
+    if (currentSessionId && sessionStillOnTime) {
+      setSeatLayoutContent(true);
+      return;
+    } // Session còn hạn → không tạo mới
+
+    createSessionMutate.mutate(showtimeId, {
+      onSuccess: (res) => {
+        const newId = res.result.bookingSessionId;
+        const newExpires = res.result.expiresAt;
+
+        setCurrentSessionId(newId);
+        setSessionStillOnTime(true);
         setSeatLayoutContent(true);
-        return;
-      } // Session còn hạn → không tạo mới
 
-      createSessionMutate.mutate(showtimeId, {
-        onSuccess: (res) => {
-          const newId = res.result.bookingSessionId;
-          const newExpires = res.result.expiresAt;
-
-          setCurrentSessionId(newId);
-          setSessionStillOnTime(true);
-          setSeatLayoutContent(true);
-
-          localStorage.setItem(
-            LS_KEY,
-            JSON.stringify({
-              id: newId,
-              expiresAt: newExpires,
-              showtimeId,
-            })
-          );
-        },
-        onError: (err) => {
-          console.error("Create new session failed", err);
-        },
-      });
-    // } else {
-    //   showToast("Bạn cần đăng nhập để thực hiện tính năng này", "", "warning");
-    // }
+        localStorage.setItem(
+          LS_KEY,
+          JSON.stringify({
+            id: newId,
+            expiresAt: newExpires,
+            showtimeId,
+          })
+        );
+      },
+      onError: (err) => {
+        console.error("Create new session failed", err);
+      },
+    });
   };
 
   const isOutDate = cinema.screens.every((screen) => {

@@ -980,36 +980,36 @@ const SeatMap = ({
     },
   ];
 
-  // useEffect(() => {
-  //   const handleBeforeUnload = (e) => {
-  //     if (selectedSeats.length == 0) return;
-  //     e.preventDefault();
-  //     e.returnValue = "";
-  //   };
-
-  //   window.addEventListener("beforeunload", handleBeforeUnload);
-  //   return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  // }, [selectedSeats.length > 0]);
-
   useEffect(() => {
-    const handlePageHide = () => {
-      const seats = selectedSeats.map((s) => s.seatId);
-
-      if (selectedSeats.length === 0) return;
-
-      navigator.sendBeacon(
-        `/api/booking/sessions/${sessionId}/seats`,
-        JSON.stringify({
-          data: {
-            seatIds: seats,
-          },
-        })
-      );
+    const handleBeforeUnload = (e) => {
+      if (selectedSeats.length == 0) return;
+      e.preventDefault();
+      e.returnValue = "";
     };
 
-    window.addEventListener("pagehide", handlePageHide);
-    return () => window.removeEventListener("pagehide", handlePageHide);
-  }, [selectedSeats]);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [selectedSeats.length > 0]);
+
+  // useEffect(() => {
+  //   const handlePageHide = () => {
+  //     const seats = selectedSeats.map((s) => s.seatId);
+
+  //     if (selectedSeats.length === 0) return;
+
+  //     navigator.sendBeacon(
+  //       `/api/booking/sessions/${sessionId}/seats`,
+  //       JSON.stringify({
+  //         data: {
+  //           seatIds: seats,
+  //         },
+  //       })
+  //     );
+  //   };
+
+  //   window.addEventListener("pagehide", handlePageHide);
+  //   return () => window.removeEventListener("pagehide", handlePageHide);
+  // }, [selectedSeats]);
 
   return (
     <DialogContent

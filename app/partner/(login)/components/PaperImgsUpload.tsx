@@ -10,7 +10,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 
-type TheaterImgsUploadProps = {
+type PaperImgsUploadProps = {
   fieldChange?: (FILES: File[]) => void;
   mediaUrl?: string;
   handleTheaterFileSelect?: (file: File[]) => void;
@@ -19,13 +19,13 @@ type TheaterImgsUploadProps = {
   isPending?: boolean;
 };
 
-function TheaterImgsUpload({
+function PaperImgsUpload({
   fieldChange = () => {},
   handleTheaterFileSelect = () => {},
   label = "Hình ảnh rạp chiếu",
   maxFiles = 10,
   isPending = false,
-}: TheaterImgsUploadProps) {
+}: PaperImgsUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [fileUrls, setFileUrls] = useState<string[]>([]);
 
@@ -256,4 +256,4 @@ function TheaterImgsUpload({
   );
 }
 
-export default TheaterImgsUpload;
+export default PaperImgsUpload;

@@ -19,11 +19,12 @@ import { useCreatePartner } from "@/hooks/usePartner";
 import { PartnerCreateRequest } from "@/apis/partner.api";
 import { useToast } from "@/components/ToastProvider";
 import FileUpload from "./FileUpload";
-import TheaterImgsUpload from "./TheaterImageUpload";
 import { useUploadToCloudinary } from "@/apis/cloudinary.api";
 import ImagePreviewModal from "./ImagePreviewModal";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
+import PaperImgsUpload from "./PaperImgsUpload";
+import TheaterImgsUpload from "./TheaterImageUpload";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -83,22 +84,21 @@ const Newsletter = () => {
   const { mutate: createPartner, isPending } = useCreatePartner({
     onSuccess: (response) => {
       showToast(response.message ?? "Đăng ký thành công", undefined, "success");
-      router.push('/');
+      router.push("/");
     },
     onError: (message, fieldErrors) => {
       console.log("Error message:", message);
       console.log("Field errors:", fieldErrors);
-      
+
       // Set validation errors for form fields if available
       if (fieldErrors && Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
-        
+
         // Collect all field error messages
         const errorMessages = Object.values(fieldErrors);
-        const displayMessage = errorMessages.length > 0 
-          ? errorMessages.join(', ') 
-          : message;
-        
+        const displayMessage =
+          errorMessages.length > 0 ? errorMessages.join(", ") : message;
+
         showToast(displayMessage, "", "error");
       } else {
         // No field errors, just show the main message
@@ -230,10 +230,10 @@ const Newsletter = () => {
 
     if (!validateForm()) {
       console.log("Form validation failed");
-     
+
       return;
     }
-    
+
     console.log("Form data:", formData);
     createPartner(formData);
   };
@@ -746,9 +746,11 @@ const Newsletter = () => {
               {/* Additional Documents */}
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">
-                  Giấy tờ liên quan khác <span className="text-gray-500 text-xs">(Tùy chọn)</span>
+                  Giấy tờ liên quan khác{" "}
+                  <span className="text-gray-500 text-xs">(Tùy chọn)</span>
                 </label>
-                <TheaterImgsUpload
+                <PaperImgsUpload
+                  isPending={uploadMutation.isPending}
                   handleTheaterFileSelect={handleAdditionalDocumentsSelect}
                   label="Giấy tờ liên quan"
                 />
@@ -759,18 +761,9 @@ const Newsletter = () => {
                 <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">
                   Ảnh rạp chiếu phim
                 </label>
-                {/* <div className="relative">
-                  <Camera className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-400" />
-                  <button
-                    type="button"
-                    onClick={() => handleChooseFile('theater')}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-800/50 dark:bg-gray-800/50 border border-gray-600 dark:border-gray-600 rounded-lg text-gray-100 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-left hover:bg-gray-700/50 dark:hover:bg-gray-700/50"
-                  >
-                    {formData.theaterPhotosUrls[0] ? '✓ Đã chọn ảnh rạp' : 'Chọn ảnh rạp chiếu phim'}
-                  </button>
-                </div> */}
                 <TheaterImgsUpload
                   handleTheaterFileSelect={handleTheaterFileSelect}
+                  isPending={uploadMutation.isPending}
                 />
               </div>
             </div>
