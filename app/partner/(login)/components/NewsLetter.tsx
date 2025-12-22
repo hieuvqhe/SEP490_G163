@@ -84,7 +84,10 @@ const Newsletter = () => {
   const { mutate: createPartner, isPending } = useCreatePartner({
     onSuccess: (response) => {
       showToast(response.message ?? "Đăng ký thành công", undefined, "success");
-      router.push("/");
+
+      setTimeout(() => {
+        router.push("/partner");
+      }, 4000);
     },
     onError: (message, fieldErrors) => {
       console.log("Error message:", message);
