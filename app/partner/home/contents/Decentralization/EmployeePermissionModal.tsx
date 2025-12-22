@@ -620,8 +620,20 @@ export default function EmployeePermissionModal({
     deselectAllGroupPermissions(allCodes);
   };
 
-  // Get permission groups
-  const permissionGroups = permissionsData?.result?.permissionGroups || [];
+  // Get permission groups - chỉ lấy 7 loại quyền của staff
+  const allowedResourceTypes: ResourceType[] = [
+    "BOOKING",
+    "CINEMA",
+    "SCREEN",
+    "SEAT_LAYOUT",
+    "SEAT_TYPE",
+    "SERVICE",
+    "SHOWTIME",
+  ];
+  
+  const permissionGroups = (permissionsData?.result?.permissionGroups || []).filter(
+    (group) => allowedResourceTypes.includes(group.resourceType as ResourceType)
+  );
 
   // Calculate total granted permissions (tính cả pending changes)
   const totalPermissions = permissionGroups.reduce(

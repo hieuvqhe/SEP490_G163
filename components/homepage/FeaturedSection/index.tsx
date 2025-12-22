@@ -20,7 +20,7 @@ const FeaturedSection = () => {
   const { data: movieResponse, isLoading } = useGetFullMovies({
     limit: 10,
     sort_order: "desc",
-    sort_by: "average_rating",
+    sort_by: "created_at",
     page: page,
     status: status,
     search: searchQuery,

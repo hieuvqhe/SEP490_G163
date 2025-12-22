@@ -9,6 +9,7 @@ import {
 } from '@/apis/manager.contract.api';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/components/ToastProvider';
+import { usePermissions } from '@/hooks/usePermissions';
 
 import CreateContractModal from './ContractModal';
 
@@ -20,6 +21,7 @@ const tableVariants = {
 const PartnerSigningTab = () => {
   const { accessToken } = useAuthStore();
   const { showToast } = useToast();
+  const { checkPermissionForPartner } = usePermissions();
 
   const [selectedPartner, setSelectedPartner] = useState<PartnerWithoutContract | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -118,12 +120,18 @@ const PartnerSigningTab = () => {
                     <td className="px-6 py-4 font-medium text-white">{partner.partnerName}</td>
                     <td className="px-6 py-4 text-gray-300">#{partner.partnerId}</td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleOpenModal(partner)}
-                        className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-orange-400"
-                      >
-                        Tạo hợp đồng
-                      </button>
+                      {checkPermissionForPartner('CONTRACT_CREATE', partner.partnerId) ? (
+                        <button
+                          onClick={() => handleOpenModal(partner)}
+                          className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-orange-400"
+                        >
+                          Tạo hợp đồng
+                        </button>
+                      ) : (
+                        <span className="text-xs italic text-gray-500">
+                          Không có quyền
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

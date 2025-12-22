@@ -13,6 +13,7 @@ import {
 } from "@/apis/manager.contract.api";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/ToastProvider";
+import { usePermissions } from "@/hooks/usePermissions";
 
 import ContractDetailModal from "./ContractDetailModal";
 import SendContractModal from "./SendContractModal";
@@ -134,6 +135,7 @@ const formatDateRange = (startDate?: string, endDate?: string) => {
 const ContractManagement = () => {
   const { accessToken, role } = useAuthStore();
   const { showToast } = useToast();
+  const { checkPermissionForPartner } = usePermissions();
 
   const [selectedContractId, setSelectedContractId] = useState<number | null>(
     null
@@ -455,7 +457,7 @@ const ContractManagement = () => {
                               <span className="hidden xl:inline">HĐ đã ký</span>
                             </button>
                           )}
-                          {contract.status === "draft" && (
+                          {contract.status === "draft" && checkPermissionForPartner('CONTRACT_SEND', contract.partnerId) && (
                             <button
                               onClick={() =>
                                 handleOpenSendModal(contract.contractId)
@@ -466,7 +468,7 @@ const ContractManagement = () => {
                               <span className="hidden xl:inline">Gửi HĐ</span>
                             </button>
                           )}
-                          {contract.status === "pending" && (
+                          {contract.status === "pending" && checkPermissionForPartner('CONTRACT_ACTIVATE', contract.partnerId) && (
                             <button
                               onClick={() =>
                                 handleActivateContract(contract.contractId)
